@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "LifeNova",
+    "slug": "LifeNova",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/li.png",
+    "userInterfaceStyle": "light",
+    "scheme": "lifenova",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lifenova.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIViewControllerBasedStatusBarAppearance": true,
+        "UIStatusBarStyle": "UIStatusBarStyleDarkContent",
+        "NSCameraUsageDescription": "LifeNova a besoin d'accéder à votre caméra pour prendre des photos de profil.",
+        "NSPhotoLibraryUsageDescription": "LifeNova a besoin d'accéder à votre bibliothèque de photos pour personnaliser votre expérience.",
+        "NSLocationWhenInUseUsageDescription": "LifeNova utilise votre localisation pour vous fournir des recommandations personnalisées.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "associatedDomains": ["applinks:lifenova.com"]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.lifenova.app",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    }
+  }
+}
