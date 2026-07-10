@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three-globe@2.31.0/dist/three-globe.min.js"></script>
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.25);
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.25);
+            --yellow: #F59E0B; --orange: #F97316; --orange-light: #FFEDD5;
+            --bg: #F1F5F9; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09); --shadow-xl: 0 24px 70px rgba(0,0,0,.11);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
+            --transition: .3s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w: 260px;
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
+            --border: #1E293B;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 20px rgba(0,0,0,.3); --shadow-md: 0 8px 30px rgba(0,0,0,.4); --shadow-lg: 0 16px 50px rgba(0,0,0,.5); --shadow-xl: 0 24px 70px rgba(0,0,0,.6);
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden;max-width:100vw}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;max-width:100vw;width:100%;-webkit-font-smoothing:antialiased;transition:background .5s,color .5s;line-height:1.6;min-height:100vh}
+        a{text-decoration:none;color:inherit}
+        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        img{max-width:100%;height:auto}
+
+        .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* ===== TOP BAR ===== */
+        .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
+        .topbar-left{display:flex;align-items:center;gap:16px}
+        .topbar-logo{display:flex;align-items:center;gap:10px}
+        .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-right{display:flex;align-items:center;gap:16px}
+        .topbar-icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all var(--transition);color:var(--text-3)}
+        .topbar-icon-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
+        .topbar-icon-btn .badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:#EF4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+        .topbar-lang{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;color:var(--text-2);transition:all var(--transition);position:relative}
+        .topbar-lang:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .topbar-language-dropdown{position:absolute;top:100%;right:0;margin-top:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);padding:4px;min-width:140px;display:none;z-index:200}
+        .topbar-language-dropdown.show{display:block}
+        .topbar-language-dropdown button{width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;text-align:left;font-size:13px;font-family:'Inter',sans-serif;border-radius:8px;transition:all .2s;color:var(--text-2);display:flex;align-items:center;gap:8px}
+        .topbar-language-dropdown button:hover{background:var(--surface-hover);color:var(--blue)}
+        .topbar-language-dropdown button.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+        .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
+        .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
+        .topbar-profile-role{font-size:10px;color:var(--text-4)}
+
+        /* ===== SIDEBAR ===== */
+        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
+        .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}
+        .sidebar-link:hover{background:var(--surface-hover);color:var(--text)}
+        .sidebar-link.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+        .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
+        .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px)}
+        .dashboard-grid{display:grid;grid-template-columns:1fr 360px;gap:28px}
+        .dashboard-col{display:flex;flex-direction:column;gap:28px}
+
+        /* ===== BALANCE CARD ===== */
+        .balance-card{background:linear-gradient(135deg,#1E3A8A,#2563EB,#1D4ED8,#059669,#047857);background-size:300% 300%;border-radius:var(--radius-xl);padding:36px 40px;color:#fff;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(37,99,235,.3);animation:bgShift 8s ease-in-out infinite}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .balance-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(245,158,11,.15),transparent 60%),radial-gradient(circle at 20% 80%,rgba(16,185,129,.15),transparent 60%);pointer-events:none}
+        .balance-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+        .balance-label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:600;opacity:.75}
+        .balance-amount{font-size:clamp(32px,4.5vw,48px);font-weight:900;font-family:'Outfit',sans-serif;letter-spacing:-.02em;margin:8px 0 4px}
+        .balance-amount.blurred{filter:blur(12px);user-select:none}
+        .balance-currency{font-size:14px;opacity:.7;font-weight:500}
+        .balance-eye-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;color:#fff}
+        .balance-eye-btn:hover{background:rgba(255,255,255,.25)}
+        .balance-actions{display:flex;gap:12px;margin-top:28px;position:relative;z-index:1}
+        .bal-action-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition);color:#fff;font-family:'Inter',sans-serif}
+        .bal-action-btn:hover{background:rgba(255,255,255,.2);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+        .bal-action-btn i{font-size:22px}
+        .bal-action-btn span{font-size:12px;font-weight:600}
+        .balance-pattern{position:absolute;top:-30px;right:-30px;width:200px;height:200px;border-radius:50%;border:2px solid rgba(255,255,255,.08);pointer-events:none;z-index:0}
+        .balance-pattern:nth-child(2){width:280px;height:280px;top:-80px;right:-80px;border-width:1px}
+        .balance-pattern:nth-child(3){width:360px;height:360px;top:-130px;right:-130px;border-width:1px;opacity:.5}
+
+        /* ===== QUICK ACTIONS GRID ===== */
+        .section-title{font-size:18px;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+        .quick-actions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+        .quick-action-card{padding:22px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all var(--transition);position:relative;overflow:hidden}
+        .quick-action-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+        .quick-action-card:hover .qa-icon{transform:scale(1.1)}
+        .qa-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;transition:all var(--transition)}
+        .qa-icon.send{background:#DBEAFE;color:#2563EB}
+        .qa-icon.receive{background:#D1FAE5;color:#059669}
+        .qa-icon.deposit{background:#FEF3C7;color:#D97706}
+        .qa-icon.withdraw{background:#FFEDD5;color:#EA580C}
+        .qa-icon.history{background:#EDE9FE;color:#7C3AED}
+        .qa-icon.calculator{background:#FCE7F3;color:#DB2777}
+        .qa-icon.contacts{background:#E0F2FE;color:#0284C7}
+        .qa-icon.qr{background:#F1F5F9;color:#334155}
+        .qa-icon.converter{background:#ECFDF5;color:#059669}
+        .qa-icon.support{background:#FFF7ED;color:#EA580C}
+        .qa-icon.settings{background:#F8FAFC;color:#64748B}
+        .qa-icon.kyc{background:#FEF2F2;color:#DC2626}
+        .qa-name{font-size:12px;font-weight:600;color:var(--text-2)}
+
+        /* ===== STATS ===== */
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+        .stat-card{padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);transition:all var(--transition)}
+        .stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--blue)}
+        .stat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+        .stat-card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px}
+        .si-sent{background:#DBEAFE;color:#2563EB}
+        .si-received{background:#D1FAE5;color:#059669}
+        .si-tx{background:#FEF3C7;color:#D97706}
+        .si-benef{background:#EDE9FE;color:#7C3AED}
+        .stat-card-value{font-size:24px;font-weight:800;font-family:'Outfit',sans-serif}
+        .stat-card-label{font-size:12px;color:var(--text-4);font-weight:500}
+        .stat-card-change{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;margin-top:6px}
+        .stat-change-up{background:var(--green-light);color:var(--green-dark)}
+        .stat-change-down{background:#FEE2E2;color:#DC2626}
+        .stat-change-neutral{background:var(--surface-hover);color:var(--text-4)}
+
+        /* ===== TABLE ===== */
+        .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;overflow:hidden}
+        .table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+        .table-header a{font-size:12px;color:var(--blue);font-weight:600}
+        .table-header a:hover{text-decoration:underline}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        thead th{text-align:left;padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-4);border-bottom:1px solid var(--border)}
+        tbody td{padding:14px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+        tbody tr:hover{background:var(--surface-hover)}
+        .tx-user{display:flex;align-items:center;gap:10px;font-weight:600}
+        .tx-user-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--green))}
+        .tx-status{padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
+        .status-pending{background:#FEF3C7;color:#D97706}
+        .status-processing{background:#DBEAFE;color:#2563EB}
+        .status-success{background:#D1FAE5;color:#059669}
+        .status-failed{background:#FEE2E2;color:#DC2626}
+        .empty-table{padding:40px;text-align:center;color:var(--text-4);font-size:14px}
+        .empty-table i{font-size:32px;margin-bottom:10px;display:block;color:var(--text-4)}
+
+        /* ===== GLOBE ===== */
+        .globe-card{background:linear-gradient(180deg,#0A0F1E,#111827,#0A0F1E);border-radius:var(--radius-lg);overflow:hidden;height:320px;position:relative}
+        #miniGlobe{width:100%;height:100%}
+        .globe-label{position:absolute;top:16px;left:20px;font-size:13px;font-weight:700;color:#CBD5E1;z-index:5;background:rgba(11,17,32,.8);padding:6px 14px;border-radius:8px;backdrop-filter:blur(8px)}
+
+        /* ===== OPERATORS ===== */
+        .operators-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+        .operator-badges{display:flex;flex-wrap:wrap;gap:10px}
+        .op-badge{padding:8px 16px;border-radius:100px;font-size:11px;font-weight:700;color:#fff;transition:all var(--transition);cursor:default}
+        .op-badge:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+        .op-tmoney{background:linear-gradient(135deg,#FFD700,#FFB300);color:#5D4037}
+        .op-moov{background:linear-gradient(135deg,#00A3E0,#006699)}
+        .op-mtn{background:linear-gradient(135deg,#FFCC00,#E6A800);color:#5D4037}
+        .op-orange{background:linear-gradient(135deg,#FF6600,#E05500)}
+        .op-wave{background:linear-gradient(135deg,#1E90FF,#0055CC)}
+        .op-airtel{background:linear-gradient(135deg,#EE0000,#BB0000)}
+        .op-vodacom{background:linear-gradient(135deg,#E60000,#CC0000)}
+        .op-free{background:linear-gradient(135deg,#E91E63,#C2185B)}
+        .op-wizall{background:linear-gradient(135deg,#9C27B0,#6A1B9A)}
+        .op-zamtel{background:linear-gradient(135deg,#4CAF50,#2E7D32)}
+
+        /* ===== ACTIVITY TIMELINE ===== */
+        .timeline-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+        .timeline{display:flex;flex-direction:column;gap:0}
+        .tl-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);position:relative}
+        .tl-item:last-child{border-bottom:none}
+        .tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;position:relative}
+        .tl-dot.send{background:var(--blue)}
+        .tl-dot.receive{background:var(--green)}
+        .tl-dot.login{background:var(--yellow)}
+        .tl-dot.withdraw{background:var(--orange)}
+        .tl-content{flex:1}
+        .tl-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+        .tl-sub{font-size:11px;color:var(--text-4)}
+        .tl-amount{font-weight:700;font-size:13px;text-align:right;white-space:nowrap}
+        .tl-amount.send{color:var(--blue)}
+        .tl-amount.receive{color:var(--green)}
+
+        /* ===== EXCHANGE RATES ===== */
+        .rates-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+        .rate-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+        .rate-row:last-child{border-bottom:none}
+        .rate-currency{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px}
+        .rate-flag{font-size:18px}
+        .rate-value{font-weight:700;font-size:14px}
+        .rate-change{font-size:11px;font-weight:600;margin-left:8px}
+        .rate-up{color:#059669}
+        .rate-down{color:#DC2626}
+
+        /* ===== KYC BANNER ===== */
+        .kyc-banner{padding:20px 24px;background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1.5px solid #FDE68A;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:16px}
+        [data-theme="dark"] .kyc-banner{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.05));border-color:rgba(245,158,11,.2)}
+        .kyc-info{display:flex;align-items:center;gap:14px}
+        .kyc-icon{font-size:28px}
+        .kyc-text h4{font-size:14px;font-weight:700;margin-bottom:2px}
+        .kyc-text p{font-size:12px;color:var(--text-3)}
+        .kyc-btn{padding:10px 20px;background:var(--yellow);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:'Inter',sans-serif}
+        .kyc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(245,158,11,.3)}
+
+        /* ===== REFERRAL ===== */
+        .referral-card{padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);text-align:center}
+        .referral-card h4{font-size:16px;font-weight:700;margin-bottom:6px}
+        .referral-card p{font-size:12px;color:var(--text-3);margin-bottom:16px}
+        .ref-code{font-size:22px;font-weight:800;letter-spacing:.15em;background:var(--surface-hover);padding:10px 20px;border-radius:12px;border:1px dashed var(--border);font-family:'Outfit',sans-serif;margin-bottom:12px}
+        .ref-copy-btn{padding:8px 20px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-weight:600;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+        .ref-copy-btn:hover{background:var(--blue-dark);transform:translateY(-2px)}
+        .ref-stats{display:flex;gap:20px;justify-content:center;margin-top:16px}
+        .ref-stat{text-align:center}
+        .ref-stat .ref-num{font-size:20px;font-weight:800;font-family:'Outfit',sans-serif}
+        .ref-stat .ref-lbl{font-size:10px;color:var(--text-4);font-weight:600;text-transform:uppercase}
+
+        /* ===== FOOTER ===== */
+        .dashboard-footer{padding:20px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border);margin-top:12px;font-size:11px;color:var(--text-4)}
+        .dashboard-footer a{color:var(--text-3);transition:color .2s}
+        .dashboard-footer a:hover{color:var(--blue)}
+
+        /* ===== MOBILE BOTTOM NAV ===== */
+        .mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:0 12px;justify-content:space-around;align-items:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+        .mb-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-4);cursor:pointer;transition:all .2s;padding:6px 10px;border-radius:10px}
+        .mb-nav-item.active{color:var(--blue)}
+        .mb-nav-item i{font-size:20px}
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1200px){
+            .dashboard-grid{grid-template-columns:1fr}
+            .quick-actions-grid{grid-template-columns:repeat(3,1fr)}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}
+        }
+        @media(max-width:768px){
+            .sidebar{display:none}
+            .main-content{margin-left:0;padding:20px 16px 80px}
+            .dashboard-grid{grid-template-columns:1fr}
+            .quick-actions-grid{grid-template-columns:repeat(3,1fr)}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}
+            .balance-actions{flex-wrap:wrap}
+            .bal-action-btn{flex:1 1 40%}
+            .balance-card{padding:28px 24px}
+            .balance-amount{font-size:30px}
+            table{font-size:11px}
+            thead{display:none}
+            tbody tr{display:flex;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
+            tbody td{display:block;padding:4px 0;border:none;text-align:right;width:50%}
+            tbody td::before{content:attr(data-label);float:left;font-weight:700;color:var(--text-4);font-size:10px;text-transform:uppercase}
+            .mobile-bottom-nav{display:flex}
+            .topbar{padding:0 16px}
+            .topbar-lang,.topbar-profile-name,.topbar-profile-role{display:none}
+        }
+        @media(max-width:480px){
+            .quick-actions-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+            .quick-action-card{padding:16px 10px}
+            .qa-icon{width:38px;height:38px;font-size:18px;margin-bottom:8px}
+            .qa-name{font-size:10px}
+            .stats-grid{grid-template-columns:1fr 1fr;gap:8px}
+            .stat-card{padding:16px}
+            .stat-card-value{font-size:18px}
+            .balance-amount{font-size:26px}
+            .bal-action-btn i{font-size:18px}
+            .bal-action-btn span{font-size:10px}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/" class="topbar-logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik">
+            <span>TransAfrik</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <button class="topbar-icon-btn" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            {% if unread_notifications > 0 %}
+            <span class="badge">{{ unread_notifications }}</span>
+            {% endif %}
+        </button>
+        <div style="position:relative">
+            <button class="topbar-lang" id="langBtn" onclick="document.getElementById('langDropdown').classList.toggle('show')">
+                <i class="fa-solid fa-globe"></i> FR
+            </button>
+            <div class="topbar-language-dropdown" id="langDropdown">
+                <button class="active" onclick="switchLang('fr',this)"><i class="fa-solid fa-check" style="font-size:10px"></i> Français</button>
+                <button onclick="switchLang('en',this)"><i class="fa-solid fa-check" style="font-size:10px;visibility:hidden"></i> English</button>
+            </div>
+        </div>
+        <div class="topbar-profile" id="profileMenu">
+            <div class="topbar-profile-avatar">{{ user.first_name|upper|truncate(1,True,'') }}{% if user.fullname.strip().split()|length > 1 %}{{ user.fullname.strip().split()[1]|upper|truncate(1,True,'') }}{% endif %}</div>
+            <div>
+                <div class="topbar-profile-name">{{ user.fullname }}</div>
+                <div class="topbar-profile-role">{{ country_names.get(user.country, user.country) }}</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+    <nav class="sidebar-nav">
+        <a href="/dashboard" class="sidebar-link active"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+        <a href="/send-money" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-arrow-down-wide-short"></i> Recevoir</a>
+<a href="/history" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <div class="sidebar-section-title">Services</div>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-address-book"></i> Bénéficiaires</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> QR Code</a>
+        <div class="sidebar-section-title">Paramètres</div>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-user-check"></i> Vérification KYC</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-gear"></i> Paramètres</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-headset"></i> Support</a>
+        <a href="/logout" class="sidebar-link"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+    <div class="dashboard-grid">
+        <!-- LEFT COLUMN -->
+        <div class="dashboard-col">
+
+            <!-- BALANCE CARD -->
+            <div class="balance-card">
+                <div class="balance-pattern"></div>
+                <div class="balance-pattern"></div>
+                <div class="balance-pattern"></div>
+                <div class="balance-card-top">
+                    <div>
+                        <div class="balance-label">Solde disponible</div>
+                        <div class="balance-amount" id="balanceAmount" data-real="{{ user.balance or 0 }}">{{ "{:,.0f}".format(user.balance or 0) }}</div>
+                        <div class="balance-currency">{{ user.currency or 'XOF' }}</div>
+                    </div>
+                    <button class="balance-eye-btn" id="balanceEyeBtn" onclick="toggleBalance()"><i class="fa-solid fa-eye"></i></button>
+                </div>
+                {% if user.pending_balance %}
+                <div style="position:relative;z-index:1;margin-top:12px;font-size:12px;opacity:0.8">
+                    <i class="fa-solid fa-clock"></i> Solde en attente : {{ "{:,.0f}".format(user.pending_balance) }} {{ user.currency or 'XOF' }}
+                </div>
+                {% endif %}
+                <div class="balance-actions">
+                    <button class="bal-action-btn"><i class="fa-solid fa-plus-circle"></i><span>Déposer</span></button>
+            <a href="/send-money" class="bal-action-btn"><i class="fa-solid fa-paper-plane"></i><span>Envoyer</span></a>
+                    <button class="bal-action-btn"><i class="fa-solid fa-arrow-down"></i><span>Retirer</span></button>
+<a href="/history" class="bal-action-btn"><i class="fa-solid fa-clock-rotate-left"></i><span>Historique</span></a>
+                </div>
+            </div>
+
+            <!-- QUICK ACTIONS -->
+            <div>
+                <div class="section-title"><i class="fa-solid fa-bolt" style="color:var(--yellow)"></i> Actions rapides</div>
+                <div class="quick-actions-grid">
+    <a href="/send-money" class="quick-action-card"><div class="qa-icon send"><i class="fa-solid fa-paper-plane"></i></div><div class="qa-name">Envoyer de l'argent</div></a>
+                    <div class="quick-action-card"><div class="qa-icon receive"><i class="fa-solid fa-arrow-down-wide-short"></i></div><div class="qa-name">Recevoir de l'argent</div></div>
+                    <div class="quick-action-card"><div class="qa-icon deposit"><i class="fa-solid fa-wallet"></i></div><div class="qa-name">Dépôt Mobile Money</div></div>
+                    <div class="quick-action-card"><div class="qa-icon withdraw"><i class="fa-solid fa-building-columns"></i></div><div class="qa-name">Retrait Mobile Money</div></div>
+<a href="/history" class="quick-action-card"><div class="qa-icon history"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="qa-name">Historique</div></a>
+                    <div class="quick-action-card"><div class="qa-icon calculator"><i class="fa-solid fa-calculator"></i></div><div class="qa-name">Calculateur de frais</div></div>
+                    <div class="quick-action-card"><div class="qa-icon contacts"><i class="fa-solid fa-address-book"></i></div><div class="qa-name">Mes bénéficiaires</div></div>
+                    <div class="quick-action-card"><div class="qa-icon qr"><i class="fa-solid fa-qrcode"></i></div><div class="qa-name">Scanner QR Code</div></div>
+                    <div class="quick-action-card"><div class="qa-icon converter"><i class="fa-solid fa-rotate"></i></div><div class="qa-name">Convertisseur de devises</div></div>
+                    <div class="quick-action-card"><div class="qa-icon support"><i class="fa-solid fa-headset"></i></div><div class="qa-name">Support</div></div>
+                    <div class="quick-action-card"><div class="qa-icon settings"><i class="fa-solid fa-gear"></i></div><div class="qa-name">Paramètres</div></div>
+                    <div class="quick-action-card"><div class="qa-icon kyc"><i class="fa-solid fa-shield-halved"></i></div><div class="qa-name">Vérification KYC</div></div>
+                </div>
+            </div>
+
+            <!-- STATISTICS -->
+            <div>
+                <div class="section-title"><i class="fa-solid fa-chart-line" style="color:var(--blue)"></i> Statistiques</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top"><div class="stat-card-icon si-sent"><i class="fa-solid fa-paper-plane"></i></div></div>
+                        <div class="stat-card-value">{{ "{:,.0f}".format(total_sent) }}</div>
+                        <div class="stat-card-label">Total envoyé ({{ user.currency or 'XOF' }})</div>
+                        <div class="stat-card-change stat-change-neutral">&mdash;</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top"><div class="stat-card-icon si-received"><i class="fa-solid fa-arrow-down-wide-short"></i></div></div>
+                        <div class="stat-card-value">{{ "{:,.0f}".format(total_received) }}</div>
+                        <div class="stat-card-label">Total reçu ({{ user.currency or 'XOF' }})</div>
+                        <div class="stat-card-change stat-change-neutral">&mdash;</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top"><div class="stat-card-icon si-tx"><i class="fa-solid fa-arrow-right-arrow-left"></i></div></div>
+                        <div class="stat-card-value">{{ tx_count }}</div>
+                        <div class="stat-card-label">Transactions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top"><div class="stat-card-icon si-benef"><i class="fa-solid fa-users"></i></div></div>
+                        <div class="stat-card-value">{{ beneficiary_count }}</div>
+                        <div class="stat-card-label">Bénéficiaires</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT TRANSFERS -->
+            <div class="table-card">
+                <div class="table-header">
+                    <h3 style="font-size:18px;font-weight:800">Transferts récents</h3>
+<a href="/history">Voir tout <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                <div style="overflow-x:auto">
+                    {% if recent_txs %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bénéficiaire</th>
+                                <th>Pays</th>
+                                <th>Opérateur</th>
+                                <th>Montant</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in recent_txs %}
+                            <tr>
+                                <td data-label="Bénéficiaire">
+                                    <div class="tx-user">
+                                        <div class="tx-user-avatar">{{ tx.recipient_name|default('?')|truncate(2,True,'')|upper }}</div>
+                                        {{ tx.recipient_name or '—' }}
+                                    </div>
+                                </td>
+                                <td data-label="Pays">{{ country_flags.get(tx.recipient_country, '🌍') }} {{ country_names.get(tx.recipient_country, tx.recipient_country or '—') }}</td>
+                                <td data-label="Opérateur">{{ tx.recipient_operator or '—' }}</td>
+                                <td data-label="Montant">
+                                    <strong style="color:{% if tx.type in ['send','withdraw'] %}var(--blue){% else %}var(--green){% endif %}">
+                                        {{ '+' if tx.type in ['receive','deposit'] else '-' }}{{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
+                                    </strong>
+                                </td>
+                                <td data-label="Date">{{ tx.created_at.strftime('%d/%m/%Y') }}</td>
+                                <td data-label="Statut">
+                                    {% set status_classes = {'pending':'status-pending','processing':'status-processing','success':'status-success','failed':'status-failed'} %}
+                                    {% set status_labels = {'pending':'En attente','processing':'En cours','success':'Réussi','failed':'Échec'} %}
+                                    <span class="tx-status {{ status_classes.get(tx.status,'status-pending') }}">{{ status_labels.get(tx.status, tx.status) }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-table">
+                        <i class="fa-solid fa-inbox"></i>
+                        <p>Aucune transaction pour le moment.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="dashboard-col">
+
+            <!-- GLOBE -->
+            <div class="globe-card">
+                <div class="globe-label"><i class="fa-solid fa-globe-africa"></i> Transferts en direct</div>
+                <div id="miniGlobe"></div>
+            </div>
+
+            <!-- KYC BANNER -->
+            <div class="kyc-banner">
+                <div class="kyc-info">
+                    <div class="kyc-icon">
+                        {% if user.kyc_status == 'verified' %}✅
+                        {% elif user.kyc_status == 'rejected' %}❌
+                        {% else %}🛡️{% endif %}
+                    </div>
+                    <div class="kyc-text">
+                        <h4>
+                            {% if user.kyc_status == 'verified' %}Compte vérifié
+                            {% elif user.kyc_status == 'rejected' %}Vérification refusée
+                            {% else %}Vérification du compte{% endif %}
+                        </h4>
+                        <p>
+                            {% if user.kyc_status == 'verified' %}Votre compte est entièrement vérifié.
+                            {% elif user.kyc_status == 'rejected' %}Votre vérification a été refusée. Veuillez réessayer.
+                            {% else %}Complétez votre vérification KYC pour augmenter vos limites.{% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% if user.kyc_status != 'verified' %}
+                <button class="kyc-btn">
+                    {% if user.kyc_status == 'rejected' %}Réessayer{% else %}Vérifier maintenant{% endif %}
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- OPERATORS -->
+            <div class="operators-card">
+                <div class="section-title" style="font-size:14px;margin-bottom:14px"><i class="fa-solid fa-tower-cell"></i> Opérateurs disponibles</div>
+                <div class="operator-badges">
+                    <span class="op-badge op-tmoney">TMoney</span>
+                    <span class="op-badge op-moov">Moov Money</span>
+                    <span class="op-badge op-mtn">MTN MoMo</span>
+                    <span class="op-badge op-orange">Orange Money</span>
+                    <span class="op-badge op-wave">Wave</span>
+                    <span class="op-badge op-airtel">Airtel Money</span>
+                    <span class="op-badge op-vodacom">Vodacom</span>
+                    <span class="op-badge op-free">Free Money</span>
+                    <span class="op-badge op-wizall">Wizall</span>
+                    <span class="op-badge op-zamtel">Zamtel</span>
+                </div>
+            </div>
+
+            <!-- EXCHANGE RATES -->
+            <div class="rates-card">
+                <div class="section-title" style="font-size:14px;margin-bottom:14px"><i class="fa-solid fa-coins" style="color:var(--yellow)"></i> Taux de change</div>
+                <div class="rate-row">
+                    <div class="rate-currency"><span class="rate-flag">🌍</span> XOF (F CFA)</div>
+                    <div><span class="rate-value">1</span><span class="rate-change rate-up">↗ Réf.</span></div>
+                </div>
+                <div class="rate-row">
+                    <div class="rate-currency"><span class="rate-flag">🌍</span> XAF (F CFA)</div>
+                    <div><span class="rate-value">1,00</span><span class="rate-change rate-up">↗ 0,0%</span></div>
+                </div>
+                <div class="rate-row">
+                    <div class="rate-currency"><span class="rate-flag">🇺🇸</span> USD</div>
+                    <div><span class="rate-value">0,0016</span><span class="rate-change rate-down">↘ 0,3%</span></div>
+                </div>
+                <div class="rate-row">
+                    <div class="rate-currency"><span class="rate-flag">🇪🇺</span> EUR</div>
+                    <div><span class="rate-value">0,0015</span><span class="rate-change rate-up">↗ 0,2%</span></div>
+                </div>
+                <div class="rate-row">
+                    <div class="rate-currency"><span class="rate-flag">🇨🇩</span> CDF</div>
+                    <div><span class="rate-value">4,55</span><span class="rate-change rate-down">↘ 0,5%</span></div>
+                </div>
+                <div class="rate-row">
+                    <div class="rate-currency"><span class="rate-flag">🇺🇬</span> UGX</div>
+                    <div><span class="rate-value">6,10</span><span class="rate-change rate-up">↗ 0,1%</span></div>
+                </div>
+            </div>
+
+            <!-- ACTIVITY TIMELINE -->
+            <div class="timeline-card">
+                <div class="section-title" style="font-size:14px;margin-bottom:14px"><i class="fa-solid fa-list-check" style="color:var(--green)"></i> Activité récente</div>
+                <div class="timeline">
+                    {% if recent_txs %}
+                    {% for tx in recent_txs %}
+                    <div class="tl-item">
+                        <div class="tl-dot {% if tx.type == 'send' %}send{% elif tx.type == 'receive' %}receive{% elif tx.type == 'withdraw' %}withdraw{% else %}send{% endif %}"></div>
+                        <div class="tl-content">
+                            <div class="tl-title">
+                                {% if tx.type == 'send' %}Vous avez envoyé {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }} vers {{ country_names.get(tx.recipient_country, tx.recipient_country or '—') }}
+                                {% elif tx.type == 'receive' %}Vous avez reçu {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
+                                {% elif tx.type == 'withdraw' %}Retrait de {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
+                                {% elif tx.type == 'deposit' %}Dépôt de {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
+                                {% else %}Transaction #{{ tx.id }}{% endif %}
+                            </div>
+                            <div class="tl-sub">{{ tx.created_at.strftime('%d/%m/%Y, %H:%M') }}</div>
+                        </div>
+                        <div class="tl-amount {% if tx.type in ['send','withdraw'] %}send{% else %}receive{% endif %}">
+                            {{ '+' if tx.type in ['receive','deposit'] else '-' }}{{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div style="padding:20px;text-align:center;color:var(--text-4);font-size:13px">
+                        <i class="fa-solid fa-inbox" style="font-size:28px;display:block;margin-bottom:8px;color:var(--text-4)"></i>
+                        Aucune activité récente.
+                    </div>
+                    {% endif %}
+                    <div class="tl-item">
+                        <div class="tl-dot login"></div>
+                        <div class="tl-content"><div class="tl-title">Compte créé</div><div class="tl-sub">{{ user.created_at.strftime('%d/%m/%Y, %H:%M') }}</div></div>
+                        <div class="tl-amount"><span style="color:var(--text-4);font-size:11px">Inscription</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REFERRAL -->
+            <div class="referral-card">
+                <h4><i class="fa-solid fa-gift" style="color:var(--yellow)"></i> Parrainage</h4>
+                <p>Invitez vos amis et gagnez des récompenses</p>
+                <div class="ref-code" id="refCode">{{ user.referral_code or 'TAF-' + user.fullname|upper|truncate(8,True,'') }}</div>
+                <button class="ref-copy-btn" onclick="copyRefCode()"><i class="fa-solid fa-copy"></i> Copier le code</button>
+                <div class="ref-stats">
+                    <div class="ref-stat"><div class="ref-num">0</div><div class="ref-lbl">Filleuls</div></div>
+                    <div class="ref-stat"><div class="ref-num" style="color:var(--green)">0</div><div class="ref-lbl">Récompenses ({{ user.currency or 'XOF' }})</div></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="dashboard-footer">
+        <div>
+            <a href="#">Support</a> &nbsp;·&nbsp;
+            <a href="#">FAQ</a> &nbsp;·&nbsp;
+            <a href="#">Conditions</a> &nbsp;·&nbsp;
+            <a href="#">Politique de confidentialité</a>
+        </div>
+        <div>© 2026 TransAfrik · Version 1.0</div>
+    </div>
+</main>
+
+<!-- ===== MOBILE BOTTOM NAV ===== -->
+<nav class="mobile-bottom-nav">
+    <div class="mb-nav-item active"><i class="fa-solid fa-house"></i><span>Accueil</span></div>
+    <a href="/send-money" class="mb-nav-item"><i class="fa-solid fa-paper-plane"></i><span>Envoyer</span></a>
+<a href="/history" class="mb-nav-item"><i class="fa-solid fa-clock-rotate-left"></i><span>Historique</span></a>
+    <div class="mb-nav-item"><i class="fa-solid fa-bell"></i><span>Notifications</span></div>
+    <div class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Profil</span></div>
+</nav>
+
+<script>
+/* ===== BALANCE TOGGLE ===== */
+let balanceVisible = true;
+const balanceAmountEl = document.getElementById('balanceAmount');
+const balanceEyeBtn = document.getElementById('balanceEyeBtn');
+const realBalance = balanceAmountEl.dataset.real || '0';
+
+function toggleBalance(){
+    balanceVisible = !balanceVisible;
+    if(balanceVisible){
+        balanceAmountEl.classList.remove('blurred');
+        balanceAmountEl.textContent = Number(realBalance).toLocaleString('fr-FR');
+        balanceEyeBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    } else {
+        balanceAmountEl.classList.add('blurred');
+        balanceAmountEl.textContent = '••••••';
+        balanceEyeBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    }
+}
+
+/* ===== REFERRAL COPY ===== */
+function copyRefCode(){
+    const code = document.getElementById('refCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target.closest('button');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copié !';
+        setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copier le code'; }, 2000);
+    });
+}
+
+/* ===== LANGUAGE SWITCH ===== */
+function switchLang(lang, el){
+    document.querySelectorAll('#langDropdown button').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('langBtn').innerHTML = '<i class="fa-solid fa-globe"></i> ' + lang.toUpperCase();
+    document.getElementById('langDropdown').classList.remove('show');
+}
+
+/* ===== MINI GLOBE ===== */
+(function(){
+    const container = document.getElementById('miniGlobe');
+    if(!container||!window.ThreeGlobe)return;
+    const countries = [
+        {lat:8.6,lng:0.8},{lat:9.3,lng:2.3},{lat:7.4,lng:12.3},{lat:7.5,lng:-5.5},{lat:12.2,lng:-1.6},
+        {lat:14.5,lng:-14.4},{lat:-4.0,lng:21.0},{lat:-0.7,lng:15.3},{lat:-0.8,lng:11.6},{lat:1.4,lng:32.3},{lat:-13.1,lng:27.8}
+    ];
+    const lats = countries.map(c=>c.lat), lngs = countries.map(c=>c.lng);
+    const scene = new THREE.Scene();
+    const w = container.clientWidth, h = container.clientHeight;
+    const camera = new THREE.PerspectiveCamera(38,w/h,1,1000);camera.position.z=280;
+    const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    container.appendChild(renderer.domElement);
+    const globe = new ThreeGlobe()
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .pointLat(lats).pointLng(lngs).pointColor(()=>'#2563EB').pointAltitude(.01).pointRadius(.22).pointResolution(10).pointsMerge(true)
+        .atmosphereColor('#2563EB').atmosphereAltitude(.08).showAtmosphere(true);
+    scene.add(globe);
+    scene.add(new THREE.AmbientLight(0x4040a0,.5));
+    const dir = new THREE.DirectionalLight(0xffffff,.8);dir.position.set(1,0,1);scene.add(dir);
+    const arcPairs = [];for(let i=0;i<countries.length;i++)for(let j=i+1;j<countries.length;j++)arcPairs.push({startLat:countries[i].lat,startLng:countries[i].lng,endLat:countries[j].lat,endLng:countries[j].lng});
+    globe.arcsData(arcPairs.filter((_,i)=>i%5===0).map((p,i)=>({...p,color:['#10B981','#F59E0B','#3B82F6'][i%3]}))).arcColor('color').arcAltitude(.2).arcStroke(.3).arcCurveResolution(48).arcDashLength(.5).arcDashGap(.2).arcDashAnimateTime(3000).arcsTransitionDuration(0);
+    globe.rotation.y=Math.PI/4;
+    function anim(){requestAnimationFrame(anim);globe.rotation.y+=.0008;renderer.render(scene,camera)}anim();
+    let dragging=false,px=0,py=0;
+    renderer.domElement.addEventListener('mousedown',e=>{dragging=true;px=e.clientX;py=e.clientY});
+    renderer.domElement.addEventListener('mouseup',()=>{dragging=false});
+    renderer.domElement.addEventListener('mouseleave',()=>{dragging=false});
+    renderer.domElement.addEventListener('mousemove',e=>{if(!dragging)return;globe.rotation.y+=(e.clientX-px)*.002;globe.rotation.x+=(e.clientY-py)*.0015;px=e.clientX;py=e.clientY});
+    window.addEventListener('resize',()=>{const nw=container.clientWidth,nh=container.clientHeight;camera.aspect=nw/nh;camera.updateProjectionMatrix();renderer.setSize(nw,nh)});
+})();
+
+/* ===== CLOSE DROPDOWNS ON CLICK OUTSIDE ===== */
+document.addEventListener('click', (e) => {
+    const dd = document.getElementById('langDropdown');
+    const btn = document.getElementById('langBtn');
+    if(dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) dd.classList.remove('show');
+});
+
+/* ===== THEME ===== */
+const savedTheme = localStorage.getItem('transafrik-theme')||'light';
+document.documentElement.setAttribute('data-theme',savedTheme);
+
+/* ===== MOBILE NAV ===== */
+document.querySelectorAll('.mb-nav-item').forEach(item => {
+    item.addEventListener('click', function(){
+        document.querySelectorAll('.mb-nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+</script>
+</body>
+</html>
