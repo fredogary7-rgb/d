@@ -304,7 +304,7 @@ function renderTable(transfers) {
             <td class="fee-cell">${formatAmount(t.fees)} ${t.currency}</td>
             <td class="total-cell">${formatAmount(t.total_amount)} ${t.currency}</td>
             <td><span class="badge ${getStatusClass(t.status)}${isPulse(t.status)?' pulse':''}"><i class="fa-solid ${getStatusIcon(t.status)}"></i> ${t.status}</span></td>
-            <td><a href="/history/${t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a></td>
+            <td><a href="/send-money/confirm?ref=${t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a></td>
         </tr>
     `).join('');
 }
@@ -346,7 +346,7 @@ function renderCards(transfers) {
                 <span class="badge ${getStatusClass(t.status)}${isPulse(t.status)?' pulse':''}" style="padding:4px 10px;font-size:10px"><i class="fa-solid ${getStatusIcon(t.status)}"></i> ${t.status}</span>
             </div>
             <div class="mx-card-actions">
-                <a href="/history/${t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a>
+                <a href="/send-money/confirm?ref=${t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a>
             </div>
         </div>
     `).join('');
