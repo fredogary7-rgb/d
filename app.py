@@ -604,6 +604,106 @@ def api_transfer_status(reference):
     })
 
 
+# ==================== HISTORY / HISTORIQUE ====================
+
+@app.route('/history')
+@login_required
+def history():
+    """Page d'historique des transferts."""
+    # Compteurs pour les stats cards
+    transfers = Transfer.query.filter_by(sender_user_id=current_user.id)
+    total_count = transfers.count()
+    total_amount = db.session.query(
+        db.func.coalesce(db.func.sum(Transfer.total_amount), 0)
+    ).filter(Transfer.sender_user_id == current_user.id).scalar()
+    completed_count = transfers.filter(Transfer.status == 'COMPLETED').count()
+    pending_count = transfers.filter(
+        Transfer.status.in_(['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING',
+                             'PAYMENT_SUCCESS', 'WITHDRAW_PROCESSING'])
+    ).count()
+
+    return render_template('history.html',
+                           user=current_user,
+                           total_count=total_count,
+                           total_amount=total_amount,
+                           completed_count=completed_count,
+                           pending_count=pending_count)
+
+
+@app.route('/api/history')
+@login_required
+def api_history():
+    """API pour le filtrage dynamique (sans rechargement de page)."""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    filter_status = request.args.get('status', 'ALL')
+    search = request.args.get('search', '').strip()
+
+    query = Transfer.query.filter_by(sender_user_id=current_user.id)
+
+    # Filtre par statut
+    if filter_status and filter_status != 'ALL':
+        if filter_status == 'PENDING':
+            query = query.filter(
+                Transfer.status.in_(['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING',
+                                     'PAYMENT_SUCCESS', 'WITHDRAW_PROCESSING'])
+            )
+        elif filter_status == 'COMPLETED':
+            query = query.filter_by(status='COMPLETED')
+        elif filter_status == 'FAILED':
+            query = query.filter_by(status='FAILED')
+        elif filter_status == 'CANCELLED':
+            query = query.filter_by(status='CANCELLED')
+        else:
+            query = query.filter_by(status=filter_status)
+
+    # Recherche
+    if search:
+        search_term = f'%{search}%'
+        query = query.filter(
+            db.or_(
+                Transfer.reference.ilike(search_term),
+                Transfer.receiver_phone.ilike(search_term),
+                Transfer.receiver_name.ilike(search_term),
+                Transfer.sender_phone.ilike(search_term),
+            )
+        )
+
+    # Tri + pagination
+    pagination = query.order_by(Transfer.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    country_names = {
+        'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': 'Côte d\'Ivoire',
+        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
+    }
+    country_flags = {
+        'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮', 'BF': '🇧🇫',
+        'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦', 'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
+    }
+
+    transfers_data = []
+    for t in pagination.items:
+        d = t.to_dict()
+        d['receiver_country_name'] = country_names.get(t.receiver_country, t.receiver_country)
+        d['receiver_country_flag'] = country_flags.get(t.receiver_country, '🌍')
+        d['sender_country_name'] = country_names.get(t.sender_country, t.sender_country)
+        d['sender_country_flag'] = country_flags.get(t.sender_country, '🌍')
+        transfers_data.append(d)
+
+    return jsonify({
+        'success': True,
+        'transfers': transfers_data,
+        'page': pagination.page,
+        'pages': pagination.pages,
+        'total': pagination.total,
+        'has_next': pagination.has_next,
+        'has_prev': pagination.has_prev,
+    })
+
+
 # ==================== HEALTH CHECK ====================
 
 @app.route('/health')

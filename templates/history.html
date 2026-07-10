@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;
+            --cyan:#06B6D4;--cyan-light:#CFFAFE;
+            --green:#10B981;--green-light:#D1FAE5;
+            --orange:#F97316;--orange-light:#FFEDD5;
+            --red:#EF4444;--red-light:#FEE2E2;
+            --purple:#8B5CF6;--purple-light:#EDE9FE;
+            --gray:#6B7280;--gray-light:#F3F4F6;--gray-dark:#374151;
+            --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
+            --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
+            --border:#E2E8F0;--shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 4px 12px rgba(0,0,0,.06);--shadow-md:0 8px 24px rgba(0,0,0,.08);--shadow-xl:0 20px 60px rgba(0,0,0,.1);
+            --radius:12px;--radius-lg:18px;--radius-xl:24px;
+            --transition:.25s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w:260px;
+        }
+        [data-theme="dark"]{--bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;--text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;--gray-light:#1F2937;--border:#1E293B;--shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 4px 12px rgba(0,0,0,.3);--shadow-md:0 8px 24px rgba(0,0,0,.4);--shadow-xl:0 20px 60px rgba(0,0,0,.5)}
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;transition:background .5s,color .5s}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none}
+
+        /* ======== SIDEBAR ======== */
+        .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);padding:28px 0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;transition:all .3s}
+        .sidebar-logo{display:flex;align-items:center;gap:12px;padding:0 24px 28px;border-bottom:1px solid var(--border)}
+        .sidebar-logo img{width:36px;height:36px;border-radius:var(--radius)}
+        .sidebar-logo span{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--blue)}
+        .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+        .sidebar-nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius);font-size:13px;font-weight:600;color:var(--text-3);transition:all var(--transition)}
+        .sidebar-nav a:hover,.sidebar-nav a.active{background:var(--blue-light);color:var(--blue)}
+        .sidebar-nav a i{width:20px;text-align:center;font-size:15px}
+        .sidebar-footer{padding:16px 24px;border-top:1px solid var(--border)}
+        .sidebar-footer a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;font-weight:600;color:var(--red);transition:all var(--transition)}
+        .sidebar-footer a:hover{background:var(--red-light)}
+
+        /* ======== MAIN ======== */
+        .main{margin-left:var(--sidebar-w);flex:1;padding:32px 36px;min-height:100vh;animation:fadeIn .5s ease-out}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+        /* ======== HEADER ======== */
+        .page-header{margin-bottom:28px}
+        .page-header h1{font-size:26px;font-weight:800}
+        .page-header p{font-size:13px;color:var(--text-4);margin-top:4px}
+
+        /* ======== STATS ROW ======== */
+        .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+        .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:flex-start;gap:16px;box-shadow:var(--shadow-sm);transition:all var(--transition);animation:cardUp .5s ease-out backwards}
+        .stat-card:nth-child(1){animation-delay:.05s}.stat-card:nth-child(2){animation-delay:.1s}.stat-card:nth-child(3){animation-delay:.15s}.stat-card:nth-child(4){animation-delay:.2s}
+        @keyframes cardUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+        .stat-icon{width:44px;height:44px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+        .stat-icon.blue{background:var(--blue-light);color:var(--blue)}
+        .stat-icon.cyan{background:var(--cyan-light);color:var(--cyan)}
+        .stat-icon.green{background:var(--green-light);color:var(--green)}
+        .stat-icon.orange{background:var(--orange-light);color:var(--orange)}
+        .stat-info{min-width:0}
+        .stat-value{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;line-height:1}
+        .stat-label{font-size:11px;color:var(--text-4);margin-top:4px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+
+        /* ======== TOOLBAR ======== */
+        .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+        .search-box{flex:1;min-width:200px;position:relative}
+        .search-box i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-4);font-size:14px}
+        .search-box input{width:100%;padding:10px 14px 10px 38px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:13px;font-family:'Inter',sans-serif;color:var(--text);outline:none;transition:all var(--transition)}
+        .search-box input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .search-box input::placeholder{color:var(--text-4)}
+        .filter-btn{padding:9px 16px;border:1.5px solid var(--border);border-radius:100px;background:var(--surface);font-size:12px;font-weight:600;color:var(--text-3);cursor:pointer;transition:all var(--transition);white-space:nowrap;font-family:'Inter',sans-serif}
+        .filter-btn:hover{border-color:var(--blue);color:var(--blue)}
+        .filter-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+        /* ======== TABLE (desktop) ======== */
+        .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+        table{width:100%;border-collapse:collapse}
+        thead th{padding:13px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4);background:var(--gray-light);text-align:left;border-bottom:1px solid var(--border)}
+        tbody td{padding:14px 16px;font-size:13px;color:var(--text-2);border-bottom:1px solid var(--border);vertical-align:middle}
+        tbody tr{transition:all var(--transition)}
+        tbody tr:hover{background:var(--surface-hover)}
+        tbody tr:last-child td{border-bottom:none}
+        .ref-cell{font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:var(--blue)}
+        .dest-cell{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--text)}
+        .dest-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Outfit',sans-serif;flex-shrink:0}
+        .amount-cell{font-family:'Outfit',sans-serif;font-weight:700;color:var(--text)}
+        .fee-cell{color:var(--orange);font-weight:600}
+        .total-cell{font-family:'Outfit',sans-serif;font-weight:700;color:var(--blue)}
+
+        /* ======== BADGE ======== */
+        .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+        .badge i{font-size:9px}
+        .badge.bs-created{background:#F3F4F6;color:var(--gray-dark)}
+        .badge.bs-payment-processing{background:var(--blue-light);color:var(--blue)}
+        .badge.bs-payment-success{background:var(--cyan-light);color:var(--cyan)}
+        .badge.bs-withdraw-processing{background:var(--orange-light);color:var(--orange)}
+        .badge.bs-completed{background:var(--green-light);color:var(--green)}
+        .badge.bs-failed{background:var(--red-light);color:var(--red)}
+        .badge.bs-cancelled{background:#E5E7EB;color:#4B5563}
+        @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.6}}
+        .badge.pulse{animation:badgePulse 1.8s ease-in-out infinite}
+
+        /* ======== ACTION BTN ======== */
+        .btn-view{padding:7px 14px;border-radius:100px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:4px}
+        .btn-view:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+        /* ======== CARDS (mobile) ======== */
+        .cards-list{display:none;flex-direction:column;gap:12px}
+        .mx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm);animation:cardUp .4s ease-out backwards;transition:all var(--transition)}
+        .mx-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+        .mx-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+        .mx-card-ref{font-family:'SF Mono','Fira Code',monospace;font-size:11px;color:var(--blue);word-break:break-all}
+        .mx-card-date{font-size:11px;color:var(--text-4)}
+        .mx-card-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+        .mx-card-row:last-child{border-bottom:none}
+        .mx-card-lbl{color:var(--text-4);font-weight:500}
+        .mx-card-val{font-weight:700;color:var(--text);font-family:'Outfit',sans-serif}
+        .mx-card-actions{display:flex;justify-content:flex-end;margin-top:12px}
+
+        /* ======== PAGINATION ======== */
+        .pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px}
+        .page-btn{padding:9px 16px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif}
+        .page-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+        .page-btn:disabled{opacity:.4;cursor:not-allowed}
+        .page-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+        .page-info{font-size:12px;color:var(--text-4);margin:0 8px}
+
+        /* ======== EMPTY STATE ======== */
+        .empty-state{text-align:center;padding:60px 20px}
+        .empty-state .empty-icon{font-size:56px;color:var(--text-4);margin-bottom:16px;opacity:.5}
+        .empty-state h3{font-size:18px;font-weight:700;margin-bottom:6px;color:var(--text-2)}
+        .empty-state p{font-size:13px;color:var(--text-4);margin-bottom:20px}
+        .empty-state .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:100px;background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--cyan));background-size:200% 200%;color:#fff;font-size:14px;font-weight:700;font-family:'Outfit',sans-serif;border:none;cursor:pointer;animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 24px rgba(37,99,235,.3)}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .empty-state .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(37,99,235,.4)}
+
+        /* ======== LOADING ======== */
+        .loading-row{text-align:center;padding:40px;color:var(--text-4);font-size:13px}
+        .loading-row i{animation:spin 1s linear infinite;margin-right:8px}@keyframes spin{to{transform:rotate(360deg)}}
+
+        /* ======== RESPONSIVE ======== */
+        @media (max-width:1024px){.table-wrap{display:none}.cards-list{display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}}
+        @media (max-width:768px){
+            .sidebar{transform:translateX(-100%);position:fixed;z-index:200}.sidebar.open{transform:translateX(0)}
+            .main{margin-left:0;padding:20px 16px}.stats-row{grid-template-columns:1fr 1fr;gap:10px}.toolbar{flex-direction:column;align-items:stretch}
+            .menu-toggle{display:flex!important;position:fixed;top:16px;left:16px;z-index:300;width:40px;height:40px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text);box-shadow:var(--shadow)}
+            .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}.overlay.show{display:block}
+        }
+        .menu-toggle{display:none}
+    </style>
+</head>
+<body>
+
+<!-- MOBILE TOGGLE -->
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- ======== SIDEBAR ======== -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <img src="/static/logo.png" alt="TransAfrik" onerror="this.style.display='none'">
+        <span>TransAfrik</span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="/dashboard"><i class="fa-solid fa-grid-2"></i> Tableau de bord</a>
+        <a href="/transfer"><i class="fa-solid fa-paper-plane"></i> Nouveau transfert</a>
+        <a href="/history" class="active"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+    </div>
+</aside>
+
+<!-- ======== MAIN ======== -->
+<main class="main">
+    <div class="page-header">
+        <h1>Historique</h1>
+        <p>Retrouvez tous vos transferts effectués avec TransAfrik.</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_count }}</div>
+                <div class="stat-label">Total transferts</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon cyan"><i class="fa-solid fa-coins"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ "{:,}".format(total_amount).replace(',', ' ') }} XOF</div>
+                <div class="stat-label">Montant total envoyé</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ completed_count }}</div>
+                <div class="stat-label">Transferts terminés</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ pending_count }}</div>
+                <div class="stat-label">Transferts en attente</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Rechercher par référence, numéro, nom..." oninput="debounceSearch()">
+        </div>
+        <button class="filter-btn active" data-status="ALL" onclick="setFilter('ALL', this)">Tous</button>
+        <button class="filter-btn" data-status="COMPLETED" onclick="setFilter('COMPLETED', this)">Terminés</button>
+        <button class="filter-btn" data-status="PENDING" onclick="setFilter('PENDING', this)">En cours</button>
+        <button class="filter-btn" data-status="FAILED" onclick="setFilter('FAILED', this)">Échec</button>
+        <button class="filter-btn" data-status="CANCELLED" onclick="setFilter('CANCELLED', this)">Annulés</button>
+    </div>
+
+    <!-- TABLE (desktop) -->
+    <div class="table-wrap" id="tableWrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Date</th>
+                    <th>Destinataire</th>
+                    <th>Pays</th>
+                    <th>Opérateur</th>
+                    <th>Montant</th>
+                    <th>Frais</th>
+                    <th>Total payé</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr class="loading-row"><td colspan="10"><i class="fa-solid fa-spinner"></i> Chargement...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CARDS (mobile) -->
+    <div class="cards-list" id="cardsList"></div>
+
+    <!-- PAGINATION -->
+    <div class="pagination" id="pagination"></div>
+
+    <!-- EMPTY STATE (hidden by default) -->
+    <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-icon"><i class="fa-solid fa-inbox"></i></div>
+        <h3>Vous n'avez encore effectué aucun transfert.</h3>
+        <p>Effectuez votre premier transfert en quelques secondes.</p>
+        <a href="/transfer" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Effectuer un transfert</a>
+    </div>
+</main>
+
+<script>
+const COUNTRY_FLAG = {{ {
+    'TG':'🇹🇬','BJ':'🇧🇯','CM':'🇨🇲','CI':'🇨🇮','BF':'🇧🇫',
+    'CG':'🇨🇬','CD':'🇨🇩','GA':'🇬🇦','UG':'🇺🇬','ZM':'🇿🇲','SN':'🇸🇳'
+} | tojson }};
+const COUNTRY_NAME = {{ {
+    'TG':'Togo','BJ':'Bénin','CM':'Cameroun','CI':'Côte d\'Ivoire',
+    'BF':'Burkina Faso','CG':'Congo','CD':'RD Congo','GA':'Gabon',
+    'UG':'Ouganda','ZM':'Zambie','SN':'Sénégal'
+} | tojson }};
+
+let currentPage = 1;
+let currentStatus = 'ALL';
+let currentSearch = '';
+let searchTimer = null;
+
+function getStatusClass(status) {
+    const m = {
+        'CREATED':'bs-created','WAITING_PAYMENT':'bs-payment-processing','PAYMENT_PROCESSING':'bs-payment-processing',
+        'PAYMENT_SUCCESS':'bs-payment-success','WITHDRAW_PROCESSING':'bs-withdraw-processing',
+        'COMPLETED':'bs-completed','FAILED':'bs-failed','CANCELLED':'bs-cancelled'
+    };
+    return m[status] || 'bs-created';
+}
+function getStatusIcon(status) {
+    const m = {
+        'CREATED':'fa-circle','WAITING_PAYMENT':'fa-spinner','PAYMENT_PROCESSING':'fa-spinner',
+        'PAYMENT_SUCCESS':'fa-check-circle','WITHDRAW_PROCESSING':'fa-arrow-right',
+        'COMPLETED':'fa-circle-check','FAILED':'fa-circle-xmark','CANCELLED':'fa-ban'
+    };
+    return m[status] || 'fa-circle';
+}
+function isPulse(status){ return ['PAYMENT_PROCESSING','WITHDRAW_PROCESSING'].includes(status); }
+
+function formatAmount(v){ return (v||0).toLocaleString('fr'); }
+function formatDate(d){ if(!d)return'';return new Date(d).toLocaleDateString('fr',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function avatarLetters(name){ if(!name)return'?';let p=name.split(' ');return(p[0][0]||'')+(p[1]?p[1][0]:''); }
+
+function renderTable(transfers) {
+    let tbody = document.getElementById('tableBody');
+    if (!transfers.length) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-4)">Aucun transfert trouvé.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = transfers.map(t => `
+        <tr>
+            <td class="ref-cell" title="${t.reference}">${t.reference.slice(-12)}</td>
+            <td style="font-size:12px;color:var(--text-3)">${formatDate(t.created_at)}</td>
+            <td>
+                <div class="dest-cell">
+                    <div class="dest-avatar">${avatarLetters(t.receiver_name)}</div>
+                    <span>${t.receiver_name || '—'}</span>
+                </div>
+            </td>
+            <td>${t.receiver_country_flag||''} ${t.receiver_country_name||t.receiver_country||''}</td>
+            <td style="font-size:12px;color:var(--text-3)">${t.receiver_operator}</td>
+            <td class="amount-cell">${formatAmount(t.amount)} ${t.currency}</td>
+            <td class="fee-cell">${formatAmount(t.fees)} ${t.currency}</td>
+            <td class="total-cell">${formatAmount(t.total_amount)} ${t.currency}</td>
+            <td><span class="badge ${getStatusClass(t.status)}${isPulse(t.status)?' pulse':''}"><i class="fa-solid ${getStatusIcon(t.status)}"></i> ${t.status}</span></td>
+            <td><a href="/history/${t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a></td>
+        </tr>
+    `).join('');
+}
+
+function renderCards(transfers) {
+    let el = document.getElementById('cardsList');
+    if (!transfers.length) {
+        el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-4)">Aucun transfert trouvé.</div>';
+        return;
+    }
+    el.innerHTML = transfers.map(t => `
+        <div class="mx-card">
+            <div class="mx-card-top">
+                <div class="mx-card-ref">${t.reference}</div>
+                <div class="mx-card-date">${formatDate(t.created_at)}</div>
+            </div>
+            <div class="mx-card-row">
+                <span class="mx-card-lbl">Destinataire</span>
+                <span class="mx-card-val">${t.receiver_name||'—'}</span>
+            </div>
+            <div class="mx-card-row">
+                <span class="mx-card-lbl">Pays</span>
+                <span class="mx-card-val">${t.receiver_country_flag||''} ${t.receiver_country_name||t.receiver_country||''}</span>
+            </div>
+            <div class="mx-card-row">
+                <span class="mx-card-lbl">Montant</span>
+                <span class="mx-card-val">${formatAmount(t.amount)} ${t.currency}</span>
+            </div>
+            <div class="mx-card-row">
+                <span class="mx-card-lbl">Frais</span>
+                <span class="mx-card-val" style="color:var(--orange)">${formatAmount(t.fees)} ${t.currency}</span>
+            </div>
+            <div class="mx-card-row">
+                <span class="mx-card-lbl">Total payé</span>
+                <span class="mx-card-val" style="color:var(--blue)">${formatAmount(t.total_amount)} ${t.currency}</span>
+            </div>
+            <div class="mx-card-row">
+                <span class="mx-card-lbl">Statut</span>
+                <span class="badge ${getStatusClass(t.status)}${isPulse(t.status)?' pulse':''}" style="padding:4px 10px;font-size:10px"><i class="fa-solid ${getStatusIcon(t.status)}"></i> ${t.status}</span>
+            </div>
+            <div class="mx-card-actions">
+                <a href="/history/${t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderPagination(data) {
+    let el = document.getElementById('pagination');
+    if (data.total === 0) { el.innerHTML = ''; return; }
+    let html = '';
+    html += `<button class="page-btn" onclick="goToPage(${data.page-1})" ${data.has_prev?'':'disabled'}><i class="fa-solid fa-chevron-left"></i></button>`;
+    for (let p = 1; p <= data.pages; p++) {
+        if (p === data.page) html += `<button class="page-btn active">${p}</button>`;
+        else html += `<button class="page-btn" onclick="goToPage(${p})">${p}</button>`;
+    }
+    html += `<button class="page-btn" onclick="goToPage(${data.page+1})" ${data.has_next?'':'disabled'}><i class="fa-solid fa-chevron-right"></i></button>`;
+    html += `<span class="page-info">${data.total} résultat(s)</span>`;
+    el.innerHTML = html;
+}
+
+async function loadTransfers() {
+    let params = new URLSearchParams({page:currentPage,status:currentStatus,search:currentSearch});
+    try {
+        let res = await fetch('/api/history?'+params);
+        let data = await res.json();
+        if (data.success) {
+            if (data.total === 0) {
+                document.getElementById('tableWrap').style.display = 'none';
+                document.getElementById('cardsList').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('pagination').innerHTML = '';
+            } else {
+                document.getElementById('tableWrap').style.display = '';
+                document.getElementById('cardsList').style.display = '';
+                document.getElementById('emptyState').style.display = 'none';
+                renderTable(data.transfers);
+                renderCards(data.transfers);
+                renderPagination(data);
+            }
+        }
+    } catch(e) {
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--red)">Erreur de chargement.</td></tr>';
+    }
+}
+
+function goToPage(p) { currentPage = p; loadTransfers(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function setFilter(status, btn) {
+    currentStatus = status; currentPage = 1;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadTransfers();
+}
+
+function debounceSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        currentSearch = document.getElementById('searchInput').value.trim();
+        currentPage = 1;
+        loadTransfers();
+    }, 350);
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+}
+
+// Init
+loadTransfers();
+
+const theme = localStorage.getItem('transafrik-theme') || 'light';
+document.documentElement.setAttribute('data-theme', theme);
+</script>
+</body>
+</html>
