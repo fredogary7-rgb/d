@@ -79,21 +79,21 @@
         .dashboard-col{display:flex;flex-direction:column;gap:28px}
 
         /* ===== BALANCE CARD ===== */
-        .balance-card{background:linear-gradient(135deg,#1E3A8A,#2563EB,#1D4ED8,#059669,#047857);background-size:300% 300%;border-radius:var(--radius-xl);padding:36px 40px;color:#fff;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(37,99,235,.3);animation:bgShift 8s ease-in-out infinite}
+        .balance-card{max-width:620px;background:linear-gradient(135deg,#1E3A8A,#2563EB,#1D4ED8,#059669,#047857);background-size:300% 300%;border-radius:var(--radius-xl);padding:22px 28px;color:#fff;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(37,99,235,.3);animation:bgShift 8s ease-in-out infinite}
         @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
         .balance-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(245,158,11,.15),transparent 60%),radial-gradient(circle at 20% 80%,rgba(16,185,129,.15),transparent 60%);pointer-events:none}
         .balance-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
         .balance-label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:600;opacity:.75}
-        .balance-amount{font-size:clamp(32px,4.5vw,48px);font-weight:900;font-family:'Outfit',sans-serif;letter-spacing:-.02em;margin:8px 0 4px}
+        .balance-amount{font-size:clamp(26px,3.8vw,38px);font-weight:900;font-family:'Outfit',sans-serif;letter-spacing:-.02em;margin:4px 0 2px}
         .balance-amount.blurred{filter:blur(12px);user-select:none}
         .balance-currency{font-size:14px;opacity:.7;font-weight:500}
         .balance-eye-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;color:#fff}
         .balance-eye-btn:hover{background:rgba(255,255,255,.25)}
-        .balance-actions{display:flex;gap:12px;margin-top:28px;position:relative;z-index:1}
-        .bal-action-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition);color:#fff;font-family:'Inter',sans-serif}
+        .balance-actions{display:flex;gap:10px;margin-top:16px;position:relative;z-index:1}
+        .bal-action-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition);color:#fff;font-family:'Inter',sans-serif}
         .bal-action-btn:hover{background:rgba(255,255,255,.2);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
-        .bal-action-btn i{font-size:22px}
-        .bal-action-btn span{font-size:12px;font-weight:600}
+        .bal-action-btn i{font-size:18px}
+        .bal-action-btn span{font-size:11px;font-weight:600}
         .balance-pattern{position:absolute;top:-30px;right:-30px;width:200px;height:200px;border-radius:50%;border:2px solid rgba(255,255,255,.08);pointer-events:none;z-index:0}
         .balance-pattern:nth-child(2){width:280px;height:280px;top:-80px;right:-80px;border-width:1px}
         .balance-pattern:nth-child(3){width:360px;height:360px;top:-130px;right:-130px;border-width:1px;opacity:.5}
@@ -321,7 +321,7 @@
         <a href="#" class="sidebar-link"><i class="fa-solid fa-arrow-down-wide-short"></i> Recevoir</a>
         <a href="/history" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
         <div class="sidebar-section-title">Services</div>
-        <a href="#" class="sidebar-link"><i class="fa-solid fa-address-book"></i> Bénéficiaires</a>
+        <a href="/beneficiaries" class="sidebar-link"><i class="fa-solid fa-user-group"></i> Mes bénéficiaires</a>
         <a href="#" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
         <a href="#" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
         <a href="#" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> QR Code</a>
@@ -359,7 +359,7 @@
                 </div>
                 {% endif %}
                 <div class="balance-actions">
-                    <button class="bal-action-btn"><i class="fa-solid fa-plus-circle"></i><span>Déposer</span></button>
+                    <a href="/deposit" class="bal-action-btn"><i class="fa-solid fa-plus-circle"></i><span>Déposer</span></a>
             <a href="/send-money" class="bal-action-btn"><i class="fa-solid fa-paper-plane"></i><span>Envoyer</span></a>
                     <button class="bal-action-btn"><i class="fa-solid fa-arrow-down"></i><span>Retirer</span></button>
 <a href="/history" class="bal-action-btn"><i class="fa-solid fa-clock-rotate-left"></i><span>Historique</span></a>
@@ -372,7 +372,7 @@
                 <div class="quick-actions-grid">
     <a href="/send-money" class="quick-action-card"><div class="qa-icon send"><i class="fa-solid fa-paper-plane"></i></div><div class="qa-name">Envoyer de l'argent</div></a>
                     <div class="quick-action-card"><div class="qa-icon receive"><i class="fa-solid fa-arrow-down-wide-short"></i></div><div class="qa-name">Recevoir de l'argent</div></div>
-                    <div class="quick-action-card"><div class="qa-icon deposit"><i class="fa-solid fa-wallet"></i></div><div class="qa-name">Dépôt Mobile Money</div></div>
+                    <a href="/deposit" class="quick-action-card"><div class="qa-icon deposit"><i class="fa-solid fa-wallet"></i></div><div class="qa-name">Dépôt Mobile Money</div></a>
                     <div class="quick-action-card"><div class="qa-icon withdraw"><i class="fa-solid fa-building-columns"></i></div><div class="qa-name">Retrait Mobile Money</div></div>
 <a href="/history" class="quick-action-card"><div class="qa-icon history"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="qa-name">Historique</div></a>
                     <div class="quick-action-card"><div class="qa-icon calculator"><i class="fa-solid fa-calculator"></i></div><div class="qa-name">Calculateur de frais</div></div>

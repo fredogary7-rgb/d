@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ beneficiary.name }} — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.25);
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.25);
+            --yellow: #F59E0B; --orange: #F97316; --orange-light: #FFEDD5;
+            --bg: #F1F5F9; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09); --shadow-xl: 0 24px 70px rgba(0,0,0,.11);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
+            --transition: .3s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w: 260px;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.6;min-height:100vh}
+        a{text-decoration:none;color:inherit}
+        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+
+        .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
+        .topbar-left{display:flex;align-items:center;gap:16px}
+        .topbar-logo{display:flex;align-items:center;gap:10px}
+        .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-right{display:flex;align-items:center;gap:16px}
+        .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
+        .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
+        .topbar-profile-role{font-size:10px;color:var(--text-4)}
+
+        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
+        .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}
+        .sidebar-link:hover{background:var(--surface-hover);color:var(--text)}
+        .sidebar-link.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+        .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
+        .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
+
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px);max-width:1100px}
+
+        .btn-back{padding:10px 18px;background:var(--surface);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:8px;margin-bottom:20px}
+        .btn-back:hover{background:var(--surface-hover);border-color:var(--blue);color:var(--blue)}
+        .btn-primary{padding:12px 24px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:8px}
+        .btn-primary:hover{background:var(--blue-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,99,235,.3)}
+
+        .detail-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;margin-bottom:28px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+        .detail-avatar{width:72px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--green))}
+        .detail-info{flex:1;min-width:200px}
+        .detail-info h1{font-size:24px;font-weight:900;margin-bottom:4px}
+        .detail-info .sub{font-size:13px;color:var(--text-3)}
+        .detail-stats{display:flex;gap:32px;flex-wrap:wrap}
+        .detail-stat{text-align:center}
+        .detail-stat .val{font-size:22px;font-weight:800;font-family:'Outfit',sans-serif}
+        .detail-stat .lbl{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-4);margin-top:2px}
+
+        .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;overflow-x:auto}
+        .table-card h3{font-size:18px;font-weight:800;margin-bottom:18px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        thead th{text-align:left;padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-4);border-bottom:1px solid var(--border)}
+        tbody td{padding:14px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+        tbody tr:hover{background:var(--surface-hover)}
+        .tx-status{padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
+        .status-success{background:#D1FAE5;color:#059669}
+        .status-failed{background:#FEE2E2;color:#DC2626}
+        .status-pending{background:#FEF3C7;color:#D97706}
+        .empty-table{padding:40px;text-align:center;color:var(--text-4);font-size:14px}
+
+        @media(max-width:768px){
+            .sidebar{display:none}
+            .main-content{margin-left:0;padding:20px 16px 80px;max-width:100%}
+            .detail-header{padding:20px;gap:16px}
+            .detail-stats{gap:16px}
+            .detail-stat .val{font-size:18px}
+            table{font-size:11px}
+            thead{display:none}
+            tbody tr{display:flex;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
+            tbody td{display:block;padding:4px 0;border:none;text-align:right;width:50%}
+            tbody td::before{content:attr(data-label);float:left;font-weight:700;color:var(--text-4);font-size:10px;text-transform:uppercase}
+        }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/" class="topbar-logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik">
+            <span>TransAfrik</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-profile">
+            <div class="topbar-profile-avatar">{{ user.first_name|upper|truncate(1,True,'') }}{% if user.fullname.strip().split()|length > 1 %}{{ user.fullname.strip().split()[1]|upper|truncate(1,True,'') }}{% endif %}</div>
+            <div>
+                <div class="topbar-profile-name">{{ user.fullname }}</div>
+                <div class="topbar-profile-role">{{ country_names.get(user.country, user.country) }}</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<aside class="sidebar">
+    <nav class="sidebar-nav">
+        <a href="/dashboard" class="sidebar-link"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+        <a href="/send-money" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer</a>
+        <a href="/deposit" class="sidebar-link"><i class="fa-solid fa-wallet"></i> Dépôt</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-arrow-down-wide-short"></i> Recevoir</a>
+        <a href="/history" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <div class="sidebar-section-title">Services</div>
+        <a href="/beneficiaries" class="sidebar-link active"><i class="fa-solid fa-user-group"></i> Mes bénéficiaires</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> QR Code</a>
+        <div class="sidebar-section-title">Paramètres</div>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-user-check"></i> Vérification KYC</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-gear"></i> Paramètres</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-headset"></i> Support</a>
+        <a href="/logout" class="sidebar-link"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
+</aside>
+
+<main class="main-content">
+    <a href="/beneficiaries" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Retour aux bénéficiaires</a>
+
+    <div class="detail-header">
+        <div class="detail-avatar">
+            {% set parts = beneficiary.name.strip().split() %}
+            {% if parts|length >= 2 %}{{ (parts[0][0] + parts[1][0])|upper }}{% else %}{{ parts[0][:2]|upper }}{% endif %}
+        </div>
+        <div class="detail-info">
+            <h1>{{ beneficiary.name }}</h1>
+            <div class="sub">
+                {{ country_flags.get(beneficiary.country, '🌍') }} {{ country_names.get(beneficiary.country, beneficiary.country) }}
+                {% if beneficiary.operator %}· {{ beneficiary.operator }}{% endif %}
+                {% if beneficiary.nickname %}· ({{ beneficiary.nickname }}){% endif %}
+            </div>
+            <div class="sub" style="margin-top:4px">
+                <i class="fa-solid fa-phone"></i> {{ beneficiary.phone }}
+                {% if beneficiary.email %}· <i class="fa-solid fa-envelope"></i> {{ beneficiary.email }}{% endif %}
+            </div>
+        </div>
+        <a href="/send-money?receiver_phone={{ beneficiary.phone }}&receiver_name={{ beneficiary.name }}&receiver_country={{ beneficiary.country }}&receiver_operator={{ beneficiary.operator or '' }}" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Envoyer de l'argent</a>
+    </div>
+
+    <div style="display:flex;gap:24px;margin-bottom:28px;flex-wrap:wrap">
+        <div class="detail-stat">
+            <div class="val">{{ beneficiary.transfer_count }}</div>
+            <div class="lbl">Transferts</div>
+        </div>
+        <div class="detail-stat">
+            <div class="val">{{ "{:,.0f}".format(beneficiary.total_sent) }}</div>
+            <div class="lbl">Total envoyé (XOF)</div>
+        </div>
+        <div class="detail-stat">
+            <div class="val">{{ beneficiary.last_transfer_at.strftime('%d/%m/%Y') if beneficiary.last_transfer_at else '—' }}</div>
+            <div class="lbl">Dernier transfert</div>
+        </div>
+        <div class="detail-stat">
+            <div class="val">{{ beneficiary.created_at.strftime('%d/%m/%Y') if beneficiary.created_at else '—' }}</div>
+            <div class="lbl">Ajouté le</div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <h3><i class="fa-solid fa-list-check"></i> Historique des transferts</h3>
+        {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Montant</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td data-label="Référence">{{ tx.id }}</td>
+                    <td data-label="Montant"><strong style="color:var(--blue)">-{{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}</strong></td>
+                    <td data-label="Date">{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td data-label="Statut">
+                        {% set labels = {'success':'Réussi','failed':'Échec','pending':'En attente','processing':'En cours'} %}
+                        {% set classes = {'success':'status-success','failed':'status-failed','pending':'status-pending','processing':'status-pending'} %}
+                        <span class="tx-status {{ classes.get(tx.status,'status-pending') }}">{{ labels.get(tx.status, tx.status) }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-table">
+            <i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;color:var(--text-4)"></i>
+            <p>Aucun transfert vers ce bénéficiaire pour le moment.</p>
+        </div>
+        {% endif %}
+    </div>
+</main>
+
+</body>
+</html>

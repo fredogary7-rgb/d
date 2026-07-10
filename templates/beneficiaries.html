@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes bénéficiaires — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.25);
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.25);
+            --yellow: #F59E0B; --orange: #F97316; --orange-light: #FFEDD5;
+            --bg: #F1F5F9; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09); --shadow-xl: 0 24px 70px rgba(0,0,0,.11);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
+            --transition: .3s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w: 260px;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.6;min-height:100vh}
+        a{text-decoration:none;color:inherit}
+        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+
+        /* ===== TOP BAR ===== */
+        .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
+        .topbar-left{display:flex;align-items:center;gap:16px}
+        .topbar-logo{display:flex;align-items:center;gap:10px}
+        .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-right{display:flex;align-items:center;gap:16px}
+        .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
+        .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
+        .topbar-profile-role{font-size:10px;color:var(--text-4)}
+
+        /* ===== SIDEBAR ===== */
+        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
+        .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}
+        .sidebar-link:hover{background:var(--surface-hover);color:var(--text)}
+        .sidebar-link.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+        .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
+        .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px);max-width:1200px}
+
+        /* ===== HEADER ===== */
+        .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+        .page-header-left h1{font-size:28px;font-weight:900}
+        .page-header-left p{font-size:14px;color:var(--text-3);margin-top:4px}
+        .btn-primary{padding:12px 24px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:8px}
+        .btn-primary:hover{background:var(--blue-dark);transform:translateY(-2px);box-shadow:0 8px 24px var(--blue-glow)}
+        .btn-outline{padding:10px 20px;background:var(--surface);color:var(--text-2);border:1px solid var(--border);border-radius:12px;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:8px}
+        .btn-outline:hover{background:var(--surface-hover);border-color:var(--blue);color:var(--blue)}
+        .btn-icon{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;color:var(--text-3)}
+        .btn-icon:hover{background:var(--surface-hover);color:var(--blue);border-color:var(--blue)}
+        .btn-icon.danger:hover{color:#DC2626;border-color:#DC2626;background:#FEF2F2}
+        .btn-sm{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;border:none;display:inline-flex;align-items:center;gap:6px}
+
+        /* ===== SEARCH BAR ===== */
+        .search-bar{position:relative;margin-bottom:24px}
+        .search-bar input{width:100%;padding:14px 20px 14px 48px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:'Inter',sans-serif;background:var(--surface);color:var(--text);transition:all .2s;outline:none}
+        .search-bar input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+        .search-bar i{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--text-4);font-size:17px}
+
+        /* ===== FAVORITES ===== */
+        .section-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+        .section-header h2{font-size:18px;font-weight:800}
+        .section-header .badge-count{font-size:12px;font-weight:600;padding:2px 10px;border-radius:100px;background:var(--bg);color:var(--text-3)}
+        .favorites-slider{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+        .favorites-slider::-webkit-scrollbar{height:4px}
+        .favorites-slider::-webkit-scrollbar-track{background:transparent}
+        .favorites-slider::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+        .fav-card{min-width:280px;max-width:280px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:all var(--transition);cursor:pointer;flex-shrink:0}
+        .fav-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+        .fav-card-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+        .fav-avatar{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;flex-shrink:0}
+        .fav-star{color:#F59E0B;font-size:12px;margin-left:auto}
+        .fav-info h4{font-size:15px;font-weight:700;margin-bottom:2px}
+        .fav-info span{font-size:12px;color:var(--text-4)}
+        .fav-detail-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);margin-bottom:6px}
+        .fav-detail-row .label{color:var(--text-4)}
+        .fav-send-btn{padding:10px 16px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;width:100%;margin-top:14px}
+        .fav-send-btn:hover{background:var(--blue-dark)}
+
+        /* ===== BENEFICIARY LIST ===== */
+        .benef-list{display:flex;flex-direction:column;gap:0}
+        .benef-row{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);transition:all .2s}
+        .benef-row:first-child{border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+        .benef-row:last-child{border-radius:0 0 var(--radius-sm) var(--radius-sm)}
+        .benef-row:only-child{border-radius:var(--radius-sm)}
+        .benef-row:hover{background:var(--surface-hover);border-color:var(--blue-light)}
+        .benef-row+.benef-row{margin-top:-1px}
+        .benef-col{flex-shrink:0}
+        .benef-col.name-col{flex:1;min-width:0}
+        .benef-col.phone-col{width:140px}
+        .benef-col.country-col{width:100px}
+        .benef-col.operator-col{width:120px}
+        .benef-col.transfers-col{width:90px;text-align:center}
+        .benef-col.amount-col{width:120px;text-align:right}
+        .benef-col.last-col{width:120px;text-align:right}
+        .benef-col.actions-col{width:140px;display:flex;gap:6px;justify-content:flex-end}
+        .benef-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+        .benef-name{font-weight:600;font-size:14px;color:var(--text)}
+        .benef-nickname{font-size:11px;color:var(--text-4)}
+        .benef-cell{font-size:13px;color:var(--text-2)}
+        .benef-cell.small{font-size:12px;color:var(--text-3)}
+        .benef-cell.label{font-size:10px;text-transform:uppercase;font-weight:700;color:var(--text-4)}
+
+        /* ===== HEADER ROW (desktop only) ===== */
+        .benef-header-row{display:flex;align-items:center;gap:16px;padding:10px 20px;background:var(--surface-hover);border:1px solid var(--border);border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+        .benef-header-row .benef-cell{font-weight:700;color:var(--text-4)}
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state{padding:60px 20px;text-align:center}
+        .empty-state i{font-size:48px;color:var(--text-4);display:block;margin-bottom:16px}
+        .empty-state h3{font-size:18px;font-weight:800;margin-bottom:6px}
+        .empty-state p{font-size:13px;color:var(--text-3);margin-bottom:20px}
+
+        /* ===== RECENT CONTACTS ===== */
+        .recent-contacts{margin-top:32px}
+        .recent-row{display:flex;align-items:center;gap:16px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);transition:all .2s;border-radius:var(--radius-sm);margin-bottom:8px}
+        .recent-row:hover{background:var(--surface-hover)}
+
+        /* ===== MODAL ===== */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+        .modal-overlay.show{display:flex}
+        .modal{background:var(--surface);border-radius:var(--radius-lg);padding:32px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-xl);animation:modalIn .25s ease-out}
+        @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+        .modal h2{font-size:22px;font-weight:800;margin-bottom:20px}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+        .form-group input,.form-group select{width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;background:var(--surface);color:var(--text);outline:none;transition:all .2s}
+        .form-group input:focus,.form-group select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+        .form-row{display:flex;gap:12px}
+        .form-row .form-group{flex:1}
+        .form-checkbox{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);cursor:pointer}
+        .form-checkbox input{width:18px;height:18px;accent-color:var(--blue)}
+        .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+
+        /* ===== SKELETON ===== */
+        .skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--surface-hover) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+        /* ===== TOAST ===== */
+        .toast{position:fixed;bottom:32px;right:32px;padding:14px 24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;color:var(--text);box-shadow:var(--shadow-lg);z-index:300;animation:toastIn .3s ease-out;display:none}
+        .toast.show{display:block}
+        .toast.success{border-color:var(--green);color:var(--green-dark);background:var(--green-light)}
+        .toast.error{border-color:#DC2626;color:#DC2626;background:#FEF2F2}
+        @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:768px){
+            .sidebar{display:none}
+            .main-content{margin-left:0;padding:20px 16px 80px;max-width:100%}
+            .benef-header-row{display:none}
+            .benef-row{flex-wrap:wrap;gap:8px;padding:16px}
+            .benef-col.name-col{flex:1 1 100%}
+            .benef-col.phone-col,.benef-col.country-col,.benef-col.operator-col,.benef-col.transfers-col,.benef-col.amount-col,.benef-col.last-col{width:auto;flex:1 1 45%;text-align:left}
+            .benef-col.actions-col{width:100%;justify-content:flex-start;margin-top:8px}
+            .fav-card{min-width:240px;max-width:240px}
+            .modal{width:95%;padding:24px}
+            .form-row{flex-direction:column}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/" class="topbar-logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik">
+            <span>TransAfrik</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-profile">
+            <div class="topbar-profile-avatar">{{ user.first_name|upper|truncate(1,True,'') }}{% if user.fullname.strip().split()|length > 1 %}{{ user.fullname.strip().split()[1]|upper|truncate(1,True,'') }}{% endif %}</div>
+            <div>
+                <div class="topbar-profile-name">{{ user.fullname }}</div>
+                <div class="topbar-profile-role">{{ country_names.get(user.country, user.country) }}</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+    <nav class="sidebar-nav">
+        <a href="/dashboard" class="sidebar-link"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+        <a href="/send-money" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer</a>
+        <a href="/deposit" class="sidebar-link"><i class="fa-solid fa-wallet"></i> Dépôt</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-arrow-down-wide-short"></i> Recevoir</a>
+        <a href="/history" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <div class="sidebar-section-title">Services</div>
+        <a href="/beneficiaries" class="sidebar-link active"><i class="fa-solid fa-user-group"></i> Mes bénéficiaires</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> QR Code</a>
+        <div class="sidebar-section-title">Paramètres</div>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-user-check"></i> Vérification KYC</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-gear"></i> Paramètres</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-headset"></i> Support</a>
+        <a href="/logout" class="sidebar-link"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1><i class="fa-solid fa-user-group" style="color:var(--blue)"></i> Mes bénéficiaires</h1>
+            <p>Retrouvez rapidement les personnes à qui vous envoyez régulièrement de l'argent.</p>
+        </div>
+        <button class="btn-primary" onclick="openModal()"><i class="fa-solid fa-plus"></i> Nouveau bénéficiaire</button>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Rechercher un bénéficiaire..." oninput="filterBeneficiaries()">
+    </div>
+
+    <!-- FAVORITES -->
+    <div id="favoritesSection" style="display:none">
+        <div class="section-header">
+            <h2>⭐ Favoris</h2>
+            <span class="badge-count" id="favoritesCount">0</span>
+        </div>
+        <div class="favorites-slider" id="favoritesSlider"></div>
+    </div>
+
+    <!-- ALL BENEFICIARIES -->
+    <div style="margin-top:28px">
+        <div class="section-header">
+            <h2>Tous les bénéficiaires</h2>
+            <span class="badge-count" id="totalCount">0</span>
+        </div>
+        <div class="benef-header-row" id="benefHeaderRow">
+            <div class="benef-col name-col benef-cell label">Nom</div>
+            <div class="benef-col phone-col benef-cell label">Numéro</div>
+            <div class="benef-col country-col benef-cell label">Pays</div>
+            <div class="benef-col operator-col benef-cell label">Opérateur</div>
+            <div class="benef-col transfers-col benef-cell label">Transferts</div>
+            <div class="benef-col amount-col benef-cell label">Total envoyé</div>
+            <div class="benef-col last-col benef-cell label">Dernier</div>
+            <div class="benef-col actions-col benef-cell label">Actions</div>
+        </div>
+        <div id="beneficiariesList"></div>
+        <div id="emptyState" class="empty-state" style="display:none">
+            <i class="fa-solid fa-user-group"></i>
+            <h3>Aucun bénéficiaire</h3>
+            <p>Ajoutez des bénéficiaires pour envoyer de l'argent plus rapidement.</p>
+            <button class="btn-primary" onclick="openModal()"><i class="fa-solid fa-plus"></i> Ajouter un bénéficiaire</button>
+        </div>
+    </div>
+
+    <!-- RECENT CONTACTS -->
+    <div class="recent-contacts" id="recentContactsSection" style="display:none">
+        <div class="section-header">
+            <h2>🕐 Contacts récents</h2>
+            <span class="badge-count" id="recentCount">0</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-3);margin-bottom:12px">Les 5 derniers destinataires, même s'ils ne sont pas encore enregistrés.</p>
+        <div id="recentContactsList"></div>
+    </div>
+</main>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="benefModal">
+    <div class="modal">
+        <h2 id="modalTitle">Nouveau bénéficiaire</h2>
+        <form id="benefForm" onsubmit="saveBeneficiary(event)">
+            <input type="hidden" id="benefId">
+            <div class="form-group">
+                <label>Nom complet *</label>
+                <input type="text" id="benefName" placeholder="Ex: Jean Dupont" required>
+            </div>
+            <div class="form-group">
+                <label>Numéro *</label>
+                <input type="text" id="benefPhone" placeholder="Ex: 90123456" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pays *</label>
+                    <select id="benefCountry" required onchange="loadOperators()">
+                        <option value="">Sélectionner</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Opérateur</label>
+                    <select id="benefOperator">
+                        <option value="">Sélectionner</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Adresse email (optionnel)</label>
+                <input type="email" id="benefEmail" placeholder="Ex: jean@exemple.com">
+            </div>
+            <div class="form-group">
+                <label>Surnom (optionnel)</label>
+                <input type="text" id="benefNickname" placeholder="Ex: Mon frère">
+            </div>
+            <label class="form-checkbox" style="margin-top:8px">
+                <input type="checkbox" id="benefFavorite"> ⭐ Ajouter aux favoris
+            </label>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-check"></i> Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+const COUNTRY_NAMES = {{ country_names|tojson }};
+const COUNTRY_FLAGS = {{ country_flags|tojson }};
+const COUNTRIES = {{ countries|tojson }};
+const OPERATORS_LIST = {{ operators_list|tojson }};
+let allBeneficiaries = [];
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded', () => {
+    populateCountrySelect();
+    loadBeneficiaries();
+    loadRecentContacts();
+});
+
+function populateCountrySelect(){
+    const sel = document.getElementById('benefCountry');
+    COUNTRIES.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.code;
+        opt.textContent = `${c.flag} ${c.name}`;
+        sel.appendChild(opt);
+    });
+    document.getElementById('benefOperator').innerHTML = '<option value="">Sélectionner</option>';
+}
+
+function loadOperators(){
+    const country = document.getElementById('benefCountry').value;
+    const sel = document.getElementById('benefOperator');
+    sel.innerHTML = '<option value="">Sélectionner</option>';
+    if(!country) return;
+    const ops = OPERATORS_LIST[country] || [];
+    ops.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op.slug;
+        opt.textContent = op.name;
+        sel.appendChild(opt);
+    });
+}
+
+/* ===== API ===== */
+async function loadBeneficiaries(){
+    try {
+        const res = await fetch('/api/beneficiaries');
+        const data = await res.json();
+        if(data.success){
+            allBeneficiaries = data.beneficiaries || [];
+            renderAll();
+        }
+    } catch(e){ console.error(e); }
+}
+
+async function loadRecentContacts(){
+    try {
+        const res = await fetch('/api/beneficiaries/recent');
+        const data = await res.json();
+        if(data.success && data.contacts && data.contacts.length > 0){
+            document.getElementById('recentContactsSection').style.display = 'block';
+            document.getElementById('recentCount').textContent = data.total;
+            const list = document.getElementById('recentContactsList');
+            list.innerHTML = data.contacts.map(c => `
+                <div class="recent-row">
+                    <div class="benef-avatar" style="background:linear-gradient(135deg,var(--text-3),var(--text-4));width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0">${getInitials(c.name)}</div>
+                    <div style="flex:1;min-width:0">
+                        <div class="benef-name">${escHtml(c.name)}</div>
+                        <div class="benef-nickname">${c.phone} · ${COUNTRY_NAMES[c.country] || c.country}</div>
+                    </div>
+                    <button class="btn-sm" style="background:var(--blue-light);color:var(--blue)" onclick="quickAdd('${escAttr(c.name)}','${escAttr(c.phone)}','${escAttr(c.country)}','${escAttr(c.operator||'')}')"><i class="fa-solid fa-plus"></i> Ajouter</button>
+                </div>
+            `).join('');
+        }
+    } catch(e){ console.error(e); }
+}
+
+function quickAdd(name, phone, country, operator){
+    document.getElementById('benefName').value = name;
+    document.getElementById('benefPhone').value = phone;
+    document.getElementById('benefCountry').value = country;
+    loadOperators();
+    setTimeout(() => { document.getElementById('benefOperator').value = operator; }, 100);
+    document.getElementById('benefEmail').value = '';
+    document.getElementById('benefNickname').value = '';
+    document.getElementById('benefFavorite').checked = false;
+    document.getElementById('benefId').value = '';
+    document.getElementById('modalTitle').textContent = 'Ajouter un bénéficiaire';
+    openModal();
+}
+
+function filterBeneficiaries(){
+    renderAll();
+}
+
+function getFiltered(){
+    const q = (document.getElementById('searchInput').value||'').toLowerCase();
+    if(!q) return allBeneficiaries;
+    return allBeneficiaries.filter(b =>
+        (b.name||'').toLowerCase().includes(q) ||
+        (b.phone||'').toLowerCase().includes(q) ||
+        (COUNTRY_NAMES[b.country]||'').toLowerCase().includes(q) ||
+        (b.operator||'').toLowerCase().includes(q) ||
+        (b.nickname||'').toLowerCase().includes(q)
+    );
+}
+
+function renderAll(){
+    const filtered = getFiltered();
+    const favorites = filtered.filter(b => b.is_favorite);
+    const nonFavorites = filtered.filter(b => !b.is_favorite);
+
+    // Favorites
+    const favSection = document.getElementById('favoritesSection');
+    const favSlider = document.getElementById('favoritesSlider');
+    const favCount = document.getElementById('favoritesCount');
+    if(favorites.length > 0){
+        favSection.style.display = 'block';
+        favCount.textContent = favorites.length;
+        favSlider.innerHTML = favorites.map(b => `
+            <div class="fav-card" onclick="sendToBeneficiary('${escAttr(b.phone)}','${escAttr(b.name)}','${escAttr(b.country)}','${escAttr(b.operator||'')}')">
+                <div class="fav-card-top">
+                    <div class="fav-avatar" style="background:linear-gradient(135deg,var(--blue),var(--green))">${getInitials(b.name)}</div>
+                    <div class="fav-info">
+                        <h4>${escHtml(b.name)}</h4>
+                        <span>${COUNTRY_FLAGS[b.country]||'🌍'} ${COUNTRY_NAMES[b.country]||b.country}</span>
+                    </div>
+                    <div class="fav-star" onclick="event.stopPropagation();toggleFavorite(${b.id})"><i class="fa-solid fa-star"></i></div>
+                </div>
+                <div class="fav-detail-row"><span class="label">Opérateur</span> <span>${escHtml(b.operator||'—')}</span></div>
+                <div class="fav-detail-row"><span class="label">Numéro</span> <span>${maskPhone(b.phone)}</span></div>
+                <div class="fav-detail-row"><span class="label">Transferts</span> <span>${b.transfer_count} · ${(b.total_sent||0).toLocaleString('fr-FR')} XOF</span></div>
+                <button class="fav-send-btn" onclick="event.stopPropagation();sendToBeneficiary('${escAttr(b.phone)}','${escAttr(b.name)}','${escAttr(b.country)}','${escAttr(b.operator||'')}')"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
+            </div>
+        `).join('');
+    } else {
+        favSection.style.display = 'none';
+    }
+
+    // List
+    const list = document.getElementById('beneficiariesList');
+    const empty = document.getElementById('emptyState');
+    const headerRow = document.getElementById('benefHeaderRow');
+    document.getElementById('totalCount').textContent = filtered.length;
+
+    if(filtered.length === 0 && !(document.getElementById('searchInput').value||'')){
+        empty.style.display = 'block';
+        list.innerHTML = '';
+        headerRow.style.display = 'none';
+    } else if(nonFavorites.length === 0 && favorites.length > 0){
+        list.innerHTML = '';
+        headerRow.style.display = 'none';
+        empty.style.display = 'block';
+        empty.querySelector('h3').textContent = 'Tous vos bénéficiaires sont en favoris ⭐';
+        empty.querySelector('p').textContent = 'Utilisez la recherche pour les retrouver.';
+        empty.querySelector('button').style.display = 'none';
+    } else if(filtered.length === 0){
+        empty.style.display = 'block';
+        list.innerHTML = '';
+        headerRow.style.display = 'none';
+        empty.querySelector('h3').textContent = 'Aucun résultat';
+        empty.querySelector('p').textContent = 'Essayez avec d\'autres termes de recherche.';
+        empty.querySelector('button').style.display = 'none';
+        document.getElementById('searchInput').addEventListener('input', function h(){ if(!this.value){ loadBeneficiaries(); this.removeEventListener('input',h); } }, {once:true});
+    } else {
+        empty.style.display = 'none';
+        headerRow.style.display = 'flex';
+        list.innerHTML = nonFavorites.map(b => `
+            <div class="benef-row">
+                <div class="benef-col name-col" style="display:flex;align-items:center;gap:12px">
+                    <div class="benef-avatar" style="background:linear-gradient(135deg,var(--blue),var(--green));min-width:40px">${getInitials(b.name)}</div>
+                    <div style="min-width:0">
+                        <div class="benef-name">${escHtml(b.name)}${b.nickname ? ' <span class="benef-nickname">('+escHtml(b.nickname)+')</span>' : ''}</div>
+                        <div class="benef-nickname">${b.created_at ? new Date(b.created_at).toLocaleDateString('fr-FR') : ''}</div>
+                    </div>
+                </div>
+                <div class="benef-col phone-col benef-cell">${maskPhone(b.phone)}</div>
+                <div class="benef-col country-col benef-cell small">${COUNTRY_FLAGS[b.country]||'🌍'} ${COUNTRY_NAMES[b.country]||b.country}</div>
+                <div class="benef-col operator-col benef-cell small">${escHtml(b.operator||'—')}</div>
+                <div class="benef-col transfers-col benef-cell small" style="text-align:center">${b.transfer_count||0}</div>
+                <div class="benef-col amount-col benef-cell small" style="text-align:right">${(b.total_sent||0).toLocaleString('fr-FR')} XOF</div>
+                <div class="benef-col last-col benef-cell small" style="text-align:right">${b.last_transfer_at ? new Date(b.last_transfer_at).toLocaleDateString('fr-FR') : '—'}</div>
+                <div class="benef-col actions-col">
+                    <button class="btn-icon" title="${b.is_favorite?'Retirer des favoris':'Ajouter aux favoris'}" onclick="toggleFavorite(${b.id})" style="color:${b.is_favorite?'#F59E0B':'var(--text-3)'}"><i class="fa-solid ${b.is_favorite?'fa-star':'fa-star'}"></i></button>
+                    <button class="btn-icon" title="Modifier" onclick="editBeneficiary(${b.id})"><i class="fa-solid fa-pen"></i></button>
+                    <a href="/beneficiary/${b.id}" class="btn-icon" title="Historique"><i class="fa-solid fa-clock-rotate-left"></i></a>
+                    <button class="btn-icon danger" title="Supprimer" onclick="deleteBeneficiary(${b.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+/* ===== CRUD ===== */
+function openModal(){
+    document.getElementById('benefModal').classList.add('show');
+    if(!document.getElementById('benefId').value){
+        document.getElementById('modalTitle').textContent = 'Nouveau bénéficiaire';
+    }
+}
+
+function closeModal(){
+    document.getElementById('benefModal').classList.remove('show');
+    document.getElementById('benefForm').reset();
+    document.getElementById('benefId').value = '';
+    document.getElementById('benefOperator').innerHTML = '<option value="">Sélectionner</option>';
+}
+
+async function saveBeneficiary(e){
+    e.preventDefault();
+    const id = document.getElementById('benefId').value;
+    const payload = {
+        name: document.getElementById('benefName').value.trim(),
+        phone: document.getElementById('benefPhone').value.trim(),
+        country: document.getElementById('benefCountry').value,
+        operator: document.getElementById('benefOperator').value,
+        email: document.getElementById('benefEmail').value.trim() || null,
+        nickname: document.getElementById('benefNickname').value.trim() || null,
+        is_favorite: document.getElementById('benefFavorite').checked,
+    };
+
+    const url = id ? `/api/beneficiaries/${id}` : '/api/beneficiaries';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(data.success){
+            showToast(id ? 'Bénéficiaire modifié !' : 'Bénéficiaire ajouté !', 'success');
+            closeModal();
+            loadBeneficiaries();
+        } else {
+            showToast(data.message || 'Erreur', 'error');
+        }
+    } catch(e){ showToast('Erreur réseau', 'error'); }
+}
+
+async function editBeneficiary(id){
+    const b = allBeneficiaries.find(x => x.id === id);
+    if(!b) return;
+    document.getElementById('benefId').value = b.id;
+    document.getElementById('benefName').value = b.name;
+    document.getElementById('benefPhone').value = b.phone;
+    document.getElementById('benefCountry').value = b.country;
+    loadOperators();
+    setTimeout(() => { document.getElementById('benefOperator').value = b.operator||''; }, 100);
+    document.getElementById('benefEmail').value = b.email||'';
+    document.getElementById('benefNickname').value = b.nickname||'';
+    document.getElementById('benefFavorite').checked = b.is_favorite;
+    document.getElementById('modalTitle').textContent = 'Modifier le bénéficiaire';
+    openModal();
+}
+
+async function deleteBeneficiary(id){
+    if(!confirm('Supprimer ce bénéficiaire ?')) return;
+    try {
+        const res = await fetch(`/api/beneficiaries/${id}`, {method:'DELETE'});
+        const data = await res.json();
+        if(data.success){
+            showToast('Bénéficiaire supprimé', 'success');
+            loadBeneficiaries();
+        } else {
+            showToast(data.message || 'Erreur', 'error');
+        }
+    } catch(e){ showToast('Erreur réseau', 'error'); }
+}
+
+async function toggleFavorite(id){
+    try {
+        const b = allBeneficiaries.find(x => x.id === id);
+        if(!b) return;
+        const res = await fetch(`/api/beneficiaries/${id}/favorite`, {method:'POST'});
+        const data = await res.json();
+        if(data.success){
+            b.is_favorite = data.is_favorite;
+            showToast(data.is_favorite ? 'Ajouté aux favoris ⭐' : 'Retiré des favoris', 'success');
+            renderAll();
+        }
+    } catch(e){ showToast('Erreur réseau', 'error'); }
+}
+
+function sendToBeneficiary(phone, name, country, operator){
+    const params = new URLSearchParams({
+        receiver_phone: phone,
+        receiver_name: name,
+        receiver_country: country,
+        receiver_operator: operator,
+    });
+    window.location.href = '/send-money?' + params.toString();
+}
+
+/* ===== HELPERS ===== */
+function getInitials(name){
+    if(!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if(parts.length >= 2) return (parts[0][0]+parts[1][0]).toUpperCase();
+    return parts[0].substring(0,2).toUpperCase();
+}
+
+function maskPhone(phone){
+    if(!phone) return '';
+    const clean = phone.replace(/[+\-\s]/g,'');
+    if(clean.length <= 4) return clean;
+    return '•••• ' + clean.slice(-4);
+}
+
+function escHtml(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+function escAttr(s){ return s.replace(/&/g,'&').replace(/"/g,'"').replace(/'/g,'&#39;').replace(/</g,'<').replace(/>/g,'>'); }
+
+function showToast(msg, type){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type||'');
+    clearTimeout(t._timeout);
+    t._timeout = setTimeout(() => { t.classList.remove('show'); }, 3000);
+}
+
+/* ===== CLOSE MODAL ON CLICK OUTSIDE ===== */
+document.getElementById('benefModal').addEventListener('click', function(e){
+    if(e.target === this) closeModal();
+});
+
+/* ===== KEYBOARD ESC ===== */
+document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>

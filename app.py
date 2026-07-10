@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction
 from transfer_config import COUNTRIES, get_operators, get_country
 from transfer_utils import calculate_fees, calculate_total
 from services.service_ids import get_service_id
@@ -948,6 +948,271 @@ def webhook_deposit():
         deposit.webhook_payload = payload
         db.session.commit()
         return jsonify({'success': True, 'message': 'Statut inconnu, payload enregistré'})
+
+
+# ==================== BENEFICIARIES ====================
+
+@app.route('/beneficiaries')
+@login_required
+def beneficiaries_page():
+    """Page de gestion des bénéficiaires."""
+    country_flags = {
+        'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮', 'BF': '🇧🇫',
+        'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦', 'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
+    }
+    country_names = {
+        'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': 'Côte d\'Ivoire',
+        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
+    }
+    # Liste des pays avec leurs opérateurs depuis transfer_config
+    countries_list = [c for c in COUNTRIES]
+    operators_list = {}
+    for country in countries_list:
+        code = country.get('code', '')
+        ops = get_operators(code)
+        operators_list[code] = ops
+
+    return render_template('beneficiaries.html',
+                           user=current_user,
+                           country_names=country_names,
+                           country_flags=country_flags,
+                           countries=countries_list,
+                           operators_list=operators_list)
+
+
+@app.route('/beneficiary/<int:beneficiary_id>')
+@login_required
+def beneficiary_detail(beneficiary_id):
+    """Page de détail/historique d'un bénéficiaire."""
+    beneficiary = Beneficiary.query.filter_by(
+        id=beneficiary_id, user_id=current_user.id
+    ).first_or_404()
+
+    # Transactions liées à ce bénéficiaire (par téléphone)
+    transactions = Transaction.query.filter(
+        Transaction.user_id == current_user.id,
+        Transaction.type == 'send',
+        Transaction.recipient_phone == beneficiary.phone,
+    ).order_by(Transaction.created_at.desc()).limit(50).all()
+
+    country_flags = {
+        'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮', 'BF': '🇧🇫',
+        'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦', 'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
+    }
+    country_names = {
+        'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': 'Côte d\'Ivoire',
+        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
+    }
+
+    return render_template('beneficiary_detail.html',
+                           user=current_user,
+                           beneficiary=beneficiary,
+                           transactions=transactions,
+                           country_flags=country_flags,
+                           country_names=country_names)
+
+
+# --- API Bénéficiaires ---
+
+@app.route('/api/beneficiaries')
+@login_required
+def api_get_beneficiaries():
+    """Liste tous les bénéficiaires de l'utilisateur connecté."""
+    beneficiaries = Beneficiary.query.filter_by(
+        user_id=current_user.id
+    ).order_by(Beneficiary.is_favorite.desc(), Beneficiary.created_at.desc()).all()
+
+    return jsonify({
+        'success': True,
+        'beneficiaries': [b.to_dict() for b in beneficiaries],
+        'total': len(beneficiaries),
+    })
+
+
+@app.route('/api/beneficiaries', methods=['POST'])
+@login_required
+def api_create_beneficiary():
+    """Crée un nouveau bénéficiaire."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données manquantes'}), 400
+
+    name = data.get('name', '').strip()
+    phone = data.get('phone', '').strip()
+    country = data.get('country', '').strip().upper()
+
+    if not name or not phone or not country:
+        return jsonify({'success': False, 'message': 'Nom, numéro et pays requis'}), 400
+
+    # Vérifier doublon (même numéro, même pays)
+    existing = Beneficiary.query.filter_by(
+        user_id=current_user.id,
+        phone=phone,
+        country=country,
+    ).first()
+    if existing:
+        return jsonify({
+            'success': False,
+            'message': 'Ce numéro est déjà enregistré pour ce pays.',
+        }), 400
+
+    beneficiary = Beneficiary(
+        user_id=current_user.id,
+        name=name,
+        phone=phone,
+        country=country,
+        operator=data.get('operator', '').strip().upper() or None,
+        email=data.get('email') or None,
+        nickname=data.get('nickname') or None,
+        photo=data.get('photo') or None,
+        is_favorite=data.get('is_favorite', False),
+    )
+    db.session.add(beneficiary)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Bénéficiaire ajouté !',
+        'beneficiary': beneficiary.to_dict(),
+    })
+
+
+@app.route('/api/beneficiaries/<int:beneficiary_id>', methods=['PUT'])
+@login_required
+def api_update_beneficiary(beneficiary_id):
+    """Modifie un bénéficiaire existant."""
+    beneficiary = Beneficiary.query.filter_by(
+        id=beneficiary_id, user_id=current_user.id
+    ).first()
+
+    if not beneficiary:
+        return jsonify({'success': False, 'message': 'Bénéficiaire introuvable'}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données manquantes'}), 400
+
+    beneficiary.name = data.get('name', beneficiary.name).strip()
+    beneficiary.phone = data.get('phone', beneficiary.phone).strip()
+    beneficiary.country = data.get('country', beneficiary.country).strip().upper()
+    beneficiary.operator = data.get('operator', '').strip().upper() or None
+    beneficiary.email = data.get('email') or None
+    beneficiary.nickname = data.get('nickname') or None
+    beneficiary.photo = data.get('photo') or None
+    beneficiary.is_favorite = data.get('is_favorite', beneficiary.is_favorite)
+    beneficiary.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Bénéficiaire modifié !',
+        'beneficiary': beneficiary.to_dict(),
+    })
+
+
+@app.route('/api/beneficiaries/<int:beneficiary_id>', methods=['DELETE'])
+@login_required
+def api_delete_beneficiary(beneficiary_id):
+    """Supprime un bénéficiaire."""
+    beneficiary = Beneficiary.query.filter_by(
+        id=beneficiary_id, user_id=current_user.id
+    ).first()
+
+    if not beneficiary:
+        return jsonify({'success': False, 'message': 'Bénéficiaire introuvable'}), 404
+
+    db.session.delete(beneficiary)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Bénéficiaire supprimé'})
+
+
+@app.route('/api/beneficiaries/<int:beneficiary_id>/favorite', methods=['POST'])
+@login_required
+def api_toggle_favorite(beneficiary_id):
+    """Bascule le statut favori d'un bénéficiaire."""
+    beneficiary = Beneficiary.query.filter_by(
+        id=beneficiary_id, user_id=current_user.id
+    ).first()
+
+    if not beneficiary:
+        return jsonify({'success': False, 'message': 'Bénéficiaire introuvable'}), 404
+
+    beneficiary.is_favorite = not beneficiary.is_favorite
+    beneficiary.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'is_favorite': beneficiary.is_favorite,
+        'message': 'Ajouté aux favoris ⭐' if beneficiary.is_favorite else 'Retiré des favoris',
+    })
+
+
+@app.route('/api/beneficiaries/recent')
+@login_required
+def api_recent_contacts():
+    """Retourne les 5 derniers destinataires uniques (même non enregistrés)."""
+    recent = db.session.query(
+        Transaction.recipient_name,
+        Transaction.recipient_phone,
+        Transaction.recipient_country,
+        Transaction.recipient_operator,
+    ).filter(
+        Transaction.user_id == current_user.id,
+        Transaction.type == 'send',
+        Transaction.recipient_phone.isnot(None),
+    ).order_by(
+        db.func.max(Transaction.created_at).desc()
+    ).group_by(
+        Transaction.recipient_phone,
+        Transaction.recipient_country,
+    ).limit(5).all()
+
+    contacts = []
+    for r in recent:
+        # Vérifier si déjà enregistré comme bénéficiaire
+        already = Beneficiary.query.filter_by(
+            user_id=current_user.id,
+            phone=r.recipient_phone,
+            country=r.recipient_country,
+        ).first()
+        contacts.append({
+            'name': r.recipient_name or 'Inconnu',
+            'phone': r.recipient_phone,
+            'country': r.recipient_country,
+            'operator': r.recipient_operator or '',
+            'is_saved': already is not None,
+        })
+
+    return jsonify({
+        'success': True,
+        'contacts': contacts,
+        'total': len(contacts),
+    })
+
+
+# --- API Contact Import (architecture future) ---
+@app.route('/api/contacts/import', methods=['POST'])
+@login_required
+def api_import_contacts():
+    """API d'import de contacts (CSV / JSON).
+    Architecture réservée pour intégration Android/iOS ultérieure.
+    """
+    # Placeholder — à implémenter plus tard
+    return jsonify({
+        'success': False,
+        'message': 'Import de contacts non encore implémenté.',
+    }), 501
+
+
+# ==================== PAGE 404 ====================
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 
 if __name__ == '__main__':

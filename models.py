@@ -295,7 +295,43 @@ class Beneficiary(db.Model):
     phone = db.Column(db.String(30), nullable=False)
     country = db.Column(db.String(5), nullable=False)
     operator = db.Column(db.String(50), nullable=True)
+    email = db.Column(db.String(255), nullable=True)
+    nickname = db.Column(db.String(100), nullable=True)
+    photo = db.Column(db.String(500), nullable=True)
+    is_favorite = db.Column(db.Boolean, default=False, index=True)
+    transfer_count = db.Column(db.Integer, default=0)
+    total_sent = db.Column(db.Integer, default=0)
+    last_transfer_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # ---- Relation ----
+    user = db.relationship('User', backref=db.backref('beneficiaries', lazy='dynamic'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'phone': self.phone,
+            'country': self.country,
+            'operator': self.operator,
+            'email': self.email,
+            'nickname': self.nickname,
+            'photo': self.photo,
+            'is_favorite': self.is_favorite,
+            'transfer_count': self.transfer_count,
+            'total_sent': self.total_sent,
+            'last_transfer_at': self.last_transfer_at.isoformat() if self.last_transfer_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    def update_stats(self, amount: int):
+        """Met à jour les stats après un transfert vers ce bénéficiaire."""
+        self.transfer_count = (self.transfer_count or 0) + 1
+        self.total_sent = (self.total_sent or 0) + amount
+        self.last_transfer_at = datetime.utcnow()
 
     def __repr__(self):
         return f'<Beneficiary {self.name}>'
