@@ -219,6 +219,73 @@ class Transfer(db.Model):
         return f'<Transfer {self.reference} {self.status}>'
 
 
+class Deposit(db.Model):
+    """Dépôt d'argent pour alimenter le portefeuille TransAfrik."""
+
+    __tablename__ = 'deposits'
+
+    STATUS_CHOICES = [
+        'CREATED',
+        'PAYMENT_PROCESSING',
+        'COMPLETED',
+        'FAILED',
+        'CANCELLED',
+    ]
+
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # ---- Détails du dépôt ----
+    phone = db.Column(db.String(30), nullable=False)
+    country = db.Column(db.String(5), nullable=False)
+    operator = db.Column(db.String(50), nullable=False)
+    operator_id = db.Column(db.Integer, nullable=True)
+    amount = db.Column(db.Integer, nullable=False)
+    fees = db.Column(db.Integer, nullable=False, default=0)
+    total_amount = db.Column(db.Integer, nullable=False)
+    currency = db.Column(db.String(10), nullable=False, default='XOF')
+
+    # ---- Références SoleasPay ----
+    payin_reference = db.Column(db.String(200), nullable=True)
+    external_reference = db.Column(db.String(200), nullable=True)
+    payin_response = db.Column(db.JSON, nullable=True)
+    webhook_payload = db.Column(db.JSON, nullable=True)
+
+    # ---- Statut ----
+    status = db.Column(db.String(30), nullable=False, default='CREATED', index=True)
+    status_message = db.Column(db.String(500), nullable=True)
+
+    # ---- Relation ----
+    user = db.relationship('User', backref=db.backref('deposits', lazy='dynamic'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'reference': self.reference,
+            'user_id': self.user_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'phone': self.phone,
+            'country': self.country,
+            'operator': self.operator,
+            'operator_id': self.operator_id,
+            'amount': self.amount,
+            'fees': self.fees,
+            'total_amount': self.total_amount,
+            'currency': self.currency,
+            'payin_reference': self.payin_reference,
+            'external_reference': self.external_reference,
+            'status': self.status,
+            'status_message': self.status_message,
+        }
+
+    def __repr__(self):
+        return f'<Deposit {self.reference} {self.status}>'
+
+
 class Beneficiary(db.Model):
     __tablename__ = 'beneficiaries'
 

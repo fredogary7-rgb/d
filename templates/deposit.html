@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dépôt — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;
+            --cyan:#06B6D4;--cyan-light:#CFFAFE;
+            --green:#10B981;--green-light:#D1FAE5;
+            --orange:#F97316;--orange-light:#FFEDD5;
+            --red:#EF4444;--red-light:#FEE2E2;
+            --purple:#8B5CF6;--purple-light:#EDE9FE;
+            --gray:#6B7280;--gray-light:#F3F4F6;--gray-dark:#374151;
+            --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
+            --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
+            --border:#E2E8F0;--shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 4px 12px rgba(0,0,0,.06);--shadow-md:0 8px 24px rgba(0,0,0,.08);--shadow-xl:0 20px 60px rgba(0,0,0,.1);
+            --radius:12px;--radius-lg:18px;--radius-xl:24px;
+            --transition:.25s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"]{--bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;--text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;--gray-light:#1F2937;--border:#1E293B;--shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 4px 12px rgba(0,0,0,.3);--shadow-md:0 8px 24px rgba(0,0,0,.4);--shadow-xl:0 20px 60px rgba(0,0,0,.5)}
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;transition:background .5s,color .5s}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none}
+
+        .main{flex:1;padding:32px 36px;min-height:100vh;animation:fadeIn .5s ease-out}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+        .page-header{margin-bottom:28px}
+        .page-header h1{font-size:26px;font-weight:800}
+        .page-header p{font-size:13px;color:var(--text-4);margin-top:4px}
+
+        /* CARTE SOLDE */
+        .balance-card{position:relative;overflow:hidden;background:linear-gradient(135deg,#0F172A 0%,#1E293B 40%,#0F172A 100%);color:#fff;border-radius:var(--radius-xl);padding:28px 32px;margin-bottom:28px;box-shadow:var(--shadow-xl);animation:cardUp .5s ease-out}
+        @keyframes cardUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(37,99,235,.4) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+        .balance-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(6,182,212,.25) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+        .balance-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;position:relative;z-index:1}
+        .balance-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.55);display:flex;align-items:center;gap:8px}
+        .balance-label i{font-size:18px;color:rgba(255,255,255,.35)}
+        .balance-amount{font-family:'Outfit',sans-serif;font-size:42px;font-weight:900;letter-spacing:-.03em;position:relative;z-index:1;line-height:1.1}
+        .balance-currency{font-size:14px;font-weight:500;color:rgba(255,255,255,.5);margin-left:6px;position:relative;z-index:1}
+        .balance-footer{display:flex;align-items:center;gap:12px;margin-top:12px;position:relative;z-index:1}
+        .balance-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;background:rgba(255,255,255,.1);font-size:11px;font-weight:600;color:rgba(255,255,255,.7);backdrop-filter:blur(4px)}
+
+        /* LAYOUT */
+        .deposit-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+        @media (max-width:900px){.deposit-layout{grid-template-columns:1fr}}
+
+        /* FORM CARD */
+        .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm)}
+        .form-card h2{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+        .form-card h2 span{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--blue-light);color:var(--blue);font-size:13px;font-weight:700;font-family:'Outfit',sans-serif;flex-shrink:0}
+        .form-group{margin-bottom:18px}
+        .form-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);margin-bottom:6px}
+        .form-select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:13px;font-family:'Inter',sans-serif;color:var(--text);outline:none;transition:all var(--transition);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%2394A3B8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+        .form-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .form-select option{padding:8px}
+        .form-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:14px;font-family:'Inter',sans-serif;color:var(--text);outline:none;transition:all var(--transition)}
+        .form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .form-input::placeholder{color:var(--text-4)}
+        .form-input.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+        .form-error{font-size:11px;color:var(--red);margin-top:4px;display:none}
+        .form-error.show{display:block}
+
+        /* OPERATOR GRID */
+        .operator-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+        .operator-card{padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all var(--transition);background:var(--surface);font-size:11px;font-weight:600;color:var(--text-2)}
+        .operator-card:hover{border-color:var(--blue);background:var(--blue-light)}
+        .operator-card.selected{border-color:var(--blue);background:var(--blue-light);color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+        .operator-card i{display:block;font-size:20px;margin-bottom:4px}
+
+        /* SUMMARY CARD */
+        .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);position:sticky;top:24px;transition:all var(--transition)}
+        .summary-card h3{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+        .summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+        .summary-row:last-of-type{border-bottom:none;padding-bottom:0}
+        .summary-lbl{color:var(--text-3);font-weight:500}
+        .summary-val{font-weight:700;color:var(--text);font-family:'Outfit',sans-serif}
+        .summary-total{padding-top:14px;margin-top:4px;border-top:2px solid var(--border)}
+        .summary-total .summary-lbl{font-size:14px;font-weight:700;color:var(--text)}
+        .summary-total .summary-val{font-size:20px;font-weight:900;color:var(--blue)}
+        .summary-zero{color:var(--text-4);font-style:italic}
+
+        /* BIG BUTTON */
+        .btn-submit{width:100%;padding:16px 24px;border:none;border-radius:100px;background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--cyan));background-size:200% 200%;color:#fff;font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;transition:all var(--transition);animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 24px rgba(37,99,235,.3);display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .btn-submit:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(37,99,235,.4)}
+        .btn-submit:active{transform:translateY(0)}
+        .btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;animation:none}
+        .btn-submit .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .btn-submit.loading .spinner{display:block}
+        .btn-submit.loading .btn-text{display:none}
+
+        /* TOAST */
+        .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:var(--radius);color:#fff;font-size:13px;font-weight:600;z-index:9999;opacity:0;transform:translateX(100px);transition:all .3s ease-out;max-width:380px;box-shadow:var(--shadow-xl)}
+        .toast.show{opacity:1;transform:translateX(0)}
+        .toast.success{background:var(--green)}
+        .toast.error{background:var(--red)}
+
+        /* OVERLAY (loading) */
+        .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+        .overlay.show{display:flex}
+        .overlay-card{background:var(--surface);border-radius:var(--radius-xl);padding:40px 32px;text-align:center;box-shadow:var(--shadow-xl);max-width:360px;width:90%;animation:fadeIn .3s ease-out}
+        .overlay-spinner{width:48px;height:48px;border:4px solid var(--blue-light);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+        .overlay-title{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px}
+        .overlay-sub{font-size:13px;color:var(--text-4)}
+
+        @media (max-width:768px){
+            .main{padding:20px 16px}
+            .balance-amount{font-size:32px}
+            .balance-card{padding:20px}
+            .deposit-layout{grid-template-columns:1fr}
+            .summary-card{position:static}
+        }
+    </style>
+</head>
+<body>
+
+<main class="main">
+    <div class="page-header">
+        <h1>Alimenter mon portefeuille</h1>
+        <p>Déposez de l'argent sur votre compte TransAfrik afin d'effectuer des transferts instantanés.</p>
+    </div>
+
+    <!-- CARTE SOLDE -->
+    <div class="balance-card">
+        <div class="balance-header">
+            <div class="balance-label"><i class="fa-solid fa-wallet"></i> Solde disponible</div>
+        </div>
+        <div class="balance-amount" id="balanceDisplay">{{ "{:,}".format(user.balance).replace(',', ' ') }} <span class="balance-currency">{{ user.currency }}</span></div>
+        <div class="balance-footer">
+            <div class="balance-chip"><i class="fa-solid fa-shield-halved"></i> TransAfrik Wallet</div>
+        </div>
+    </div>
+
+    <div class="deposit-layout">
+        <!-- FORM -->
+        <div class="form-card" id="depositForm">
+            <h2><span>1</span> Choisir le pays</h2>
+            <div class="form-group">
+                <select class="form-select" id="countrySelect" onchange="onCountryChange()">
+                    <option value="">Sélectionner un pays...</option>
+                    {% for c in countries %}
+                    <option value="{{ c.code }}" data-flag="{{ c.flag }}" data-currency="{{ c.currency }}">{{ c.flag }} {{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <h2><span>2</span> Choisir l'opérateur</h2>
+            <div class="form-group">
+                <div class="operator-grid" id="operatorGrid">
+                    <div style="font-size:12px;color:var(--text-4);padding:12px">Sélectionnez d'abord un pays.</div>
+                </div>
+            </div>
+
+            <h2><span>3</span> Votre numéro Mobile Money</h2>
+            <div class="form-group">
+                <input type="tel" class="form-input" id="phoneInput" placeholder="Ex: 90 01 02 03" oninput="onPhoneChange()">
+                <div class="form-error" id="phoneError">Numéro invalide (minimum 8 chiffres).</div>
+            </div>
+
+            <h2><span>4</span> Montant du dépôt</h2>
+            <div class="form-group">
+                <input type="number" class="form-input" id="amountInput" placeholder="Montant minimum 500" oninput="onAmountChange()" min="500" step="100">
+                <div class="form-error" id="amountError">Montant minimum : 500.</div>
+            </div>
+
+            <button class="btn-submit" id="submitBtn" onclick="submitDeposit()" disabled>
+                <span class="spinner"></span>
+                <span class="btn-text"><i class="fa-solid fa-credit-card"></i> Continuer le paiement</span>
+            </button>
+        </div>
+
+        <!-- RÉSUMÉ -->
+        <div class="summary-card" id="summaryCard">
+            <h3><i class="fa-solid fa-receipt"></i> Résumé du dépôt</h3>
+            <div class="summary-row" id="summaryAmount">
+                <span class="summary-lbl">Montant</span>
+                <span class="summary-val summary-zero">—</span>
+            </div>
+            <div class="summary-row" id="summaryFees">
+                <span class="summary-lbl">Frais</span>
+                <span class="summary-val summary-zero">—</span>
+            </div>
+            <div class="summary-row" id="summaryOperator">
+                <span class="summary-lbl">Opérateur</span>
+                <span class="summary-val summary-zero">—</span>
+            </div>
+            <div class="summary-row" id="summaryPhone">
+                <span class="summary-lbl">Numéro</span>
+                <span class="summary-val summary-zero">—</span>
+            </div>
+            <div class="summary-row summary-total" id="summaryTotal">
+                <span class="summary-lbl">Total à payer</span>
+                <span class="summary-val summary-zero">—</span>
+            </div>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-4);text-align:center">Paiement sécurisé via <strong>SoleasPay</strong></div>
+        </div>
+    </div>
+
+    <!-- OVERLAY LOADING -->
+    <div class="overlay" id="loadingOverlay">
+        <div class="overlay-card">
+            <div class="overlay-spinner"></div>
+            <div class="overlay-title">Préparation du paiement...</div>
+            <div class="overlay-sub">Veuillez patienter, nous traitons votre dépôt.</div>
+        </div>
+    </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COUNTRY_CURRENCIES = {{ countries | map(attribute='currency') | list | tojson }};
+const COUNTRY_CODES = {{ countries | map(attribute='code') | list | tojson }};
+
+let selectedOperator = null;
+let selectedCountry = '';
+let selectedCurrency = 'XOF';
+
+function getCurrencyForCountry(code) {
+    const idx = COUNTRY_CODES.indexOf(code);
+    return idx >= 0 ? COUNTRY_CURRENCIES[idx] : 'XOF';
+}
+
+async function onCountryChange() {
+    const sel = document.getElementById('countrySelect');
+    selectedCountry = sel.value;
+    selectedCurrency = getCurrencyForCountry(selectedCountry);
+    selectedOperator = null;
+
+    const grid = document.getElementById('operatorGrid');
+    if (!selectedCountry) {
+        grid.innerHTML = '<div style="font-size:12px;color:var(--text-4);padding:12px">Sélectionnez d\'abord un pays.</div>';
+        updateSummary();
+        updateSubmitBtn();
+        return;
+    }
+
+    grid.innerHTML = '<div style="font-size:12px;color:var(--text-4);padding:12px"><i class="fa-solid fa-spinner fa-spin"></i> Chargement des opérateurs...</div>';
+
+    try {
+        const res = await fetch('/api/deposit/operators/' + selectedCountry);
+        const data = await res.json();
+        if (data.success && data.operators.length > 0) {
+            grid.innerHTML = data.operators.map(op => `
+                <div class="operator-card" onclick="selectOperator('${op.slug}', ${op.id}, '${op.name.replace(/'/g, "\\'")}')" data-slug="${op.slug}">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                    ${op.name}
+                </div>
+            `).join('');
+        } else {
+            grid.innerHTML = '<div style="font-size:12px;color:var(--orange);padding:12px">Aucun opérateur disponible pour ce pays.</div>';
+        }
+    } catch(e) {
+        grid.innerHTML = '<div style="font-size:12px;color:var(--red);padding:12px">Erreur de chargement.</div>';
+    }
+    updateSummary();
+    updateSubmitBtn();
+}
+
+function selectOperator(slug, id, name) {
+    selectedOperator = { slug, id, name };
+    document.querySelectorAll('.operator-card').forEach(c => c.classList.remove('selected'));
+    const el = document.querySelector(`.operator-card[data-slug="${slug}"]`);
+    if (el) el.classList.add('selected');
+    updateSummary();
+    updateSubmitBtn();
+}
+
+function onPhoneChange() {
+    const phone = document.getElementById('phoneInput').value.replace(/\+|\s|-/g, '');
+    const errEl = document.getElementById('phoneError');
+    if (phone.length > 0 && phone.length < 8) {
+        document.getElementById('phoneInput').classList.add('error');
+        errEl.classList.add('show');
+    } else {
+        document.getElementById('phoneInput').classList.remove('error');
+        errEl.classList.remove('show');
+    }
+    updateSummary();
+    updateSubmitBtn();
+}
+
+function onAmountChange() {
+    const amount = parseInt(document.getElementById('amountInput').value) || 0;
+    const errEl = document.getElementById('amountError');
+    if (amount > 0 && amount < 500) {
+        document.getElementById('amountInput').classList.add('error');
+        errEl.classList.add('show');
+    } else {
+        document.getElementById('amountInput').classList.remove('error');
+        errEl.classList.remove('show');
+    }
+    updateSummary();
+    updateSubmitBtn();
+}
+
+function updateSummary() {
+    const amount = parseInt(document.getElementById('amountInput').value) || 0;
+    const currency = selectedCurrency;
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    // Calcul des frais (1.5%)
+    let fees = 0, total = 0;
+    if (amount >= 500) {
+        fees = Math.round(Math.max(100, Math.min(amount * 0.015, 5000)));
+        total = amount + fees;
+    }
+
+    const fmt = v => v > 0 ? v.toLocaleString('fr') + ' ' + currency : '—';
+
+    document.getElementById('summaryAmount').querySelector('.summary-val').textContent = amount > 0 ? fmt(amount) : '—';
+    document.getElementById('summaryFees').querySelector('.summary-val').textContent = amount >= 500 ? fmt(fees) : '—';
+    document.getElementById('summaryTotal').querySelector('.summary-val').textContent = amount >= 500 ? fmt(total) : '—';
+    document.getElementById('summaryOperator').querySelector('.summary-val').textContent = selectedOperator ? selectedOperator.name : '—';
+    document.getElementById('summaryPhone').querySelector('.summary-val').textContent = phone || '—';
+
+    // Reset zero class
+    ['summaryAmount','summaryFees','summaryTotal'].forEach(id => {
+        const el = document.getElementById(id).querySelector('.summary-val');
+        if (el.textContent === '—') el.classList.add('summary-zero');
+        else el.classList.remove('summary-zero');
+    });
+}
+
+function updateSubmitBtn() {
+    const amount = parseInt(document.getElementById('amountInput').value) || 0;
+    const phone = document.getElementById('phoneInput').value.replace(/\+|\s|-/g, '');
+    const valid = selectedCountry && selectedOperator && phone.length >= 8 && amount >= 500;
+    document.getElementById('submitBtn').disabled = !valid;
+}
+
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+async function submitDeposit() {
+    const amount = parseInt(document.getElementById('amountInput').value) || 0;
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    const btn = document.getElementById('submitBtn');
+    const overlay = document.getElementById('loadingOverlay');
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+    overlay.classList.add('show');
+
+    try {
+        const res = await fetch('/api/deposit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amount,
+                phone: phone,
+                country: selectedCountry,
+                operator: selectedOperator.slug,
+                operator_id: selectedOperator.id,
+            }),
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            overlay.classList.remove('show');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            showToast(data.message || 'Erreur lors du dépôt.', 'error');
+        }
+    } catch(e) {
+        overlay.classList.remove('show');
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        showToast('Erreur réseau. Veuillez réessayer.', 'error');
+    }
+}
+
+// Init theme
+const theme = localStorage.getItem('transafrik-theme') || 'light';
+document.documentElement.setAttribute('data-theme', theme);
+</script>
+</body>
+</html>

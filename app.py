@@ -7,12 +7,19 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer
+from models import db, User, Transfer, Deposit
 from transfer_config import COUNTRIES, get_operators, get_country
 from transfer_utils import calculate_fees, calculate_total
 from services.service_ids import get_service_id
 from services.transfer_service import get_transfer_by_reference
 from services.payment_workflow import start_transfer_payment as start_payment
+from services.soleaspay import pay_in
+from deposit_utils import (
+    DEPOSIT_COUNTRIES,
+    get_deposit_operators_for_country,
+    calculate_deposit_fees,
+    generate_deposit_reference,
+)
 from services.payment_workflow import (
     handle_payment_success,
     handle_withdraw_success,
@@ -713,6 +720,234 @@ def health():
         return jsonify({'status': 'ok', 'db': 'connected'})
     except Exception as e:
         return jsonify({'status': 'error', 'db': str(e)}), 500
+
+
+# ==================== DEPOSIT / DÉPÔT ====================
+
+@app.route('/deposit')
+@login_required
+def deposit_page():
+    """Page principale de dépôt d'argent."""
+    return render_template('deposit.html',
+                           user=current_user,
+                           countries=DEPOSIT_COUNTRIES)
+
+
+@app.route('/api/deposit/operators/<country_code>')
+@login_required
+def api_deposit_operators(country_code):
+    """Retourne les opérateurs disponibles pour un pays donné (dépôt)."""
+    operators = get_deposit_operators_for_country(country_code.upper())
+    return jsonify({'success': True, 'operators': operators})
+
+
+@app.route('/api/deposit', methods=['POST'])
+@login_required
+def api_create_deposit():
+    """Crée un dépôt et lance le Pay-In SoleasPay (operation=2)."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données manquantes'}), 400
+
+    amount = int(data.get('amount', 0))
+    phone = data.get('phone', '').strip()
+    country = data.get('country', '').strip().upper()
+    operator_slug = data.get('operator', '').strip().lower()
+    operator_id = data.get('operator_id', 0)
+
+    # Validation
+    errors = []
+    if amount < 500:
+        errors.append('Le montant minimum est de 500.')
+    if not phone or len(phone.replace('+', '').replace(' ', '')) < 8:
+        errors.append('Numéro de téléphone invalide.')
+    if not country:
+        errors.append('Pays requis.')
+    if not operator_slug or not operator_id:
+        errors.append('Opérateur requis.')
+
+    if errors:
+        return jsonify({'success': False, 'message': errors[0], 'errors': errors}), 400
+
+    # Nettoyage du numéro
+    phone_clean = phone.replace('+', '').replace(' ', '').replace('-', '').strip()
+
+    # Calcul des frais
+    fees_data = calculate_deposit_fees(amount, currency='XOF')
+    total_amount = fees_data['total']
+    fees = fees_data['fees']
+
+    # Récupérer les infos de l'opérateur
+    from config.operators import get_operator_by_id
+    op_info = get_operator_by_id(operator_id)
+    currency = op_info.get('currency', 'XOF') if op_info else 'XOF'
+    operator_name = op_info.get('name', operator_slug.upper()) if op_info else operator_slug.upper()
+
+    # Créer le dépôt en base
+    reference = generate_deposit_reference()
+
+    deposit = Deposit(
+        reference=reference,
+        user_id=current_user.id,
+        phone=phone_clean,
+        country=country,
+        operator=operator_name,
+        operator_id=operator_id,
+        amount=amount,
+        fees=fees,
+        total_amount=total_amount,
+        currency=currency,
+        status='CREATED',
+    )
+    db.session.add(deposit)
+    db.session.commit()
+
+    # ---- LANCEMENT DU PAY-IN SOLEASPAY ----
+    try:
+        result = pay_in(
+            service=operator_id,
+            wallet=phone_clean,
+            amount=float(total_amount),
+            currency=currency,
+            order_id=reference,
+            description=f'Dépôt TransAfrik - {reference}',
+            payer=current_user.fullname,
+            payer_email=current_user.email,
+        )
+
+        # Mettre à jour le dépôt avec la réponse SoleasPay
+        deposit.payin_response = result
+        deposit.payin_reference = result.get('reference', '') or result.get('payin_reference', '')
+        deposit.external_reference = result.get('external_reference', '') or result.get('order_id', '')
+
+        if result.get('success') or result.get('code') == 0:
+            deposit.status = 'PAYMENT_PROCESSING'
+            deposit.status_message = 'Paiement en cours...'
+        else:
+            deposit.status = 'FAILED'
+            deposit.status_message = result.get('message', 'Échec du paiement')
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Dépôt créé, paiement en cours.',
+            'deposit': deposit.to_dict(),
+            'pay_result': result,
+            'redirect': url_for('deposit_status', reference=reference),
+        })
+
+    except Exception as e:
+        deposit.status = 'FAILED'
+        deposit.status_message = str(e)[:500]
+        db.session.commit()
+        return jsonify({
+            'success': False,
+            'message': f'Erreur lors du paiement : {str(e)}',
+            'deposit': deposit.to_dict(),
+        }), 500
+
+
+@app.route('/deposit/<reference>')
+@login_required
+def deposit_status(reference):
+    """Page de statut après création du dépôt."""
+    deposit = Deposit.query.filter_by(
+        reference=reference, user_id=current_user.id
+    ).first_or_404()
+    return render_template('deposit_status.html',
+                           user=current_user,
+                           deposit=deposit)
+
+
+@app.route('/api/deposit/status/<reference>')
+@login_required
+def api_deposit_status(reference):
+    """API pour vérifier le statut d'un dépôt en temps réel."""
+    deposit = Deposit.query.filter_by(
+        reference=reference, user_id=current_user.id
+    ).first()
+    if not deposit:
+        return jsonify({'success': False, 'message': 'Dépôt introuvable'}), 404
+
+    return jsonify({
+        'success': True,
+        'deposit': deposit.to_dict(),
+    })
+
+
+# ==================== WEBHOOK DEPOSIT ====================
+
+@app.route('/webhook/soleaspay/deposit', methods=['POST'])
+def webhook_deposit():
+    """Webhook pour les dépôts SoleasPay."""
+    signature = request.headers.get('X-SoleasPay-Signature', '')
+    raw_body = request.get_data()
+    if not _verify_webhook_signature(raw_body, signature):
+        webhook_logger.warning('Signature invalide — webhook dépôt rejeté')
+        return jsonify({'success': False, 'message': 'Signature invalide'}), 403
+
+    payload = request.get_json(silent=True) or {}
+    if not payload:
+        return jsonify({'success': False, 'message': 'Payload invalide'}), 400
+
+    external_ref = payload.get('external_reference') or payload.get('order_id') or ''
+    deposit = Deposit.query.filter_by(reference=external_ref).first()
+
+    _log_webhook('DEPOSIT', external_ref, payload.get('status', 'UNKNOWN'), payload)
+
+    if not deposit:
+        webhook_logger.warning(f'Dépôt introuvable pour reference={external_ref}')
+        return jsonify({'success': False, 'message': 'Dépôt introuvable'}), 404
+
+    # Idempotence
+    if deposit.status != 'PAYMENT_PROCESSING':
+        return jsonify({
+            'success': True,
+            'message': f'Dépôt déjà traité (statut={deposit.status})',
+        })
+
+    # Traitement succès
+    if is_payment_success(payload):
+        deposit.webhook_payload = payload
+        deposit.status = 'COMPLETED'
+        deposit.status_message = 'Dépôt confirmé — portefeuille crédité.'
+
+        # Créditer le solde de l'utilisateur
+        deposit.user.balance = (deposit.user.balance or 0) + deposit.amount
+
+        # Créer une transaction comptable
+        tx = Transaction(
+            user_id=deposit.user_id,
+            type='deposit',
+            amount=deposit.amount,
+            currency=deposit.currency,
+            fee=deposit.fees,
+            status='success',
+            recipient_name=deposit.user.fullname,
+            recipient_phone=deposit.phone,
+            recipient_country=deposit.country,
+            recipient_operator=deposit.operator,
+        )
+        db.session.add(tx)
+        db.session.commit()
+
+        webhook_logger.info(f'Dépôt COMPLETED: {deposit.reference}, montant={deposit.amount}')
+        return jsonify({'success': True, 'message': 'Dépôt confirmé', 'status': 'COMPLETED'})
+
+    # Échec
+    elif is_payment_failed(payload):
+        deposit.webhook_payload = payload
+        deposit.status = 'FAILED'
+        deposit.status_message = payload.get('message', 'Échec du dépôt')
+        db.session.commit()
+        webhook_logger.info(f'Dépôt FAILED: {deposit.reference}')
+        return jsonify({'success': False, 'message': 'Dépôt échoué', 'status': 'FAILED'})
+
+    else:
+        deposit.webhook_payload = payload
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Statut inconnu, payload enregistré'})
 
 
 if __name__ == '__main__':

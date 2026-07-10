@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dépôt en cours — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;
+            --cyan:#06B6D4;--cyan-light:#CFFAFE;
+            --green:#10B981;--green-light:#D1FAE5;
+            --orange:#F97316;--orange-light:#FFEDD5;
+            --red:#EF4444;--red-light:#FEE2E2;
+            --purple:#8B5CF6;--purple-light:#EDE9FE;
+            --gray:#6B7280;--gray-light:#F3F4F6;--gray-dark:#374151;
+            --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
+            --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
+            --border:#E2E8F0;--shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 4px 12px rgba(0,0,0,.06);--shadow-md:0 8px 24px rgba(0,0,0,.08);--shadow-xl:0 20px 60px rgba(0,0,0,.1);
+            --radius:12px;--radius-lg:18px;--radius-xl:24px;
+            --transition:.25s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"]{--bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;--text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;--gray-light:#1F2937;--border:#1E293B;--shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 4px 12px rgba(0,0,0,.3);--shadow-md:0 8px 24px rgba(0,0,0,.4);--shadow-xl:0 20px 60px rgba(0,0,0,.5)}
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;transition:background .5s,color .5s}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none}
+
+        .container{width:100%;max-width:520px;padding:20px;animation:fadeIn .5s ease-out}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+        /* STATUS ICON */
+        .status-icon-wrap{text-align:center;margin-bottom:20px}
+        .status-icon{display:inline-flex;align-items:center;justify-content:center;width:88px;height:88px;border-radius:50%;font-size:40px;position:relative;animation:iconPulse 2s ease-in-out infinite}
+        @keyframes iconPulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.3)}50%{box-shadow:0 0 0 24px rgba(37,99,235,0)}}
+        .status-icon.processing{background:var(--blue-light);color:var(--blue)}
+        .status-icon.completed{background:var(--green-light);color:var(--green);animation:none;box-shadow:0 0 0 0 rgba(16,185,129,.3)}
+        .status-icon.failed{background:var(--red-light);color:var(--red);animation:none;box-shadow:0 0 0 0 rgba(239,68,68,.3)}
+        .status-icon .checkmark{display:none;font-size:32px;animation:popIn .4s ease-out}
+        @keyframes popIn{0%{opacity:0;transform:scale(0)}70%{transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+
+        /* CARD */
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:32px 28px;box-shadow:var(--shadow-md);text-align:center;transition:all var(--transition)}
+        .card-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px}
+        .card-subtitle{font-size:13px;color:var(--text-4);margin-bottom:24px;line-height:1.5}
+        .card-subtitle.success{color:var(--green);font-weight:600}
+
+        /* DETAILS */
+        .details-list{text-align:left;margin-bottom:24px}
+        .detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+        .detail-lbl{color:var(--text-3);font-weight:500}
+        .detail-val{font-weight:700;color:var(--text);font-family:'Outfit',sans-serif}
+        .detail-val.mono{font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:var(--blue)}
+        .detail-val.amount{font-size:18px;font-weight:900;color:var(--text)}
+
+        /* STATUS BADGE */
+        .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+        .badge.processing{background:var(--blue-light);color:var(--blue);animation:badgePulse 1.8s ease-in-out infinite}
+        @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.5}}
+        .badge.completed{background:var(--green-light);color:var(--green)}
+        .badge.failed{background:var(--red-light);color:var(--red)}
+
+        /* BUTTONS */
+        .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--cyan));background-size:200% 200%;color:#fff;font-size:14px;font-weight:700;font-family:'Outfit',sans-serif;border:none;cursor:pointer;animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 24px rgba(37,99,235,.3);transition:all var(--transition)}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(37,99,235,.4)}
+        .btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:100px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:600;color:var(--text-2);cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif;margin-left:8px}
+        .btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+        .btn-row{margin-top:20px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}
+
+        /* SPINNER RING */
+        .spinner-ring{display:inline-block;width:16px;height:16px;border:2px solid rgba(37,99,235,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* CONFETTI (simplified) */
+        .confetti{position:fixed;pointer-events:none;z-index:9999}
+        .confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 3s ease-out forwards}
+        @keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+
+        @media (max-width:768px){
+            .container{padding:16px}
+            .card{padding:24px 18px}
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="status-icon-wrap">
+        <div class="status-icon processing" id="statusIcon">
+            <i class="fa-solid fa-spinner fa-spin" id="statusIconSpin"></i>
+            <i class="fa-solid fa-circle-check checkmark" id="statusIconCheck"></i>
+            <i class="fa-solid fa-circle-xmark checkmark" id="statusIconFail"></i>
+        </div>
+    </div>
+
+    <div class="card">
+        <h1 class="card-title" id="cardTitle">Paiement en attente</h1>
+        <p class="card-subtitle" id="cardSubtitle">Veuillez patienter pendant que nous confirmons votre dépôt...</p>
+
+        <div style="text-align:center;margin-bottom:20px">
+            <span class="badge processing" id="statusBadge">
+                <span class="spinner-ring"></span> PROCESSING
+            </span>
+        </div>
+
+        <div class="details-list">
+            <div class="detail-row">
+                <span class="detail-lbl">Référence</span>
+                <span class="detail-val mono" id="detailRef">{{ deposit.reference }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-lbl">Montant</span>
+                <span class="detail-val amount" id="detailAmount">{{ "{:,}".format(deposit.amount).replace(',', ' ') }} {{ deposit.currency }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-lbl">Frais</span>
+                <span class="detail-val" id="detailFees">{{ "{:,}".format(deposit.fees).replace(',', ' ') }} {{ deposit.currency }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-lbl">Total</span>
+                <span class="detail-val" id="detailTotal" style="color:var(--blue)">{{ "{:,}".format(deposit.total_amount).replace(',', ' ') }} {{ deposit.currency }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-lbl">Opérateur</span>
+                <span class="detail-val" id="detailOperator">{{ deposit.operator }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-lbl">Numéro</span>
+                <span class="detail-val" id="detailPhone">{{ deposit.phone }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-lbl">Date</span>
+                <span class="detail-val" id="detailDate">{{ deposit.created_at.strftime('%d/%m/%Y %H:%M') if deposit.created_at else '' }}</span>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <a href="/dashboard" class="btn-primary" id="btnDashboard">
+                <i class="fa-solid fa-arrow-left"></i> Retour au Dashboard
+            </a>
+            <a href="/deposit" class="btn-secondary">
+                <i class="fa-solid fa-plus"></i> Nouveau dépôt
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+
+<script>
+const reference = "{{ deposit.reference }}";
+const initialStatus = "{{ deposit.status }}";
+let pollInterval = null;
+let pollCount = 0;
+const MAX_POLLS = 120; // 6 minutes max (120 * 3s)
+
+function updateUI(status) {
+    const icon = document.getElementById('statusIcon');
+    const iconSpin = document.getElementById('statusIconSpin');
+    const iconCheck = document.getElementById('statusIconCheck');
+    const iconFail = document.getElementById('statusIconFail');
+    const cardTitle = document.getElementById('cardTitle');
+    const cardSubtitle = document.getElementById('cardSubtitle');
+    const badge = document.getElementById('statusBadge');
+
+    if (status === 'COMPLETED') {
+        // Stop polling
+        if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+
+        icon.classList.remove('processing');
+        icon.classList.add('completed');
+        iconSpin.style.display = 'none';
+        iconCheck.style.display = 'block';
+
+        cardTitle.textContent = 'Paiement confirmé !';
+        cardSubtitle.textContent = 'Votre portefeuille TransAfrik a été crédité avec succès.';
+        cardSubtitle.classList.add('success');
+
+        badge.className = 'badge completed';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> COMPLETED';
+
+        // Confettis
+        spawnConfetti();
+
+        // Reload balance after 1s
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 3000);
+
+    } else if (status === 'FAILED' || status === 'CANCELLED') {
+        if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+
+        icon.classList.remove('processing');
+        icon.classList.add('failed');
+        iconSpin.style.display = 'none';
+        iconFail.style.display = 'block';
+
+        cardTitle.textContent = 'Paiement échoué';
+        cardSubtitle.textContent = 'Le dépôt n\'a pas pu aboutir. Veuillez réessayer ou contacter le support.';
+        cardSubtitle.classList.add('success');
+        cardSubtitle.style.color = 'var(--red)';
+
+        badge.className = 'badge failed';
+        badge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ECHEC';
+
+    } else {
+        // Still processing
+        icon.classList.add('processing');
+        iconSpin.style.display = 'block';
+        iconCheck.style.display = 'none';
+        iconFail.style.display = 'none';
+        cardTitle.textContent = 'Paiement en attente';
+        cardSubtitle.textContent = 'Veuillez patienter pendant que nous confirmons votre dépôt...';
+        badge.className = 'badge processing';
+        badge.innerHTML = '<span class="spinner-ring"></span> PROCESSING';
+    }
+}
+
+async function pollStatus() {
+    pollCount++;
+    if (pollCount > MAX_POLLS) {
+        clearInterval(pollInterval);
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/deposit/status/' + reference);
+        const data = await res.json();
+        if (data.success && data.deposit) {
+            const status = data.deposit.status;
+            updateUI(status);
+            if (status === 'COMPLETED' || status === 'FAILED' || status === 'CANCELLED') {
+                clearInterval(pollInterval);
+            }
+        }
+    } catch(e) {
+        // Continue polling on error
+    }
+}
+
+function spawnConfetti() {
+    const container = document.getElementById('confetti');
+    const colors = ['#2563EB','#06B6D4','#10B981','#F97316','#8B5CF6','#EF4444','#F59E0B'];
+    for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.top = -(Math.random() * 40) + 'px';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 2 + 's';
+        piece.style.animationDuration = (2 + Math.random() * 3) + 's';
+        container.appendChild(piece);
+    }
+    setTimeout(() => { container.innerHTML = ''; }, 5000);
+}
+
+// Init
+updateUI(initialStatus);
+
+if (initialStatus === 'CREATED' || initialStatus === 'PAYMENT_PROCESSING') {
+    pollInterval = setInterval(pollStatus, 3000);
+} else if (initialStatus === 'COMPLETED') {
+    spawnConfetti();
+}
+
+// Theme
+const theme = localStorage.getItem('transafrik-theme') || 'light';
+document.documentElement.setAttribute('data-theme', theme);
+</script>
+</body>
+</html>
