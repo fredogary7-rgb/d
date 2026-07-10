@@ -29,6 +29,7 @@ with app.app_context():
         ("transfer_count", "INTEGER DEFAULT 0"),
         ("total_sent", "INTEGER DEFAULT 0"),
         ("last_transfer_at", "TIMESTAMP"),
+        ("updated_at", "TIMESTAMP DEFAULT NOW()"),
     ]
     for col, typ in beneficiary_cols:
         try:
