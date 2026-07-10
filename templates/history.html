@@ -44,7 +44,7 @@
         .sidebar-footer a:hover{background:var(--red-light)}
 
         /* ======== MAIN ======== */
-        .main{margin-left:var(--sidebar-w);flex:1;padding:32px 36px;min-height:100vh;animation:fadeIn .5s ease-out}
+        .main{flex:1;padding:32px 36px;min-height:100vh;animation:fadeIn .5s ease-out}
         @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
         /* ======== HEADER ======== */
@@ -147,35 +147,12 @@
         /* ======== RESPONSIVE ======== */
         @media (max-width:1024px){.table-wrap{display:none}.cards-list{display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}}
         @media (max-width:768px){
-            .sidebar{transform:translateX(-100%);position:fixed;z-index:200}.sidebar.open{transform:translateX(0)}
-            .main{margin-left:0;padding:20px 16px}.stats-row{grid-template-columns:1fr 1fr;gap:10px}.toolbar{flex-direction:column;align-items:stretch}
-            .menu-toggle{display:flex!important;position:fixed;top:16px;left:16px;z-index:300;width:40px;height:40px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text);box-shadow:var(--shadow)}
-            .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}.overlay.show{display:block}
+            .main{padding:20px 16px}.stats-row{grid-template-columns:1fr 1fr;gap:10px}.toolbar{flex-direction:column;align-items:stretch}
         }
-        .menu-toggle{display:none}
     </style>
 </head>
 <body>
 
-<!-- MOBILE TOGGLE -->
-<button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-<!-- ======== SIDEBAR ======== -->
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-        <img src="/static/logo.png" alt="TransAfrik" onerror="this.style.display='none'">
-        <span>TransAfrik</span>
-    </div>
-    <nav class="sidebar-nav">
-        <a href="/dashboard"><i class="fa-solid fa-grid-2"></i> Tableau de bord</a>
-        <a href="/transfer"><i class="fa-solid fa-paper-plane"></i> Nouveau transfert</a>
-        <a href="/history" class="active"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
-    </nav>
-    <div class="sidebar-footer">
-        <a href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
-    </div>
-</aside>
 
 <!-- ======== MAIN ======== -->
 <main class="main">
