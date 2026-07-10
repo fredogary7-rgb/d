@@ -305,9 +305,6 @@ class Beneficiary(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # ---- Relation ----
-    user = db.relationship('User', backref=db.backref('beneficiaries', lazy='dynamic'))
-
     def to_dict(self):
         return {
             'id': self.id,
