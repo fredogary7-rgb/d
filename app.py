@@ -8,6 +8,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from models import db, User, Transfer, Deposit, Beneficiary, Transaction
+from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
 from transfer_config import COUNTRIES, get_operators, get_country
 from transfer_utils import calculate_fees, calculate_total
 from services.service_ids import get_service_id
@@ -1276,26 +1277,131 @@ def api_import_contacts():
     })
 
 
-def _detect_country_from_phone(phone: str) -> str:
-    """Détecte le pays depuis le préfixe téléphonique (Afrique subsaharienne)."""
-    mapping = {
-        '228': 'TG',  # Togo
-        '229': 'BJ',  # Bénin
-        '237': 'CM',  # Cameroun
-        '225': 'CI',  # Côte d'Ivoire
-        '226': 'BF',  # Burkina Faso
-        '242': 'CG',  # Congo
-        '243': 'CD',  # RD Congo
-        '241': 'GA',  # Gabon
-        '256': 'UG',  # Ouganda
-        '260': 'ZM',  # Zambie
-        '221': 'SN',  # Sénégal
-    }
-    phone_clean = phone.lstrip('0')
-    for prefix, country in mapping.items():
-        if phone_clean.startswith(prefix):
-            return country
-    return ''
+
+# --- API DETECTION ---
+
+@app.route('/api/contacts/detect', methods=['POST'])
+@login_required
+def api_detect_phone():
+    """Détecte le pays et l'opérateur à partir d'un numéro de téléphone."""
+    data = request.get_json()
+    if not data or not data.get('phone'):
+        return jsonify({'success': False, 'message': 'Numéro requis'}), 400
+    phone = data['phone'].strip()
+    detection = detect_from_phone(phone)
+    return jsonify({'success': True, **detection})
+
+
+# --- API SYNC INTELLIGENTE ---
+
+@app.route('/api/contacts/sync', methods=['POST'])
+@login_required
+def api_sync_contacts():
+    """Synchronisation intelligente des contacts.
+    - Si le contact (phone+country) existe déjà : met à jour le nom si différent
+    - Si le contact n'existe pas : le crée
+    - Ne crée JAMAIS de doublon
+    """
+    data = request.get_json()
+    if not data or not isinstance(data.get('contacts'), list):
+        return jsonify({'success': False, 'message': 'Format invalide'}), 400
+
+    contacts = data['contacts']
+    imported = 0
+    updated = 0
+    skipped = 0
+    saved = []
+
+    for c in contacts:
+        name = (c.get('name') or '').strip()
+        phone = (c.get('phone') or c.get('tel') or '').strip()
+        if not name or not phone:
+            skipped += 1
+            continue
+
+        phone = phone.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+
+        country = (c.get('country') or '').strip().upper()
+        if not country:
+            country = detect_country_from_phone(phone)
+        if not country:
+            country = current_user.country
+
+        operator = (c.get('operator') or '').strip().upper() or None
+        if not operator:
+            op_detection = detect_operator_from_phone(phone, country)
+            if op_detection:
+                operator = op_detection['name'].upper()
+
+        existing = Beneficiary.query.filter_by(
+            user_id=current_user.id,
+            phone=phone,
+            country=country,
+        ).first()
+
+        if existing:
+            # Mettre à jour le nom si différent
+            if existing.name != name and name:
+                existing.name = name
+            if operator and not existing.operator:
+                existing.operator = operator
+            existing.updated_at = datetime.utcnow()
+            updated += 1
+        else:
+            beneficiary = Beneficiary(
+                user_id=current_user.id,
+                name=name,
+                phone=phone,
+                country=country,
+                operator=operator,
+                nickname=c.get('nickname') or None,
+                photo=c.get('photo') or None,
+            )
+            db.session.add(beneficiary)
+            saved.append(beneficiary)
+            imported += 1
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': f'{imported} nouveau(x), {updated} mis à jour, {skipped} ignoré(s).',
+        'imported': imported,
+        'updated': updated,
+        'skipped': skipped,
+        'beneficiaries': [b.to_dict() for b in saved],
+    })
+
+
+# --- API STATISTIQUES ---
+
+@app.route('/api/beneficiaries/stats')
+@login_required
+def api_beneficiary_stats():
+    """Statistiques sur les bénéficiaires de l'utilisateur."""
+    all_benefs = Beneficiary.query.filter_by(user_id=current_user.id)
+    total = all_benefs.count()
+    favorites = all_benefs.filter(Beneficiary.is_favorite == True).count()
+
+    # Dernier import (contact importé le plus récent = le plus récent créé)
+    last_imported = Beneficiary.query.filter_by(user_id=current_user.id) \
+        .order_by(Beneficiary.created_at.desc()).first()
+    last_import_date = last_imported.created_at.isoformat() if last_imported and last_imported.created_at else None
+
+    # Nombre de contacts importés (ceux avec photo = proxy, ou on compte tous)
+    # On utilise le champ photo comme indicateur d'import depuis contacts téléphone
+    imported_count = all_benefs.filter(Beneficiary.photo.isnot(None)).count()
+    if imported_count == 0:
+        # Si pas de photos, on compte tous les bénéficiaires comme importés
+        imported_count = total
+
+    return jsonify({
+        'success': True,
+        'total': total,
+        'favorites': favorites,
+        'imported': imported_count,
+        'last_import': last_import_date,
+    })
 
 
 # ==================== PAGE 404 ====================
