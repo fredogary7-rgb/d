@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Scanner QR — TransAfrik{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/scan.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="scan-page">
+
+  <!-- ===== HEADER ===== -->
+  <div class="scan-header">
+    <div class="scan-header-left">
+      <h1>QR Code</h1>
+      <p>Gérez votre QR personnel et scannez pour transférer</p>
+    </div>
+    <div class="scan-header-tabs">
+      <button class="scan-tab active" data-tab="my-qr"><i class="fa-solid fa-qrcode"></i> Mon QR</button>
+      <button class="scan-tab" data-tab="scanner"><i class="fa-solid fa-camera"></i> Scanner</button>
+      <button class="scan-tab" data-tab="history"><i class="fa-solid fa-clock-rotate-left"></i> Historique</button>
+    </div>
+  </div>
+
+  <!-- ===== CONTENU PRINCIPAL ===== -->
+  <div class="scan-grid">
+
+    <!-- PANNEAU : MON QR -->
+    <div class="scan-tab-panel" data-panel="my-qr" style="display:block;">
+      <div class="scan-card my-qr-card">
+        <div class="scan-card-title">
+          <i class="fa-solid fa-qrcode"></i> Mon QR de réception
+        </div>
+        <p class="scan-card-subtitle">Faites scanner ce QR Code pour recevoir rapidement de l'argent.</p>
+
+        <!-- Loader -->
+        <div id="qrLoading" class="qr-loading">
+          <div class="spinner"></div>
+          <span style="font-size:13px;color:var(--text-muted)">Génération du QR Code…</span>
+        </div>
+
+        <!-- QR Code (rempli par JS) -->
+        <div id="qrImageWrapper" class="qr-image-wrapper" style="display:none;">
+          <img id="qrImage" src="" alt="Mon QR Code TransAfrik">
+        </div>
+
+        <!-- Infos profil -->
+        <div class="qr-profile-row">
+          <div class="qr-profile-avatar" id="qrAvatar">?</div>
+          <div class="qr-profile-info">
+            <div class="qr-profile-name" id="qrProfileName">—</div>
+            <div class="qr-profile-phone" id="qrProfilePhone">—</div>
+            <div class="qr-profile-country" id="qrProfileCountry">—</div>
+          </div>
+        </div>
+
+        <!-- ID Unique -->
+        <div class="qr-id-badge">
+          <i class="fa-solid fa-fingerprint"></i>
+          <span id="qrIdentifier">—</span>
+        </div>
+
+        <!-- Boutons -->
+        <div class="qr-actions-row">
+          <button class="qr-action-btn share" id="btnShareQR">
+            <i class="fa-solid fa-share-nodes"></i>
+            <span>Partager</span>
+          </button>
+          <button class="qr-action-btn download" id="btnDownloadQR">
+            <i class="fa-solid fa-download"></i>
+            <span>Télécharger</span>
+          </button>
+          <button class="qr-action-btn print" id="btnPrintQR">
+            <i class="fa-solid fa-print"></i>
+            <span>Imprimer</span>
+          </button>
+          <button class="qr-action-btn copy" id="btnCopyId">
+            <i class="fa-solid fa-copy"></i>
+            <span>Copier mon ID</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANNEAU : SCANNER -->
+    <div class="scan-tab-panel" data-panel="scanner" style="display:none;">
+      <div class="scan-card">
+        <div class="scan-card-title">
+          <i class="fa-solid fa-camera"></i> Scanner un QR Code
+        </div>
+        <p class="scan-card-subtitle">Pointez la caméra vers un QR Code, importez une image, ou collez le contenu.</p>
+
+        <!-- Vue caméra -->
+        <div class="scanner-viewport" id="scannerViewport">
+          <video id="scannerVideo" style="display:none;" autoplay playsinline muted></video>
+          <div class="scanner-retical" id="scannerRetical" style="display:none;">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            <div class="scanner-line"></div>
+          </div>
+          <div class="scanner-overlay-text" id="scannerOverlayText" style="display:none;">Pointez vers un QR Code</div>
+          <div class="scanner-placeholder" id="scannerPlaceholder">
+            <i class="fa-solid fa-camera-retro"></i>
+            <p>Appuyez sur "Démarrer la caméra"</p>
+          </div>
+        </div>
+
+        <!-- Contrôles -->
+        <div class="scanner-controls">
+          <button class="scan-btn scan-btn-primary" id="btnStartScan">
+            <i class="fa-solid fa-play"></i> Démarrer la caméra
+          </button>
+          <button class="scan-btn scan-btn-outline" id="btnStopScan" style="display:none;">
+            <i class="fa-solid fa-stop"></i> Arrêter
+          </button>
+          <button class="scan-btn scan-btn-outline" id="btnUploadQR">
+            <i class="fa-solid fa-image"></i> Image
+          </button>
+          <input type="file" id="fileInput" accept="image/*" style="display:none;">
+        </div>
+
+        <!-- Zone texte manuel -->
+        <div class="scan-text-input-area">
+          <div class="scan-text-label"><i class="fa-solid fa-paste"></i> Ou collez le contenu d'un QR Code :</div>
+          <textarea class="scan-textarea" id="manualText" placeholder='Collez ici le texte JSON du QR Code scanné...'></textarea>
+          <button class="scan-btn scan-btn-outline" id="btnManualScan" style="margin-top:8px;width:100%;">
+            <i class="fa-solid fa-magnifying-glass"></i> Analyser le texte
+          </button>
+        </div>
+
+        <!-- Feedback scan -->
+        <div class="scan-feedback" id="scanFeedback">
+          <i class="fa-solid" id="feedbackIcon"></i>
+          <div class="feedback-body">
+            <div class="feedback-title" id="feedbackTitle"></div>
+            <div class="feedback-sub" id="feedbackSub"></div>
+          </div>
+          <button class="feedback-action" id="feedbackAction" style="display:none;">Envoyer de l'argent →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANNEAU : HISTORIQUE -->
+    <div class="scan-tab-panel" data-panel="history" style="display:none;">
+      <div class="scan-card" style="grid-column:1/-1;">
+        <div class="scan-card-title">
+          <i class="fa-solid fa-clock-rotate-left"></i> Historique des QR scannés
+        </div>
+        <p class="scan-card-subtitle">Retrouvez les contacts que vous avez scannés récemment.</p>
+
+        <div id="scanEmpty" class="scan-empty" style="display:block;">
+          <i class="fa-solid fa-qrcode"></i>
+          <p>Aucun QR Code scanné pour le moment.</p>
+        </div>
+
+        <div class="scan-history-list" id="historyList"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/scan.js') }}"></script>
+{% endblock %}

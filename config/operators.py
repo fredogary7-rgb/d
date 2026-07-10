@@ -276,3 +276,27 @@ def get_service_id(country_code: str, slug: str) -> int | None:
     """
     op = get_operator_by_slug(country_code, slug)
     return op["id"] if op else None
+
+
+# =============================================================================
+# Infos Pays
+# =============================================================================
+
+_COUNTRY_INFO = {
+    'TG': {'flag': '🇹🇬', 'name': 'Togo'},
+    'BJ': {'flag': '🇧🇯', 'name': 'Bénin'},
+    'CM': {'flag': '🇨🇲', 'name': 'Cameroun'},
+    'CI': {'flag': '🇨🇮', 'name': 'Côte d\'Ivoire'},
+    'BF': {'flag': '🇧🇫', 'name': 'Burkina Faso'},
+    'CG': {'flag': '🇨🇬', 'name': 'Congo'},
+    'CD': {'flag': '🇨🇩', 'name': 'RD Congo'},
+    'GA': {'flag': '🇬🇦', 'name': 'Gabon'},
+    'UG': {'flag': '🇺🇬', 'name': 'Ouganda'},
+    'ZM': {'flag': '🇿🇲', 'name': 'Zambie'},
+    'SN': {'flag': '🇸🇳', 'name': 'Sénégal'},
+}
+
+
+def get_country_info(country_code: str) -> dict | None:
+    """Retourne {'flag': '🇹🇬', 'name': 'Togo'} ou None."""
+    return _COUNTRY_INFO.get(country_code.upper())

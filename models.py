@@ -29,6 +29,7 @@ class User(db.Model, UserMixin):
     profile_picture = db.Column(db.String(255), nullable=True)
     kyc_status = db.Column(db.String(20), default='pending')   # pending | verified | rejected
     referral_code = db.Column(db.String(30), unique=True, default=generate_referral_code)
+    qr_identifier = db.Column(db.String(20), unique=True, nullable=True)  # TA-XXXX
 
     # Relations
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic',

@@ -1503,6 +1503,157 @@ def api_calculate_fees_v2():
     })
 
 
+# ==================== SCANNER QR CODE ====================
+
+@app.route('/scan')
+@login_required
+def scan_page():
+    """Page du scanner QR Code."""
+    # Flags et noms de pays pour le front-end
+    country_flags = {
+        'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮', 'BF': '🇧🇫',
+        'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦', 'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
+    }
+    country_names = {
+        'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': 'Côte d\'Ivoire',
+        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
+    }
+
+    # Historique des scans (depuis les bénéficiaires récents)
+    scan_history = []
+    recent_benefs = Beneficiary.query.filter_by(user_id=current_user.id) \
+        .order_by(Beneficiary.created_at.desc()).limit(10).all()
+    for b in recent_benefs:
+        scan_history.append({
+            'name': b.name or 'Inconnu',
+            'phone': b.phone or '',
+            'country': b.country or '',
+            'operator': b.operator or '',
+            'date': b.created_at.strftime('%d/%m/%Y') if b.created_at else '',
+            'time': b.created_at.strftime('%H:%M') if b.created_at else '',
+        })
+
+    # Flags dict pour le template
+    flags = country_flags
+
+    return render_template('scan.html',
+                           user=current_user,
+                           flags=flags,
+                           flags_json=country_flags,
+                           country_names_json=country_names,
+                           scan_history=scan_history)
+
+
+# ==================== API QR CODE ====================
+
+@app.route('/api/qrcode/my')
+@login_required
+def api_qrcode_my():
+    """Retourne le QR Code personnel de l'utilisateur connecté."""
+    from services.qrcode_service import generate_user_qrcode, generate_qr_identifier
+    from config.operators import get_country_info
+
+    # Générer un identifiant QR si l'utilisateur n'en a pas encore
+    user = current_user
+    if not user.qr_identifier:
+        user.qr_identifier = generate_qr_identifier()
+        db.session.commit()
+
+    # Générer l'image QR en base64
+    try:
+        qr_json, qr_image_b64 = generate_user_qrcode(user)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+    # Infos pays pour l'affichage
+    country_info = get_country_info(user.country)
+    flag = country_info.get('flag', '') if country_info else ''
+    country_name = country_info.get('name', user.country) if country_info else user.country
+
+    return jsonify({
+        'success': True,
+        'qr_image': qr_image_b64,
+        'qr_json': qr_json,
+        'user': {
+            'name': user.fullname,
+            'phone': user.phone,
+            'country': user.country,
+            'flag': flag,
+            'country_name': country_name,
+            'qr_id': user.qr_identifier,
+        }
+    })
+
+
+@app.route('/api/qrcode/validate', methods=['POST'])
+@login_required
+def api_qrcode_validate():
+    """Valide un QR Code scanné et enregistre le bénéficiaire si nécessaire."""
+    from services.qrcode_service import validate_qrcode, get_qr_action
+
+    data = request.get_json()
+    if not data or 'data' not in data:
+        return jsonify({'success': False, 'error': 'Données manquantes'}), 400
+
+    qr_raw = data['data']
+    is_valid, parsed, error = validate_qrcode(qr_raw)
+
+    if not is_valid:
+        return jsonify({
+            'success': True,
+            'valid': False,
+            'error': error,
+        })
+
+    # Enregistrer ou mettre à jour le bénéficiaire (pour user QR)
+    if parsed.get('type') == 'transafrik_user':
+        existing = Beneficiary.query.filter_by(
+            user_id=current_user.id,
+            phone=parsed.get('phone', '')
+        ).first()
+
+        if existing:
+            existing.name = parsed.get('name', existing.name)
+            existing.country = parsed.get('country', existing.country)
+            existing.operator = parsed.get('operator', existing.operator)
+            existing.updated_at = datetime.utcnow()
+        else:
+            beneficiary = Beneficiary(
+                user_id=current_user.id,
+                name=parsed.get('name', 'Inconnu'),
+                phone=parsed.get('phone', ''),
+                country=parsed.get('country', ''),
+                operator=parsed.get('operator', ''),
+            )
+            db.session.add(beneficiary)
+
+        db.session.commit()
+
+    action_url = get_qr_action(parsed.get('type', ''))
+
+    return jsonify({
+        'success': True,
+        'valid': True,
+        'qr_type': parsed.get('type'),
+        'parsed': parsed,
+        'action_url': action_url,
+    })
+
+
+@app.route('/api/qrcode/history')
+@login_required
+def api_qrcode_history():
+    """Retourne l'historique des scans récents (bénéficiaires)."""
+    from services.qrcode_service import get_scan_history_from_db
+
+    history = get_scan_history_from_db(current_user.id)
+    return jsonify({
+        'success': True,
+        'history': history,
+    })
+
+
 # ==================== PAGE 404 ====================
 
 @app.errorhandler(404)
