@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner QR Code — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        :root {
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;
+            --cyan:#06B6D4;--cyan-light:#CFFAFE;
+            --green:#10B981;--green-light:#D1FAE5;
+            --orange:#F97316;--orange-light:#FFEDD5;
+            --red:#EF4444;--red-light:#FEE2E2;
+            --purple:#8B5CF6;--purple-light:#EDE9FE;
+            --gray:#6B7280;--gray-light:#F3F4F6;--gray-dark:#374151;
+            --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
+            --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
+            --border:#E2E8F0;
+            --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 4px 12px rgba(0,0,0,.06);--shadow-md:0 8px 24px rgba(0,0,0,.08);--shadow-xl:0 20px 60px rgba(0,0,0,.1);
+            --radius:12px;--radius-lg:18px;--radius-xl:24px;
+            --transition:.25s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w:260px;
+        }
+        [data-theme="dark"]{
+            --bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;
+            --text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;
+            --gray-light:#1F2937;--border:#1E293B;
+            --shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 4px 12px rgba(0,0,0,.3);--shadow-md:0 8px 24px rgba(0,0,0,.4);--shadow-xl:0 20px 60px rgba(0,0,0,.5);
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .5s,color .5s}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none;color:inherit}
+
+        /* ===== TOP BAR ===== */
+        .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
+        .topbar-left{display:flex;align-items:center;gap:16px}
+        .topbar-logo{display:flex;align-items:center;gap:10px}
+        .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-right{display:flex;align-items:center;gap:16px}
+        .topbar-icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all var(--transition);color:var(--text-3)}
+        .topbar-icon-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
+        .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
+        .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
+        .topbar-profile-role{font-size:10px;color:var(--text-4)}
+
+        /* ===== SIDEBAR ===== */
+        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
+        .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}
+        .sidebar-link:hover{background:var(--surface-hover);color:var(--text)}
+        .sidebar-link.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+        .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
+        .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px);animation:fadeIn .5s ease-out}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .page-header{margin-bottom:24px}
+        .page-header h1{font-size:26px;font-weight:800}
+        .page-header p{font-size:13px;color:var(--text-4);margin-top:4px}
+        .page-header .breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-4);margin-bottom:8px}
+        .breadcrumb a{color:var(--blue);transition:color .2s}
+        .breadcrumb a:hover{color:var(--blue-dark)}
+        .breadcrumb i{font-size:10px}
+
+        /* ===== SCANNER ===== */
+        .scan-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px}
+        .scan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;box-shadow:var(--shadow)}
+        .scan-card-title{font-size:18px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+        .scan-card-title i{color:var(--blue)}
+        .scan-card-subtitle{color:var(--text-4);font-size:13px;margin-bottom:20px}
+        .scanner-viewport{position:relative;width:100%;aspect-ratio:1/1;margin:0 auto 16px;background:#000;border-radius:var(--radius-lg);overflow:hidden;display:flex;align-items:center;justify-content:center}
+        .scanner-viewport video{width:100%;height:100%;object-fit:cover}
+        .scanner-retical{position:absolute;inset:16%;pointer-events:none}
+        .corner{position:absolute;width:28px;height:28px;border-color:var(--blue);border-style:solid}
+        .corner-tl{top:0;left:0;border-width:3px 0 0 3px}
+        .corner-tr{top:0;right:0;border-width:3px 3px 0 0}
+        .corner-bl{bottom:0;left:0;border-width:0 0 3px 3px}
+        .corner-br{bottom:0;right:0;border-width:0 3px 3px 0}
+        .scanner-line{position:absolute;left:0;top:0;width:100%;height:2px;background:var(--blue);box-shadow:0 0 8px var(--blue);animation:scanLine 2s ease-in-out infinite}
+        @keyframes scanLine{0%,100%{top:0}50%{top:calc(100% - 2px)}}
+        .scanner-overlay-text{position:absolute;bottom:10%;color:rgba(255,255,255,.7);font-size:14px;text-align:center;pointer-events:none}
+        .scanner-placeholder{text-align:center;color:rgba(255,255,255,.4);padding:40px}
+        .scanner-placeholder i{font-size:56px;display:block;margin-bottom:12px}
+        .scanner-controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+        .scan-btn{padding:10px 22px;border-radius:100px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all var(--transition);display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif}
+        .scan-btn-primary{background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;box-shadow:0 8px 24px rgba(37,99,235,.3)}
+        .scan-btn-primary:hover{box-shadow:0 12px 32px rgba(37,99,235,.45);transform:translateY(-2px)}
+        .scan-btn-outline{background:var(--surface);color:var(--text-2);border:1.5px solid var(--border)}
+        .scan-btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+        .scan-text-input-area{max-width:100%;margin:0 auto}
+        .scan-text-label{font-size:13px;color:var(--text-4);margin-bottom:8px}
+        .scan-textarea{width:100%;height:80px;padding:12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:monospace;font-size:12px;resize:vertical}
+        .scan-feedback{padding:16px;border-radius:var(--radius-lg);display:none;align-items:center;gap:14px;margin-top:16px}
+        .scan-feedback.success{display:flex;background:var(--green-light);border:1px solid var(--green)}
+        .scan-feedback.error{display:flex;background:var(--red-light);border:1px solid var(--red)}
+        .scan-feedback i{font-size:28px}
+        .scan-feedback.success i{color:var(--green)}
+        .scan-feedback.error i{color:var(--red)}
+        .feedback-body{flex:1}
+        .feedback-title{font-weight:700;font-size:14px}
+        .feedback-sub{font-size:12px;color:var(--text-3)}
+        .feedback-action{padding:10px 20px;border-radius:100px;background:var(--blue);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;white-space:nowrap}
+        .feedback-action:hover{background:var(--blue-dark)}
+
+        /* scanned user preview */
+        .scanned-user-preview{display:flex;align-items:center;gap:14px;padding:16px;background:var(--bg);border-radius:var(--radius-lg);margin-top:12px}
+        .scanned-user-preview .avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;font-family:'Outfit',sans-serif}
+        .scanned-user-info{flex:1}
+        .scanned-user-name{font-weight:700;font-size:15px}
+        .scanned-user-phone,.scanned-user-country{font-size:12px;color:var(--text-3)}
+
+        @media (max-width:1024px){
+            .scan-grid{grid-template-columns:1fr}
+            .sidebar{transform:translateX(-100%);width:280px}
+            .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-xl)}
+            .main-content{margin-left:0}
+            .topbar{padding:0 20px}
+        }
+        @media (max-width:640px){
+            .main-content{padding:20px 14px}
+            .scan-card{padding:20px 16px}
+            .scanner-controls{flex-direction:column;align-items:stretch}
+            .scan-btn{justify-content:center}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="topbar-logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" onerror="this.style.display='none'">
+            <span>TransAfrik</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <a href="/my-qrcode" class="topbar-icon-btn" title="Mon QR"><i class="fa-solid fa-qrcode"></i></a>
+        <a href="/logout" class="topbar-icon-btn" title="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></a>
+        <div class="topbar-profile" onclick="window.location='/dashboard'">
+            <div class="topbar-profile-avatar">{{ user.fullname[0] | upper if user.fullname else '?' }}</div>
+            <div>
+                <div class="topbar-profile-name">{{ user.fullname or 'Utilisateur' }}</div>
+                <div class="topbar-profile-role">{{ user.country or '' }}</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-title">Principal</div>
+        <a href="/dashboard" class="sidebar-link"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+        <a href="/transfer" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer de l'argent</a>
+        <a href="/deposit" class="sidebar-link"><i class="fa-solid fa-arrow-down"></i> Déposer</a>
+        <a href="/history" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <a href="/beneficiaries" class="sidebar-link"><i class="fa-solid fa-users"></i> Bénéficiaires</a>
+        <div class="sidebar-section-title">QR Code</div>
+        <a href="/my-qrcode" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> Mon QR Code</a>
+        <a href="/scan" class="sidebar-link active"><i class="fa-solid fa-camera"></i> Scanner</a>
+        <a href="/qr-history" class="sidebar-link"><i class="fa-solid fa-list-check"></i> Historique QR</a>
+        <div class="sidebar-section-title">Outils</div>
+        <a href="/fees-calculator" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur de frais</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+    <div class="page-header">
+        <div class="breadcrumb">
+            <a href="/dashboard">Tableau de bord</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <span>Scanner QR Code</span>
+        </div>
+        <h1><i class="fa-solid fa-camera" style="color:var(--blue);margin-right:8px;"></i>Scanner QR Code</h1>
+        <p>Scannez un QR Code TransAfrik pour envoyer de l'argent instantanément.</p>
+    </div>
+
+    <div class="scan-grid">
+        <!-- CAMERA -->
+        <div class="scan-card">
+            <div class="scan-card-title"><i class="fa-solid fa-camera"></i> Caméra</div>
+            <p class="scan-card-subtitle">Pointez votre caméra vers un QR Code.</p>
+            <div class="scanner-viewport" id="scannerViewport">
+                <video id="scannerVideo" style="display:none;" autoplay playsinline muted></video>
+                <div class="scanner-retical" id="scannerRetical" style="display:none;">
+                    <div class="corner corner-tl"></div>
+                    <div class="corner corner-tr"></div>
+                    <div class="corner corner-bl"></div>
+                    <div class="corner corner-br"></div>
+                    <div class="scanner-line"></div>
+                </div>
+                <div class="scanner-overlay-text" id="scannerOverlayText" style="display:none;">Pointez vers un QR Code TransAfrik</div>
+                <div class="scanner-placeholder" id="scannerPlaceholder">
+                    <i class="fa-solid fa-camera-retro"></i>
+                    <p>Appuyez sur "Démarrer"</p>
+                </div>
+            </div>
+            <div class="scanner-controls">
+                <button class="scan-btn scan-btn-primary" id="btnStartScan"><i class="fa-solid fa-play"></i> Démarrer la caméra</button>
+                <button class="scan-btn scan-btn-outline" id="btnStopScan" style="display:none;"><i class="fa-solid fa-stop"></i> Arrêter</button>
+                <button class="scan-btn scan-btn-outline" id="btnUploadQR"><i class="fa-solid fa-image"></i> Importer image</button>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;">
+            </div>
+        </div>
+
+        <!-- TEXTE MANUEL -->
+        <div class="scan-card">
+            <div class="scan-card-title"><i class="fa-solid fa-paste"></i> Saisie manuelle</div>
+            <p class="scan-card-subtitle">Collez le contenu d'un QR Code ou un identifiant TransAfrik.</p>
+            <div class="scan-text-input-area">
+                <div class="scan-text-label"><i class="fa-solid fa-keyboard"></i> Contenu du QR Code :</div>
+                <textarea class="scan-textarea" id="manualText" placeholder='Collez ici le texte du QR Code (format JSON)...'></textarea>
+                <button class="scan-btn scan-btn-outline" id="btnManualScan" style="margin-top:10px;width:100%;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analyser
+                </button>
+            </div>
+
+            <!-- Feedback -->
+            <div class="scan-feedback" id="scanFeedback">
+                <i class="fa-solid" id="feedbackIcon"></i>
+                <div class="feedback-body">
+                    <div class="feedback-title" id="feedbackTitle"></div>
+                    <div class="feedback-sub" id="feedbackSub"></div>
+                </div>
+                <button class="feedback-action" id="feedbackAction" style="display:none;">Envoyer de l'argent →</button>
+            </div>
+
+            <!-- User preview -->
+            <div class="scanned-user-preview" id="userPreview" style="display:none;">
+                <div class="avatar" id="previewAvatar">?</div>
+                <div class="scanned-user-info">
+                    <div class="scanned-user-name" id="previewName">—</div>
+                    <div class="scanned-user-phone" id="previewPhone">—</div>
+                    <div class="scanned-user-country" id="previewCountry">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+const theme = localStorage.getItem('transafrik-theme') || 'light';
+document.documentElement.setAttribute('data-theme', theme);
+
+let videoStream = null;
+let scanInterval = null;
+let lastScannedValue = '';
+
+const video = document.getElementById('scannerVideo');
+const viewport = document.getElementById('scannerViewport');
+const retical = document.getElementById('scannerRetical');
+const overlay = document.getElementById('scannerOverlayText');
+const placeholder = document.getElementById('scannerPlaceholder');
+const btnStart = document.getElementById('btnStartScan');
+const btnStop = document.getElementById('btnStopScan');
+const btnUpload = document.getElementById('btnUploadQR');
+const fileInput = document.getElementById('fileInput');
+const manualText = document.getElementById('manualText');
+const btnManual = document.getElementById('btnManualScan');
+const feedback = document.getElementById('scanFeedback');
+const feedbackIcon = document.getElementById('feedbackIcon');
+const feedbackTitle = document.getElementById('feedbackTitle');
+const feedbackSub = document.getElementById('feedbackSub');
+const feedbackAction = document.getElementById('feedbackAction');
+const userPreview = document.getElementById('userPreview');
+
+// ===== CAMERA =====
+async function startCamera() {
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:640},height:{ideal:640}}});
+        video.srcObject = videoStream;
+        video.style.display = 'block';
+        retical.style.display = 'block';
+        overlay.style.display = 'block';
+        placeholder.style.display = 'none';
+        btnStart.style.display = 'none';
+        btnStop.style.display = 'flex';
+        scanInterval = setInterval(scanFrame, 300);
+    } catch(e) {
+        showFeedback(false, 'Accès caméra refusé', 'Veuillez autoriser l\'accès à la caméra ou utilisez la saisie manuelle.');
+    }
+}
+
+function stopCamera() {
+    if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+    if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+    video.style.display = 'none';
+    retical.style.display = 'none';
+    overlay.style.display = 'none';
+    placeholder.style.display = 'block';
+    btnStart.style.display = 'flex';
+    btnStop.style.display = 'none';
+}
+
+function scanFrame() {
+    if (!videoStream || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code && code.data && code.data !== lastScannedValue) {
+        lastScannedValue = code.data;
+        processScan(code.data);
+    }
+}
+
+// ===== UPLOAD =====
+btnUpload.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, img.width, img.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code && code.data) processScan(code.data);
+            else showFeedback(false, 'Aucun QR Code détecté', 'L\'image ne contient pas de QR Code valide.');
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// ===== MANUAL =====
+btnManual.addEventListener('click', () => {
+    const text = manualText.value.trim();
+    if (!text) { showFeedback(false, 'Texte vide', 'Collez le contenu d\'un QR Code.'); return; }
+    processScan(text);
+});
+
+btnStart.addEventListener('click', startCamera);
+btnStop.addEventListener('click', stopCamera);
+
+// ===== PROCESS SCAN =====
+async function processScan(raw) {
+    stopCamera();
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch(e) { parsed = { raw: raw }; }
+
+    const payload = {
+        qr_identifier: parsed.qr_id || parsed.qr_identifier || parsed.id || raw,
+    };
+
+    try {
+        const res = await fetch('/api/qrcode/validate', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            const u = data.user;
+            showFeedback(true,
+                'Utilisateur trouvé !',
+                'Envoyez de l\'argent à ' + (u.name || 'cet utilisateur') + ' en quelques secondes.',
+                '/send-money?qr_id=' + encodeURIComponent(u.qr_id)
+            );
+            // Show preview
+            document.getElementById('previewAvatar').textContent = (u.name||'?')[0].toUpperCase();
+            document.getElementById('previewName').textContent = u.name || '—';
+            document.getElementById('previewPhone').innerHTML = '<i class="fa-solid fa-phone" style="margin-right:4px;"></i>' + (u.phone || '—');
+            document.getElementById('previewCountry').innerHTML = (u.flag||'') + ' ' + (u.country_name || u.country || '—');
+            userPreview.style.display = 'flex';
+        } else {
+            showFeedback(false, 'Utilisateur non trouvé', data.error || 'Aucun utilisateur ne correspond à ce QR Code.');
+        }
+    } catch(e) {
+        showFeedback(false, 'Erreur réseau', 'Impossible de contacter le serveur.');
+    }
+}
+
+function showFeedback(success, title, sub, actionUrl) {
+    feedback.className = 'scan-feedback ' + (success ? 'success' : 'error');
+    feedbackIcon.className = success ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+    feedbackTitle.textContent = title;
+    feedbackSub.textContent = sub;
+    if (actionUrl) {
+        feedbackAction.style.display = 'inline-flex';
+        feedbackAction.onclick = () => { window.location = actionUrl; };
+    } else {
+        feedbackAction.style.display = 'none';
+    }
+    feedback.style.display = 'flex';
+    if (!success) userPreview.style.display = 'none';
+    lastScannedValue = '';
+}
+
+// Mobile sidebar toggle
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.createElement('button');
+    toggle.className = 'topbar-icon-btn';
+    toggle.style.display = 'none';
+    toggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+    toggle.onclick = () => sidebar.classList.toggle('open');
+    document.querySelector('.topbar-left').prepend(toggle);
+    if (window.innerWidth <= 1024) toggle.style.display = 'flex';
+    window.addEventListener('resize', () => {
+        toggle.style.display = window.innerWidth <= 1024 ? 'flex' : 'none';
+    });
+});
+</script>
+</body>
+</html>

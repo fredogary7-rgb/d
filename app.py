@@ -1508,41 +1508,22 @@ def api_calculate_fees_v2():
 @app.route('/scan')
 @login_required
 def scan_page():
-    """Page du scanner QR Code."""
-    # Flags et noms de pays pour le front-end
-    country_flags = {
-        'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮', 'BF': '🇧🇫',
-        'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦', 'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
-    }
-    country_names = {
-        'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': 'Côte d\'Ivoire',
-        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
-        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
-    }
+    """Page scanner QR Code avec layout dashboard."""
+    return render_template('scan_qr.html', user=current_user)
 
-    # Historique des scans (depuis les bénéficiaires récents)
-    scan_history = []
-    recent_benefs = Beneficiary.query.filter_by(user_id=current_user.id) \
-        .order_by(Beneficiary.created_at.desc()).limit(10).all()
-    for b in recent_benefs:
-        scan_history.append({
-            'name': b.name or 'Inconnu',
-            'phone': b.phone or '',
-            'country': b.country or '',
-            'operator': b.operator or '',
-            'date': b.created_at.strftime('%d/%m/%Y') if b.created_at else '',
-            'time': b.created_at.strftime('%H:%M') if b.created_at else '',
-        })
 
-    # Flags dict pour le template
-    flags = country_flags
+@app.route('/my-qrcode')
+@login_required
+def my_qrcode_page():
+    """Page Mon QR Code avec layout dashboard."""
+    return render_template('my_qrcode.html', user=current_user)
 
-    return render_template('scan.html',
-                           user=current_user,
-                           flags=flags,
-                           flags_json=country_flags,
-                           country_names_json=country_names,
-                           scan_history=scan_history)
+
+@app.route('/qr-history')
+@login_required
+def qr_history_page():
+    """Page historique QR avec layout dashboard."""
+    return render_template('qr_history.html', user=current_user)
 
 
 # ==================== API QR CODE ====================
@@ -1589,28 +1570,66 @@ def api_qrcode_my():
 @app.route('/api/qrcode/validate', methods=['POST'])
 @login_required
 def api_qrcode_validate():
-    """Valide un QR Code scanné et enregistre le bénéficiaire si nécessaire."""
-    from services.qrcode_service import validate_qrcode, get_qr_action
+    """Valide un QR Code scanné et retourne l'utilisateur correspondant.
+
+    Accepte :
+    - 'data' : contenu brute du QR Code (JSON parsable)
+    - 'qr_identifier' : identifiant public TA-XXXX (recherche directe en base)
+    """
+    from services.qrcode_service import (
+        validate_qrcode, get_qr_action, find_user_by_qr_identifier, decode_qrcode,
+    )
+    from config.operators import get_country_info
 
     data = request.get_json()
-    if not data or 'data' not in data:
+    if not data:
         return jsonify({'success': False, 'error': 'Données manquantes'}), 400
 
-    qr_raw = data['data']
-    is_valid, parsed, error = validate_qrcode(qr_raw)
+    qr_raw = data.get('data') or data.get('qr_identifier') or ''
+    if not qr_raw:
+        return jsonify({'success': False, 'error': 'Aucune donnée QR fournie'}), 400
 
+    # --- Étape 1 : essayer le parsing JSON (QR scanné) ---
+    is_valid = False
+    parsed = None
+    error = None
+
+    parsed_candidate = decode_qrcode(qr_raw)
+    if parsed_candidate and parsed_candidate.get('type') in (
+        'transafrik_user', 'transafrik_merchant', 'transafrik_deposit',
+        'transafrik_withdraw', 'transafrik_invoice',
+    ):
+        is_valid, parsed, error = validate_qrcode(qr_raw)
+
+    # --- Étape 2 : si pas de JSON valide, chercher par qr_identifier direct ---
+    target_user = None
     if not is_valid:
-        return jsonify({
-            'success': True,
-            'valid': False,
-            'error': error,
-        })
+        target_user = find_user_by_qr_identifier(qr_raw)
+        if not target_user:
+            return jsonify({
+                'success': False,
+                'error': error or 'Aucun utilisateur trouvé pour cet identifiant QR.',
+            })
 
-    # Enregistrer ou mettre à jour le bénéficiaire (pour user QR)
-    if parsed.get('type') == 'transafrik_user':
+        # Construire un payload à partir de l'utilisateur trouvé
+        country_info = get_country_info(target_user.country) or {}
+        parsed = {
+            'type': 'transafrik_user',
+            'qr_id': target_user.qr_identifier,
+            'user_id': target_user.id,
+            'name': target_user.fullname,
+            'phone': target_user.phone,
+            'country': target_user.country,
+            'operator': country_info.get('name', 'Inconnu'),
+        }
+        is_valid = True
+
+    # --- Étape 3 : enregistrer le bénéficiaire ---
+    if parsed and parsed.get('type') == 'transafrik_user':
+        phone = parsed.get('phone', '')
         existing = Beneficiary.query.filter_by(
             user_id=current_user.id,
-            phone=parsed.get('phone', '')
+            phone=phone,
         ).first()
 
         if existing:
@@ -1622,7 +1641,7 @@ def api_qrcode_validate():
             beneficiary = Beneficiary(
                 user_id=current_user.id,
                 name=parsed.get('name', 'Inconnu'),
-                phone=parsed.get('phone', ''),
+                phone=phone,
                 country=parsed.get('country', ''),
                 operator=parsed.get('operator', ''),
             )
@@ -1630,14 +1649,30 @@ def api_qrcode_validate():
 
         db.session.commit()
 
-    action_url = get_qr_action(parsed.get('type', ''))
+    # --- Étape 4 : réponse enrichie ---
+    resolved_user = target_user or (
+        find_user_by_qr_identifier(parsed.get('qr_id', '')) if parsed else None
+    )
+
+    country_info = get_country_info(parsed.get('country', '')) if parsed else {}
+    flag = country_info.get('flag', '') if country_info else ''
+    country_name = country_info.get('name', parsed.get('country', '')) if country_info else parsed.get('country', '')
 
     return jsonify({
         'success': True,
         'valid': True,
-        'qr_type': parsed.get('type'),
+        'qr_type': parsed.get('type') if parsed else '',
+        'action_url': get_qr_action(parsed.get('type', '') if parsed else ''),
+        'user': {
+            'qr_id': resolved_user.qr_identifier if resolved_user else (parsed.get('qr_id') if parsed else ''),
+            'name': resolved_user.fullname if resolved_user else (parsed.get('name') if parsed else ''),
+            'phone': resolved_user.phone if resolved_user else (parsed.get('phone') if parsed else ''),
+            'country': resolved_user.country if resolved_user else (parsed.get('country') if parsed else ''),
+            'country_name': country_name,
+            'flag': flag,
+            'operator': parsed.get('operator') if parsed else '',
+        },
         'parsed': parsed,
-        'action_url': action_url,
     })
 
 

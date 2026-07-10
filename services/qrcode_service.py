@@ -305,18 +305,37 @@ def get_scan_history_from_db(user_id, limit=20):
     Returns:
         Liste de dictionnaires.
     """
-    from models import Beneficiary
+    from models import Beneficiary, User
     beneficiaries = Beneficiary.query.filter_by(user_id=user_id) \
         .order_by(Beneficiary.created_at.desc()).limit(limit).all()
 
     history = []
     for b in beneficiaries:
+        # Chercher le qr_identifier de l'utilisateur scanné si possible
+        qr_id = ""
+        scanned_user = User.query.filter_by(phone=b.phone, country=b.country).first()
+        if scanned_user and scanned_user.qr_identifier:
+            qr_id = scanned_user.qr_identifier
+
         history.append({
             "name": b.name or "Inconnu",
             "phone": b.phone or "",
             "country": b.country or "",
             "operator": b.operator or "",
-            "date": b.created_at.strftime("%d/%m/%Y") if b.created_at else "",
-            "time": b.created_at.strftime("%H:%M") if b.created_at else "",
+            "qr_identifier": qr_id,
+            "scanned_at": b.updated_at.isoformat() if b.updated_at else (b.created_at.isoformat() if b.created_at else ""),
         })
     return history
+
+
+def find_user_by_qr_identifier(qr_identifier: str):
+    """Recherche un utilisateur par son identifiant QR (TA-XXXX).
+
+    Args:
+        qr_identifier: L'identifiant QR (ex: TA-7G82KQ91M).
+
+    Returns:
+        L'instance User si trouvée, None sinon.
+    """
+    from models import User
+    return User.query.filter_by(qr_identifier=qr_identifier).first()
