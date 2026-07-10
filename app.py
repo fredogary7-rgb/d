@@ -1204,18 +1204,98 @@ def api_recent_contacts():
     })
 
 
-# --- API Contact Import (architecture future) ---
+# --- API Contact Import (mobile / PWA) ---
 @app.route('/api/contacts/import', methods=['POST'])
 @login_required
 def api_import_contacts():
-    """API d'import de contacts (CSV / JSON).
-    Architecture réservée pour intégration Android/iOS ultérieure.
+    """Import de contacts depuis le téléphone (JSON array).
+    Chaque contact: {name, phone, country (optionnel), operator (optionnel)}
+    Les doublons (même phone+country) sont ignorés.
     """
-    # Placeholder — à implémenter plus tard
+    data = request.get_json()
+    if not data or not isinstance(data.get('contacts'), list):
+        return jsonify({'success': False, 'message': 'Format invalide. Attendu: {"contacts": [...]}'}), 400
+
+    contacts = data['contacts']
+    imported = 0
+    skipped = 0
+    saved = []
+
+    for c in contacts:
+        name = (c.get('name') or '').strip()
+        phone = (c.get('phone') or c.get('tel') or '').strip()
+        if not name or not phone:
+            skipped += 1
+            continue
+
+        # Nettoyage du téléphone
+        phone = phone.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        country = (c.get('country') or '').strip().upper()
+
+        # Si pas de pays, tenter de détecter par préfixe
+        if not country:
+            country = _detect_country_from_phone(phone)
+
+        # Si toujours pas de pays, utiliser le pays de l'utilisateur
+        if not country:
+            country = current_user.country
+
+        # Vérifier doublon
+        existing = Beneficiary.query.filter_by(
+            user_id=current_user.id,
+            phone=phone,
+            country=country,
+        ).first()
+        if existing:
+            skipped += 1
+            continue
+
+        operator = (c.get('operator') or '').strip().upper() or None
+        beneficiary = Beneficiary(
+            user_id=current_user.id,
+            name=name,
+            phone=phone,
+            country=country,
+            operator=operator,
+            nickname=c.get('nickname') or None,
+            photo=c.get('photo') or None,
+        )
+        db.session.add(beneficiary)
+        saved.append(beneficiary)
+        imported += 1
+
+    if saved:
+        db.session.commit()
+
     return jsonify({
-        'success': False,
-        'message': 'Import de contacts non encore implémenté.',
-    }), 501
+        'success': True,
+        'message': f'{imported} contact(s) importé(s), {skipped} ignoré(s).',
+        'imported': imported,
+        'skipped': skipped,
+        'beneficiaries': [b.to_dict() for b in saved],
+    })
+
+
+def _detect_country_from_phone(phone: str) -> str:
+    """Détecte le pays depuis le préfixe téléphonique (Afrique subsaharienne)."""
+    mapping = {
+        '228': 'TG',  # Togo
+        '229': 'BJ',  # Bénin
+        '237': 'CM',  # Cameroun
+        '225': 'CI',  # Côte d'Ivoire
+        '226': 'BF',  # Burkina Faso
+        '242': 'CG',  # Congo
+        '243': 'CD',  # RD Congo
+        '241': 'GA',  # Gabon
+        '256': 'UG',  # Ouganda
+        '260': 'ZM',  # Zambie
+        '221': 'SN',  # Sénégal
+    }
+    phone_clean = phone.lstrip('0')
+    for prefix, country in mapping.items():
+        if phone_clean.startswith(prefix):
+            return country
+    return ''
 
 
 # ==================== PAGE 404 ====================
