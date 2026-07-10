@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouveau transfert — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE;
+            --green: #10B981; --green-light: #D1FAE5;
+            --yellow: #F59E0B; --orange: #F97316;
+            --bg: #F1F5F9; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.03); --shadow: 0 4px 16px rgba(0,0,0,.04);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,.06); --shadow-xl: 0 20px 60px rgba(0,0,0,.08);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
+            --transition: .3s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
+            --border: #1E293B;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 16px rgba(0,0,0,.3);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,.4); --shadow-xl: 0 20px 60px rgba(0,0,0,.5);
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;font-size:16px}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;transition:background .5s,color .5s;line-height:1.6;min-height:100vh}
+        a{text-decoration:none;color:inherit}
+        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        img{max-width:100%;height:auto}
+
+        /* ===== HEADER ===== */
+        .transfer-header{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);padding:20px 32px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;gap:20px;transition:all var(--transition)}
+        .back-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-3);transition:all var(--transition);flex-shrink:0}
+        .back-btn:hover{background:var(--surface-hover);color:var(--blue);transform:translateX(-3px)}
+        .header-title-area{flex:1}
+        .header-title{font-size:20px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--text)}
+        .header-subtitle{font-size:12px;color:var(--text-4);margin-top:2px}
+
+        /* ===== MAIN CONTAINER ===== */
+        .transfer-container{max-width:680px;margin:32px auto;padding:0 20px}
+        .transfer-container.centered{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 140px);margin-top:-20px}
+
+        /* ===== MAIN CARD ===== */
+        .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);overflow:hidden;animation:fadeSlideUp .5s ease-out}
+        @keyframes fadeSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+
+        /* ===== PROGRESS ===== */
+        .progress-bar{display:flex;align-items:center;justify-content:center;padding:28px 32px 8px;gap:0}
+        .progress-step{display:flex;align-items:center;gap:8px}
+        .progress-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;transition:all var(--transition);border:2px solid var(--border);color:var(--text-4);background:var(--bg);flex-shrink:0}
+        .progress-dot.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+        .progress-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+        .progress-line{width:40px;height:2px;background:var(--border);transition:all var(--transition);flex-shrink:0}
+        .progress-line.done{background:var(--green)}
+        .progress-label{font-size:10px;font-weight:600;color:var(--text-4);text-align:center;margin-top:6px;display:none}
+
+        /* ===== STEP CONTENT ===== */
+        .step-content{padding:32px}
+        .step-section{margin-bottom:28px;animation:fadeSlideDown .4s ease-out}
+        .step-section:last-child{margin-bottom:0}
+        .step-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);margin-bottom:10px}
+        .step-title{font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+        .step-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:var(--blue-light);color:var(--blue)}
+
+        /* ===== COUNTRY SELECTOR ===== */
+        .country-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:340px;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--text-4) transparent}
+        .country-grid::-webkit-scrollbar{width:5px}
+        .country-grid::-webkit-scrollbar-thumb{background:var(--text-4);border-radius:10px}
+        .country-option{padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;background:var(--surface);color:var(--text-2)}
+        .country-option:hover{border-color:var(--blue);background:var(--blue-light);transform:translateX(3px)}
+        .country-option.selected{border-color:var(--blue);background:#EFF6FF;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .country-option .flag{font-size:22px;flex-shrink:0}
+        .country-option .check{font-size:12px;color:var(--blue);visibility:hidden;margin-left:auto}
+        .country-option.selected .check{visibility:visible}
+
+        /* ===== OPERATOR SELECTOR ===== */
+        .operator-list{display:flex;flex-direction:column;gap:8px}
+        .operator-option{padding:16px 18px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;font-size:14px;font-weight:600;background:var(--surface);color:var(--text)}
+        .operator-option:hover{border-color:var(--blue);background:var(--surface-hover);transform:translateX(4px);box-shadow:var(--shadow)}
+        .operator-option.selected{border-color:var(--blue);background:#EFF6FF}
+        .operator-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:#fff}
+        .op-icon-tmoney{background:linear-gradient(135deg,#FFD700,#FFB300)}
+        .op-icon-moov{background:linear-gradient(135deg,#00A3E0,#006699)}
+        .op-icon-mtn{background:linear-gradient(135deg,#FFCC00,#E6A800)}
+        .op-icon-orange{background:linear-gradient(135deg,#FF6600,#E05500)}
+        .op-icon-wave{background:linear-gradient(135deg,#1E90FF,#0055CC)}
+        .op-icon-airtel{background:linear-gradient(135deg,#EE0000,#BB0000)}
+        .op-icon-vodacom{background:linear-gradient(135deg,#E60000,#CC0000)}
+        .op-icon-free{background:linear-gradient(135deg,#E91E63,#C2185B)}
+        .op-icon-zamtel{background:linear-gradient(135deg,#4CAF50,#2E7D32)}
+
+        /* ===== AMOUNT INPUT ===== */
+        .amount-input-group{position:relative}
+        .amount-input{width:100%;padding:20px 24px;font-size:36px;font-weight:800;font-family:'Outfit',sans-serif;text-align:center;border:2px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);color:var(--text);transition:all var(--transition);letter-spacing:-.01em;outline:none}
+        .amount-input:focus{border-color:var(--blue);box-shadow:0 0 0 6px rgba(37,99,235,.08)}
+        .amount-input::placeholder{color:var(--text-4);font-weight:400}
+        .currency-display{text-align:center;margin-top:10px;font-size:13px;font-weight:600;color:var(--text-4);letter-spacing:.05em}
+        .amount-presets{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+        .amount-preset{padding:8px 18px;border:1px solid var(--border);border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-3);transition:all .2s;background:var(--surface)}
+        .amount-preset:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+
+        /* ===== RECIPIENT FORM ===== */
+        .recipient-form{display:flex;flex-direction:column;gap:14px}
+        .form-field{position:relative}
+        .form-label{font-size:11px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:block}
+        .form-input{width:100%;padding:14px 16px;font-size:15px;font-weight:500;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);transition:all var(--transition);outline:none;font-family:'Inter',sans-serif}
+        .form-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.06)}
+        .form-select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+        /* ===== CALCULATOR ===== */
+        .calculator-card{background:linear-gradient(135deg,var(--surface-hover),var(--surface));border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;animation:scaleIn .4s ease-out}
+        .calc-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+        .calc-row:last-child{border-bottom:none;padding-bottom:0}
+        .calc-label{font-size:13px;color:var(--text-3);display:flex;align-items:center;gap:8px}
+        .calc-value{font-size:15px;font-weight:700;font-family:'Outfit',sans-serif}
+        .calc-value.fee{color:var(--orange)}
+        .calc-value.total{color:var(--blue);font-size:18px}
+        .calc-value.receive{color:var(--green)}
+        .calc-total-row{padding:16px 0 0;border-bottom:none;margin-top:4px;border-top:2px solid var(--border)}
+
+        /* ===== SUMMARY ===== */
+        .summary-card{animation:scaleIn .5s ease-out}
+        .summary-header{text-align:center;padding:24px 0 20px}
+        .summary-header i{font-size:40px;display:block;margin-bottom:12px}
+        .summary-header h3{font-size:20px;font-weight:800;margin-bottom:4px}
+        .summary-header p{font-size:12px;color:var(--text-4)}
+        .summary-row{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-top:1px solid var(--border)}
+        .summary-row-left{display:flex;align-items:center;gap:12px}
+        .summary-row-left i{font-size:18px;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .summary-row-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4)}
+        .summary-row-value{font-size:15px;font-weight:700;color:var(--text);margin-top:2px}
+        .summary-row-amount{font-size:17px;font-weight:800;font-family:'Outfit',sans-serif}
+        .summary-row-amount.send{color:var(--blue)}
+        .summary-row-amount.fee{color:var(--orange)}
+        .summary-row-amount.receive{color:var(--green)}
+        .summary-row-highlight{background:linear-gradient(135deg,var(--blue-light),var(--surface));border-radius:var(--radius-lg);margin:4px 16px}
+
+        /* ===== BUTTON ===== */
+        .btn-primary{width:100%;padding:18px 24px;font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;border:none;border-radius:var(--radius);cursor:pointer;transition:all var(--transition);display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--green));background-size:200% 200%;color:#fff;animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 28px rgba(37,99,235,.3);letter-spacing:.01em}
+        .btn-primary:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(37,99,235,.4);background-size:220% 220%}
+        .btn-primary:active{transform:translateY(-1px)}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+        .btn-outline{width:100%;padding:14px 24px;font-size:14px;font-weight:600;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-2);cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif}
+        .btn-outline:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+        /* ===== STEP NAVIGATION ===== */
+        .step-nav{display:flex;gap:12px;padding:0 32px 28px}
+        .step-nav .btn-primary{flex:1}
+        .step-nav .btn-outline{flex:0 0 auto;min-width:120px}
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:768px){
+            .transfer-header{padding:16px 20px}
+            .transfer-container{padding:0 12px;margin:20px auto}
+            .step-content{padding:24px 20px}
+            .country-grid{grid-template-columns:1fr 1fr;max-height:260px}
+            .amount-input{font-size:28px;padding:16px 20px}
+            .step-nav{padding:0 20px 24px;flex-direction:column}
+            .step-nav .btn-outline{min-width:100%}
+            .form-row{grid-template-columns:1fr}
+            .progress-bar{padding:20px 20px 4px}
+            .progress-label{display:none}
+        }
+        @media(max-width:480px){
+            .country-grid{grid-template-columns:1fr;max-height:220px}
+            .country-option{padding:12px 14px;font-size:13px}
+            .amount-input{font-size:24px}
+            .amount-presets{gap:6px}
+            .amount-preset{padding:6px 14px;font-size:11px}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="transfer-header">
+    <a href="/dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+    <div class="header-title-area">
+        <div class="header-title">Nouveau transfert</div>
+        <div class="header-subtitle">Envoyez de l'argent partout en Afrique en quelques secondes.</div>
+    </div>
+</header>
+
+<!-- ===== MAIN CONTAINER ===== -->
+<main class="transfer-container" id="transferApp">
+    <div class="main-card">
+        <!-- Progress bar -->
+        <div class="progress-bar">
+            <div class="progress-dot active" id="dot1">1</div>
+            <div class="progress-line" id="line1"></div>
+            <div class="progress-dot" id="dot2">2</div>
+            <div class="progress-line" id="line2"></div>
+            <div class="progress-dot" id="dot3">3</div>
+            <div class="progress-line" id="line3"></div>
+            <div class="progress-dot" id="dot4">4</div>
+        </div>
+
+        <!-- Step content -->
+        <div class="step-content" id="stepContent"></div>
+
+        <!-- Navigation -->
+        <div class="step-nav" id="stepNav"></div>
+    </div>
+</main>
+
+<script>
+/* ===== DATA (from Jinja -> JS) ===== */
+const COUNTRIES = {{ countries | tojson | safe }};
+const USER_COUNTRY = "{{ user.country }}";
+const USER_PHONE = "{{ user.phone }}";
+const USER_NAME = "{{ user.fullname }}";
+
+/* ===== OPERATOR ICONS ===== */
+const OP_ICONS = {
+    'tmoney':'op-icon-tmoney','moov':'op-icon-moov','mtn':'op-icon-mtn',
+    'orange':'op-icon-orange','wave':'op-icon-wave','airtel':'op-icon-airtel',
+    'vodacom':'op-icon-vodacom','free':'op-icon-free','zamtel':'op-icon-zamtel'
+};
+const OP_SHORT = {
+    'tmoney':'TM','moov':'MV','mtn':'MTN','orange':'OR','wave':'WV',
+    'airtel':'AT','vodacom':'VC','free':'FR','zamtel':'ZT'
+};
+
+/* ===== STATE ===== */
+let step = 1;
+let selectedCountry = null;
+let selectedOperator = null;
+let amount = 0;
+let recipientName = '';
+let recipientPhone = '';
+let destinationCountry = null;
+let destinationOperator = null;
+
+/* ===== RENDER ===== */
+function render(){
+    const content = document.getElementById('stepContent');
+    const nav = document.getElementById('stepNav');
+    updateProgress();
+
+    switch(step){
+        case 1: renderCountryStep(content, nav); break;
+        case 2: renderOperatorStep(content, nav); break;
+        case 3: renderAmountStep(content, nav); break;
+        case 4: renderSummaryStep(content, nav); break;
+    }
+}
+
+/* ===== PROGRESS ===== */
+function updateProgress(){
+    for(let i=1;i<=4;i++){
+        const dot = document.getElementById('dot'+i);
+        const line = i<4 ? document.getElementById('line'+i) : null;
+        dot.classList.remove('active','done');
+        if(line) line.classList.remove('done');
+        if(i<step){dot.classList.add('done');dot.innerHTML='<i class="fa-solid fa-check"></i>';if(line)line.classList.add('done');}
+        else if(i===step){dot.classList.add('active');dot.textContent=i;}
+        else{dot.textContent=i;}
+    }
+}
+
+/* ===== STEP 1: COUNTRY ===== */
+function renderCountryStep(content, nav){
+    content.innerHTML = `
+        <div class="step-section">
+            <div class="step-label">Étape 1 sur 4</div>
+            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-earth-africa"></i></div> Pays de destination</div>
+            <p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Sélectionnez le pays où l'argent sera envoyé.</p>
+            <div class="country-grid">
+                ${COUNTRIES.map(c => `
+                    <div class="country-option${selectedCountry && selectedCountry.code===c.code?' selected':''}" onclick="selectCountry('${c.code}')" data-code="${c.code}">
+                        <span class="flag">${c.flag}</span>
+                        <span>${c.name}</span>
+                        <i class="fa-solid fa-circle-check check"></i>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    nav.innerHTML = `
+        <a href="/dashboard" class="btn-outline">Annuler</a>
+        <button class="btn-primary" onclick="goNext()" ${!selectedCountry?'disabled':''}>
+            Continuer <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    `;
+}
+
+/* ===== STEP 2: OPERATOR ===== */
+function renderOperatorStep(content, nav){
+    const operators = selectedCountry ? selectedCountry.operators : [];
+    content.innerHTML = `
+        <div class="step-section">
+            <div class="step-label">Étape 2 sur 4</div>
+            <div class="step-title">
+                <div class="step-icon"><i class="fa-solid fa-tower-cell"></i></div>
+                Opérateur · ${selectedCountry.flag} ${selectedCountry.name}
+            </div>
+            <p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Choisissez l'opérateur mobile du bénéficiaire.</p>
+            <div class="operator-list">
+                ${operators.map(op => `
+                    <div class="operator-option${selectedOperator && selectedOperator.id===op.id?' selected':''}" onclick="selectOperator('${op.id}')">
+                        <div class="operator-icon ${OP_ICONS[op.id] || 'op-icon-orange'}">${OP_SHORT[op.id] || 'OP'}</div>
+                        <span>${op.name}</span>
+                        <i class="fa-solid fa-circle-check check" style="margin-left:auto;font-size:14px;color:var(--blue)"></i>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    nav.innerHTML = `
+        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
+        <button class="btn-primary" onclick="goNext()" ${!selectedOperator?'disabled':''}>
+            Continuer <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    `;
+}
+
+/* ===== STEP 3: AMOUNT + RECIPIENT ===== */
+function renderAmountStep(content, nav){
+    const currency = selectedCountry ? selectedCountry.currency : 'XOF';
+    const presets = getPresets(currency);
+    content.innerHTML = `
+        <div class="step-section">
+            <div class="step-label">Étape 3 sur 4</div>
+            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-coins"></i></div> Montant & Destinataire</div>
+        </div>
+        <div class="step-section">
+            <div class="step-label" style="margin-bottom:8px">Montant à envoyer</div>
+            <div class="amount-input-group">
+                <input type="number" class="amount-input" id="amountInput" placeholder="0" value="${amount||''}" min="0" oninput="onAmountChange(this.value)">
+            </div>
+            <div class="currency-display">${currency}</div>
+            <div class="amount-presets">
+                ${presets.map(p => `<div class="amount-preset" onclick="setPreset(${p})">${p.toLocaleString('fr-FR')} ${currency}</div>`).join('')}
+            </div>
+            <div class="calculator-card" id="calculator" style="margin-top:20px;${amount>0?'':'display:none'}">
+                <div class="calc-row">
+                    <span class="calc-label"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span>
+                    <span class="calc-value" id="calcSend">${amount.toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (1%)</span>
+                    <span class="calc-value fee" id="calcFee">${Math.round(amount*0.01).toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label"><i class="fa-solid fa-arrow-down-wide-short" style="color:var(--green)"></i> Le bénéficiaire reçoit</span>
+                    <span class="calc-value receive" id="calcReceive">${Math.round(amount*0.99).toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+                <div class="calc-row calc-total-row">
+                    <span class="calc-label" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total à payer</span>
+                    <span class="calc-value total" id="calcTotal">${amount.toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+            </div>
+        </div>
+        <div class="step-section">
+            <div class="step-label" style="margin-bottom:8px">Destinataire</div>
+            <div class="recipient-form">
+                <div class="form-field">
+                    <label class="form-label">Nom complet (optionnel)</label>
+                    <input type="text" class="form-input" id="recipientName" placeholder="Nom du bénéficiaire" value="${recipientName}" oninput="recipientName=this.value;checkStep3Ready()">
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Numéro de téléphone *</label>
+                    <input type="tel" class="form-input" id="recipientPhone" placeholder="+228 90 00 00 00" value="${recipientPhone}" oninput="recipientPhone=this.value;checkStep3Ready()">
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label class="form-label">Pays</label>
+                        <select class="form-input form-select" id="destCountry" onchange="onDestCountryChange(this.value)">
+                            <option value="">— Pays —</option>
+                            ${COUNTRIES.map(c => `<option value="${c.code}" ${destinationCountry&&destinationCountry.code===c.code?'selected':''}>${c.flag} ${c.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Opérateur</label>
+                        <select class="form-input form-select" id="destOperator" onchange="onDestOperatorChange(this.value)">
+                            <option value="">— Opérateur —</option>
+                            ${destinationCountry?destinationCountry.operators.map(op=>`<option value="${op.id}" ${destinationOperator&&destinationOperator.id===op.id?'selected':''}>${op.name}</option>`).join(''):''}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    nav.innerHTML = `
+        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
+        <button class="btn-primary" id="step3NextBtn" onclick="goNext()" ${amount>0 && recipientPhone?'':'disabled'}>
+            Continuer <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    `;
+    // Re-run check after render
+    setTimeout(checkStep3Ready,100);
+}
+
+function onDestCountryChange(code){
+    if(!code){ destinationCountry=null; destinationOperator=null; renderStep3Fields(); return; }
+    destinationCountry = COUNTRIES.find(c=>c.code===code)||null;
+    destinationOperator = null;
+    renderStep3Fields();
+    checkStep3Ready();
+}
+function onDestOperatorChange(opId){
+    if(!opId||!destinationCountry){destinationOperator=null;checkStep3Ready();return;}
+    destinationOperator = destinationCountry.operators.find(o=>o.id===opId)||null;
+    checkStep3Ready();
+}
+function renderStep3Fields(){
+    const destOp = document.getElementById('destOperator');
+    if(!destOp) return;
+    destOp.innerHTML = '<option value="">— Opérateur —</option>' +
+        (destinationCountry ? destinationCountry.operators.map(op=>`<option value="${op.id}" ${destinationOperator&&destinationOperator.id===op.id?'selected':''}>${op.name}</option>`).join('') : '');
+}
+function checkStep3Ready(){
+    const btn = document.getElementById('step3NextBtn');
+    if(!btn) return;
+    btn.disabled = !(amount > 0 && recipientPhone.trim().length > 0);
+}
+
+function onAmountChange(val){
+    amount = parseInt(val) || 0;
+    const calc = document.getElementById('calculator');
+    if(calc){
+        if(amount > 0){calc.style.display='block';calc.style.animation='none';calc.offsetHeight;calc.style.animation='scaleIn .4s ease-out';}
+        else calc.style.display = 'none';
+    }
+    updateCalcDisplay();
+    checkStep3Ready();
+}
+
+function updateCalcDisplay(){
+    const currency = selectedCountry ? selectedCountry.currency : 'XOF';
+    const fee = Math.round(amount * 0.01);
+    const receive = amount - fee;
+    const el = (id)=>document.getElementById(id);
+    if(el('calcSend')) el('calcSend').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
+    if(el('calcFee')) el('calcFee').textContent = fee.toLocaleString('fr-FR') + ' ' + currency;
+    if(el('calcReceive')) el('calcReceive').textContent = receive.toLocaleString('fr-FR') + ' ' + currency;
+    if(el('calcTotal')) el('calcTotal').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
+}
+
+function setPreset(val){amount=val;document.getElementById('amountInput').value=val;onAmountChange(val);}
+function getPresets(currency){
+    if(['CDF','UGX'].includes(currency)) return [10000,25000,50000,100000];
+    return [5000,10000,25000,50000,100000];
+}
+
+/* ===== STEP 4: SUMMARY ===== */
+function renderSummaryStep(content, nav){
+    const currency = selectedCountry ? selectedCountry.currency : 'XOF';
+    const fee = Math.round(amount * 0.01);
+    const receive = amount - fee;
+    content.innerHTML = `
+        <div class="step-section">
+            <div class="step-label">Étape 4 sur 4</div>
+            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div> Résumé du transfert</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-header">
+                <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
+                <h3>Prêt à envoyer</h3>
+                <p>Vérifiez les détails avant de continuer.</p>
+            </div>
+            <div class="summary-row">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i>
+                    <div><div class="summary-row-label">Vous envoyez</div><div class="summary-row-value">${selectedCountry.flag} ${selectedCountry.name} · ${selectedOperator.name}</div></div>
+                </div>
+                <div class="summary-row-amount send">${amount.toLocaleString('fr-FR')} ${currency}</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i>
+                    <div><div class="summary-row-label">Frais de transfert</div><div class="summary-row-value">1% du montant</div></div>
+                </div>
+                <div class="summary-row-amount fee">${fee.toLocaleString('fr-FR')} ${currency}</div>
+            </div>
+            <div class="summary-row summary-row-highlight">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i>
+                    <div><div class="summary-row-label">Le bénéficiaire reçoit</div><div class="summary-row-value">${recipientName||'Bénéficiaire'} · ${recipientPhone}</div></div>
+                </div>
+                <div class="summary-row-amount receive">${receive.toLocaleString('fr-FR')} ${currency}</div>
+            </div>
+            ${destinationCountry ? `
+            <div class="summary-row">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-location-dot" style="background:var(--surface-hover);color:var(--text-3)"></i>
+                    <div><div class="summary-row-label">Pays · Opérateur</div><div class="summary-row-value">${destinationCountry.flag} ${destinationCountry.name}${destinationOperator?' · '+destinationOperator.name:''}</div></div>
+                </div>
+                <div></div>
+            </div>`:''}
+            <div style="padding:0 24px 24px;text-align:center">
+                <p style="font-size:11px;color:var(--text-4);margin-top:12px">
+                    <i class="fa-solid fa-lock"></i> Transfert sécurisé · Délai estimé : instantané
+                </p>
+            </div>
+        </div>
+    `;
+    nav.innerHTML = `
+        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button>
+        <button class="btn-primary" onclick="confirmTransfer()">
+            Continuer <i class="fa-solid fa-lock"></i>
+        </button>
+    `;
+}
+
+/* ===== NAVIGATION ===== */
+function goNext(){
+    if(step === 1 && !selectedCountry) return;
+    if(step === 2 && !selectedOperator) return;
+    if(step === 3 && (!amount || !recipientPhone)) return;
+    step = Math.min(4, step + 1);
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+function goBack(){step=Math.max(1,step-1);render();window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ===== SELECTIONS ===== */
+function selectCountry(code){
+    selectedCountry = COUNTRIES.find(c=>c.code===code)||null;
+    selectedOperator = null; // reset operator when country changes
+    render();
+}
+function selectOperator(opId){
+    selectedOperator = selectedCountry.operators.find(o=>o.id===opId)||null;
+    render();
+}
+
+/* ===== CONFIRM ===== */
+function confirmTransfer(){
+    window.location.href = '/transfer/confirm';
+}
+
+/* ===== THEME ===== */
+const savedTheme = localStorage.getItem('transafrik-theme')||'light';
+document.documentElement.setAttribute('data-theme',savedTheme);
+
+/* ===== INIT ===== */
+render();
+</script>
+</body>
+</html>

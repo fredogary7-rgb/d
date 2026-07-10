@@ -28,6 +28,7 @@ from services.payment_workflow import (
     is_payment_success,
     is_payment_failed,
 )
+from services.fees import calculate_fee as calculate_fee_service
 
 load_dotenv()
 
@@ -1404,11 +1405,109 @@ def api_beneficiary_stats():
     })
 
 
+# ==================== FEES CALCULATOR ====================
+
+@app.route('/fees-calculator')
+@login_required
+def fees_calculator():
+    """Page du calculateur intelligent des frais."""
+    # Construire un dict pays -> {currency, operators} pour le JS
+    countries_data = {}
+    for c in COUNTRIES:
+        countries_data[c['code']] = {
+            'currency': c.get('currency', 'XOF'),
+            'name': c.get('name', ''),
+            'flag': c.get('flag', ''),
+            'operators': [{'id': op['id'], 'name': op['name']} for op in c.get('operators', [])],
+        }
+
+    country_flags = {
+        'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮', 'BF': '🇧🇫',
+        'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦', 'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
+    }
+    country_names = {
+        'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': 'Côte d\'Ivoire',
+        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
+    }
+
+    return render_template('fees_calculator.html',
+                           user=current_user,
+                           countries=COUNTRIES,
+                           countries_data=countries_data,
+                           country_flags=country_flags,
+                           country_names=country_names)
+
+
+# ==================== API FEES CALCULATOR ====================
+
+@app.route('/api/fees/calculate', methods=['POST'])
+@login_required
+def api_calculate_fees_v2():
+    """API de calcul des frais — moteur intelligent (services/fees.py).
+
+    POST /api/fees/calculate
+    Body: {
+        "amount": 10000,
+        "sender_country": "TG",
+        "sender_operator": "tmoney",
+        "receiver_country": "BJ",
+        "receiver_operator": "mtn",
+        "promo_code": null
+    }
+
+    Response: {
+        "success": true,
+        "result": {
+            "amount": 10000,
+            "fees": 300,
+            "receiver_gets": 10000,
+            "total": 10300,
+            "estimated_time": 30,
+            "promo_message": "",
+            "tier_discount": 0
+        }
+    }
+    """
+    data = request.get_json(silent=True) or {}
+    amount = int(data.get('amount', 0))
+
+    if amount <= 0:
+        return jsonify({
+            'success': True,
+            'result': {
+                'amount': 0,
+                'fees': 0,
+                'receiver_gets': 0,
+                'total': 0,
+                'estimated_time': 0,
+                'promo_message': '',
+                'tier_discount': 0,
+            }
+        })
+
+    result = calculate_fee_service(
+        amount=amount,
+        sender_country=data.get('sender_country', current_user.country).upper(),
+        sender_operator=data.get('sender_operator', '').lower(),
+        receiver_country=data.get('receiver_country', '').upper(),
+        receiver_operator=data.get('receiver_operator', '').lower(),
+        promo_code=data.get('promo_code') or None,
+        user_tier=getattr(current_user, 'tier', 'standard'),
+        user_id=current_user.id if current_user.is_authenticated else None,
+    )
+
+    return jsonify({
+        'success': True,
+        'result': result,
+    })
+
+
 # ==================== PAGE 404 ====================
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return jsonify({'error': 'Page non trouvée'}), 404
 
 
 if __name__ == '__main__':

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculateur de frais — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fees_calculator.css') }}">
+    <style>
+        /* Navbar simple */
+        .fc-nav {
+            background: var(--fc-surface);
+            border-bottom: 1px solid var(--fc-border);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .fc-nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .fc-nav-logo img {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+        }
+        .fc-nav-logo span {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 17px;
+            background: linear-gradient(135deg, var(--fc-green), var(--fc-blue-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .fc-nav-back {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--fc-text2);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: all .2s;
+        }
+        .fc-nav-back:hover {
+            background: var(--fc-bg);
+            color: var(--fc-text);
+        }
+        .fc-nav-back i {
+            font-size: 14px;
+        }
+        .fc-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body class="fc-page">
+
+<!-- Navbar -->
+<nav class="fc-nav">
+    <a href="/" class="fc-nav-logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik">
+        <span>TransAfrik</span>
+    </a>
+    <div class="fc-nav-actions">
+        <a href="/dashboard" class="fc-nav-back">
+            <i class="fa-solid fa-arrow-left"></i> Tableau de bord
+        </a>
+    </div>
+</nav>
+
+<div class="fc-container">
+
+    <!-- HEADER -->
+    <div class="fc-header">
+        <div class="fc-header-icon">🧮</div>
+        <h1>Calculateur de frais</h1>
+        <p>Estimez les frais de votre transfert instantanément. Transparent, rapide, sans surprise.</p>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="fc-card" id="formCard">
+        <div class="fc-card-title">
+            <i class="fa-solid fa-sliders"></i> Détails du transfert
+        </div>
+
+        <!-- Pays d'origine + Opérateur -->
+        <div class="fc-form-row">
+            <div class="fc-form-group">
+                <label>Pays d'origine</label>
+                <select id="senderCountry" onchange="onSenderCountryChange()">
+                    <option value="">-- Sélectionner --</option>
+                    {% for c in countries %}
+                    <option value="{{ c.code }}" {% if user.country == c.code %}selected{% endif %}>
+                        {{ c.flag }} {{ c.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fc-form-group">
+                <label>Opérateur d'origine</label>
+                <select id="senderOperator">
+                    <option value="">-- Sélectionner --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Pays destinataire + Opérateur -->
+        <div class="fc-form-row">
+            <div class="fc-form-group">
+                <label>Pays du destinataire</label>
+                <select id="receiverCountry" onchange="onReceiverCountryChange()">
+                    <option value="">-- Sélectionner --</option>
+                    {% for c in countries %}
+                    <option value="{{ c.code }}">{{ c.flag }} {{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fc-form-group">
+                <label>Opérateur destinataire</label>
+                <select id="receiverOperator">
+                    <option value="">-- Sélectionner --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Montant -->
+        <div class="fc-form-row single">
+            <div class="fc-form-group">
+                <label>Montant à envoyer</label>
+                <div class="fc-amount-wrapper">
+                    <input type="number" id="amount" placeholder="Ex: 10 000" min="0" step="100" oninput="onAmountChange()">
+                    <span class="fc-currency-tag" id="currencyTag">XOF</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Promo -->
+        <div class="fc-promo-toggle" onclick="togglePromo()">
+            <i class="fa-solid fa-tag"></i> Vous avez un code promo ?
+            <i class="fa-solid fa-chevron-down" id="promoChevron" style="font-size:10px;transition:transform .3s"></i>
+        </div>
+        <div class="fc-promo-row" id="promoRow">
+            <input type="text" id="promoCode" placeholder="Entrez votre code promo" style="flex:1;padding:12px 14px;border:1.5px solid var(--fc-border);border-radius:12px;font-size:13px;font-family:'Inter',sans-serif;background:var(--fc-bg);color:var(--fc-text);outline:none;min-width:0">
+            <button onclick="applyPromo()">Appliquer</button>
+        </div>
+        <div style="font-size:11px;color:var(--fc-text3);min-height:18px" id="promoMessage"></div>
+    </div>
+
+    <!-- RESULT CARD -->
+    <div class="fc-result-card" id="resultCard">
+        <div class="fc-result-header">
+            <span><i class="fa-solid fa-calculator" style="margin-right:6px"></i> Récapitulatif</span>
+            <span class="fc-result-badge" id="resultBadge">Instantané</span>
+        </div>
+        <div class="fc-result-body">
+            <div class="fc-result-row">
+                <div class="fc-result-label">
+                    <i class="fa-solid fa-paper-plane green"></i> Montant envoyé
+                </div>
+                <div class="fc-result-value" id="resultAmount">—</div>
+            </div>
+            <div class="fc-result-row">
+                <div class="fc-result-label">
+                    <i class="fa-solid fa-receipt orange"></i> Frais
+                </div>
+                <div class="fc-result-value fees" id="resultFees">—</div>
+            </div>
+            <div class="fc-result-row">
+                <div class="fc-result-label">
+                    <i class="fa-solid fa-hand-holding-heart purple"></i> Le destinataire recevra
+                </div>
+                <div class="fc-result-value" id="resultReceiverGets">—</div>
+            </div>
+            <div class="fc-result-row">
+                <div class="fc-result-label">
+                    <i class="fa-solid fa-clock blue"></i> Temps estimé
+                </div>
+                <div class="fc-result-value" id="resultTime">—</div>
+            </div>
+        </div>
+        <div class="fc-result-total">
+            <div class="fc-result-total-label">
+                <i class="fa-solid fa-coins"></i> Total à payer
+            </div>
+            <div class="fc-result-total-value" id="resultTotal">—</div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <a class="fc-cta" id="ctaButton" href="#" onclick="return goToTransfer(event)">
+        Continuer le transfert <i class="fa-solid fa-arrow-right"></i>
+    </a>
+
+    <!-- Placeholder (pas de montant) -->
+    <div class="fc-placeholder" id="placeholderCard" style="display:none">
+        <i class="fa-solid fa-arrow-up-wide-short"></i>
+        <h3>Entrez un montant pour voir les frais</h3>
+        <p>Le calcul des frais s'affichera automatiquement ici.</p>
+    </div>
+
+</div>
+
+<div class="fc-toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Calculateur de Frais — Logique JS
+   Rôle : mise à jour de l'affichage uniquement.
+   Le calcul officiel est côté serveur (services/fees.py).
+   ═══════════════════════════════════════════════════════════ */
+
+var countriesData = {{ countries_data | tojson }};
+var countryFlags = {{ country_flags | tojson }};
+var countryNames = {{ country_names | tojson }};
+var userCountry = "{{ user.country }}";
+
+var currentResult = null;
+var debounceTimer = null;
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    // Pré-remplir le pays d'origine avec le pays de l'utilisateur
+    if (userCountry) {
+        var selSender = document.getElementById('senderCountry');
+        if (selSender.value === userCountry || !selSender.value) {
+            selSender.value = userCountry;
+            onSenderCountryChange();
+        }
+    }
+    updatePlaceholder();
+});
+
+/* ===== CHANGEMENT PAYS ÉMETTEUR ===== */
+function onSenderCountryChange() {
+    var code = document.getElementById('senderCountry').value;
+    var sel = document.getElementById('senderOperator');
+    sel.innerHTML = '<option value="">-- Sélectionner --</option>';
+    if (!code) { updateCurrencyTag(); scheduleCalculate(); return; }
+
+    var country = countriesData[code];
+    if (country && country.operators) {
+        country.operators.forEach(function(op) {
+            sel.innerHTML += '<option value="' + escAttr(op.id) + '">' + escHtml(op.name) + '</option>';
+        });
+    }
+    updateCurrencyTag();
+    scheduleCalculate();
+}
+
+/* ===== CHANGEMENT PAYS DESTINATAIRE ===== */
+function onReceiverCountryChange() {
+    var code = document.getElementById('receiverCountry').value;
+    var sel = document.getElementById('receiverOperator');
+    sel.innerHTML = '<option value="">-- Sélectionner --</option>';
+    if (!code) { scheduleCalculate(); return; }
+
+    var country = countriesData[code];
+    if (country && country.operators) {
+        country.operators.forEach(function(op) {
+            sel.innerHTML += '<option value="' + escAttr(op.id) + '">' + escHtml(op.name) + '</option>';
+        });
+    }
+    scheduleCalculate();
+}
+
+/* ===== CHANGEMENT MONTANT ===== */
+function onAmountChange() {
+    updatePlaceholder();
+    scheduleCalculate();
+}
+
+/* ===== MISE À JOUR DEVISE ===== */
+function updateCurrencyTag() {
+    var tag = document.getElementById('currencyTag');
+    var code = document.getElementById('senderCountry').value;
+    var currency = 'XOF';
+    if (code && countriesData[code]) {
+        currency = countriesData[code].currency || 'XOF';
+    }
+    tag.textContent = currency;
+}
+
+/* ===== CALCUL (debounce 300ms) ===== */
+function scheduleCalculate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(doCalculate, 300);
+}
+
+function doCalculate() {
+    var amount = parseInt(document.getElementById('amount').value) || 0;
+    var senderCountry = document.getElementById('senderCountry').value;
+    var senderOperator = document.getElementById('senderOperator').value;
+    var receiverCountry = document.getElementById('receiverCountry').value;
+    var receiverOperator = document.getElementById('receiverOperator').value;
+    var promoCode = document.getElementById('promoCode').value.trim() || null;
+
+    if (amount <= 0) {
+        currentResult = null;
+        updateUI(null);
+        return;
+    }
+
+    var body = {
+        amount: amount,
+        sender_country: senderCountry || '',
+        sender_operator: senderOperator || '',
+        receiver_country: receiverCountry || '',
+        receiver_operator: receiverOperator || '',
+        promo_code: promoCode,
+    };
+
+    fetch('/api/fees/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        if (d.success) {
+            currentResult = d.result;
+            updateUI(currentResult);
+        } else {
+            showToast(d.message || 'Erreur de calcul', 'error');
+        }
+    })
+    .catch(function() {
+        showToast('Erreur réseau', 'error');
+    });
+}
+
+/* ===== MISE À JOUR DE L'INTERFACE ===== */
+function updateUI(result) {
+    var resultCard = document.getElementById('resultCard');
+    var placeholderCard = document.getElementById('placeholderCard');
+    var ctaButton = document.getElementById('ctaButton');
+    var currency = document.getElementById('currencyTag').textContent || 'XOF';
+
+    if (!result || result.amount <= 0) {
+        resultCard.classList.remove('visible');
+        placeholderCard.style.display = 'block';
+        ctaButton.style.opacity = '0.5';
+        ctaButton.style.pointerEvents = 'none';
+        return;
+    }
+
+    placeholderCard.style.display = 'none';
+    resultCard.classList.add('visible');
+    ctaButton.style.opacity = '1';
+    ctaButton.style.pointerEvents = 'auto';
+
+    // Animation pulse
+    resultCard.classList.remove('fc-pulse');
+    void resultCard.offsetWidth; // reflow
+    resultCard.classList.add('fc-pulse');
+
+    document.getElementById('resultAmount').textContent = formatNumber(result.amount) + ' ' + currency;
+    document.getElementById('resultFees').textContent = formatNumber(result.fees) + ' ' + currency;
+    document.getElementById('resultReceiverGets').textContent = formatNumber(result.receiver_gets) + ' ' + currency;
+    document.getElementById('resultTotal').textContent = formatNumber(result.total) + ' ' + currency;
+
+    // Temps estimé
+    var sec = result.estimated_time || 30;
+    var timeStr = sec < 60 ? '≈ ' + sec + ' secondes' : '≈ ' + Math.ceil(sec/60) + ' min';
+    document.getElementById('resultTime').textContent = timeStr;
+
+    // Badge
+    document.getElementById('resultBadge').textContent = 'Instantané';
+
+    // Message promo
+    if (result.promo_message) {
+        document.getElementById('promoMessage').textContent = result.promo_message;
+        document.getElementById('promoMessage').style.color = 'var(--fc-green)';
+    } else {
+        document.getElementById('promoMessage').textContent = '';
+    }
+}
+
+function updatePlaceholder() {
+    var amount = parseInt(document.getElementById('amount').value) || 0;
+    var resultCard = document.getElementById('resultCard');
+    var placeholderCard = document.getElementById('placeholderCard');
+    var ctaButton = document.getElementById('ctaButton');
+
+    if (amount <= 0 && !currentResult) {
+        resultCard.classList.remove('visible');
+        placeholderCard.style.display = 'block';
+        ctaButton.style.opacity = '0.5';
+        ctaButton.style.pointerEvents = 'none';
+    }
+}
+
+/* ===== PROMO ===== */
+function togglePromo() {
+    var row = document.getElementById('promoRow');
+    var chevron = document.getElementById('promoChevron');
+    row.classList.toggle('show');
+    if (row.classList.contains('show')) {
+        chevron.style.transform = 'rotate(180deg)';
+    } else {
+        chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+function applyPromo() {
+    scheduleCalculate();
+    showToast('Code promo appliqué !', 'success');
+}
+
+/* ===== REDIRECTION VERS TRANSFERT ===== */
+function goToTransfer(e) {
+    var amount = parseInt(document.getElementById('amount').value) || 0;
+    var senderCountry = document.getElementById('senderCountry').value;
+    var senderOperator = document.getElementById('senderOperator').value;
+    var receiverCountry = document.getElementById('receiverCountry').value;
+    var receiverOperator = document.getElementById('receiverOperator').value;
+    var receiverNumber = document.getElementById('receiverPhone') ? document.getElementById('receiverPhone').value : '';
+
+    if (amount <= 0) {
+        showToast('Veuillez entrer un montant', 'error');
+        return false;
+    }
+
+    var params = new URLSearchParams();
+    params.set('amount', amount);
+    if (senderCountry) params.set('sender_country', senderCountry);
+    if (senderOperator) params.set('sender_operator', senderOperator);
+    if (receiverCountry) params.set('receiver_country', receiverCountry);
+    if (receiverOperator) params.set('receiver_operator', receiverOperator);
+
+    window.location.href = '/send-money?' + params.toString();
+    return false;
+}
+
+/* ===== TOAST ===== */
+function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'fc-toast ' + (type || 'success') + ' show';
+    clearTimeout(t._timeout);
+    t._timeout = setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+/* ===== HELPERS ===== */
+function formatNumber(n) {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+function escHtml(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+function escAttr(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g, '&').replace(/"/g, '"').replace(/</g, '<').replace(/>/g, '>').replace(/'/g, '&#39;');
+}
+</script>
+
+</body>
+</html>

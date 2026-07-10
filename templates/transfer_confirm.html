@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE;
+            --green: #10B981; --green-light: #D1FAE5;
+            --orange: #F97316;
+            --bg: #F1F5F9; --surface: #FFFFFF;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow: 0 4px 16px rgba(0,0,0,.04);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,.08);
+            --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
+            --transition: .3s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
+            --border: #1E293B;
+            --shadow: 0 4px 16px rgba(0,0,0,.3);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,.5);
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;transition:background .5s,color .5s}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+
+        .confirm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);padding:48px 40px;max-width:520px;width:100%;text-align:center;animation:fadeSlideUp .5s ease-out}
+        @keyframes fadeSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+        .icon-container{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;animation:pulse 2s ease-in-out infinite}
+        .icon-container.pending{background:var(--blue-light);color:var(--blue)}
+        .icon-container.success{background:var(--green-light);color:var(--green)}
+        .icon-container i{font-size:32px}
+
+        .confirm-title{font-size:24px;font-weight:800;margin-bottom:8px}
+        .confirm-subtitle{font-size:14px;color:var(--text-4);margin-bottom:32px;line-height:1.6}
+
+        .info-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px}
+        .info-row:last-child{border-bottom:none}
+        .info-label{color:var(--text-4);font-weight:500}
+        .info-value{font-weight:700;font-family:'Outfit',sans-serif;color:var(--text)}
+
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px 32px;font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;border:none;border-radius:var(--radius);cursor:pointer;transition:all var(--transition);background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--green));background-size:200% 200%;color:#fff;animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 28px rgba(37,99,235,.3);text-decoration:none;margin-top:28px;width:100%}
+        .btn-primary:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(37,99,235,.4)}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+        .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;font-size:14px;font-weight:600;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-3);cursor:pointer;transition:all var(--transition);text-decoration:none;margin-top:12px}
+        .btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+
+        .dots-loader{display:flex;gap:6px;justify-content:center;margin-top:20px}
+        .dot{width:10px;height:10px;border-radius:50%;background:var(--blue);animation:bounce 1.4s ease-in-out infinite}
+        .dot:nth-child(1){animation-delay:0s}
+        .dot:nth-child(2){animation-delay:.2s}
+        .dot:nth-child(3){animation-delay:.4s}
+        @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+        @media(max-width:480px){
+            .confirm-card{padding:32px 24px}
+            .confirm-title{font-size:20px}
+        }
+    </style>
+</head>
+<body>
+
+<div class="confirm-card">
+    <div class="icon-container pending">
+        <i class="fa-solid fa-clock"></i>
+    </div>
+    <h2 class="confirm-title">Transfert en préparation</h2>
+    <p class="confirm-subtitle">
+        Cette fonctionnalité sera disponible très prochainement.<br>
+        Le paiement via <strong>SoleasPay</strong> arrive bientôt.
+    </p>
+
+    <div style="background:var(--bg);border-radius:var(--radius-lg);padding:20px;margin-bottom:8px">
+        <div class="info-row">
+            <span class="info-label"><i class="fa-solid fa-shield-halved" style="color:var(--green);margin-right:6px"></i> Sécurité</span>
+            <span class="info-value">SoleasPay</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label"><i class="fa-solid fa-bolt" style="color:var(--orange);margin-right:6px"></i> Délai estimé</span>
+            <span class="info-value">Instantané</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label"><i class="fa-solid fa-coins" style="color:var(--blue);margin-right:6px"></i> Frais</span>
+            <span class="info-value">1 %</span>
+        </div>
+    </div>
+
+    <div class="dots-loader">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+
+    <a href="/dashboard" class="btn-outline" style="margin-top:24px">
+        <i class="fa-solid fa-arrow-left"></i> Retour au tableau de bord
+    </a>
+
+    <p style="font-size:11px;color:var(--text-4);margin-top:20px">
+        <i class="fa-solid fa-lock"></i> Paiement sécurisé par <strong>TransAfrik</strong>
+    </p>
+</div>
+
+<script>
+    // Theme
+    const savedTheme = localStorage.getItem('transafrik-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
+
+</body>
+</html>

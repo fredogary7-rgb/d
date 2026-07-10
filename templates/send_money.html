@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envoyer de l'argent — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;
+            --green:#10B981;--green-light:#D1FAE5;--orange:#F97316;
+            --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
+            --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
+            --border:#E2E8F0;--shadow-xl:0 20px 60px rgba(0,0,0,.08);
+            --radius-sm:12px;--radius:18px;--radius-lg:24px;--radius-xl:32px;
+            --transition:.3s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"]{--bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;--text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;--border:#1E293B;--shadow-xl:0 20px 60px rgba(0,0,0,.5)}
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .5s,color .5s}
+        a{text-decoration:none;color:inherit}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        .header{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;gap:16px}
+        .back{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text-3);transition:all var(--transition)}
+        .back:hover{color:var(--blue);transform:translateX(-3px)}
+        .ht{font-size:18px;font-weight:800;font-family:'Outfit',sans-serif}
+        .hs{font-size:11px;color:var(--text-4)}
+        .container{max-width:640px;margin:28px auto;padding:0 16px}
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);overflow:hidden;animation:fadeUp .5s ease-out}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+        .progress{display:flex;align-items:center;justify-content:center;padding:24px 24px 4px}
+        .pd{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;transition:all var(--transition);border:2px solid var(--border);color:var(--text-4);background:var(--bg)}
+        .pd.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+        .pd.done{background:var(--green);border-color:var(--green);color:#fff}
+        .pl{width:32px;height:2px;background:var(--border);transition:all var(--transition)}
+        .pl.done{background:var(--green)}
+        .sc{padding:28px}
+        .sec{margin-bottom:24px;animation:fadeIn .4s ease-out}
+        .sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);margin-bottom:8px}
+        .st{font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .si{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--blue-light);color:var(--blue)}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;max-height:260px;overflow-y:auto;scrollbar-width:thin}
+        .grid::-webkit-scrollbar{width:4px}.grid::-webkit-scrollbar-thumb{background:var(--text-4);border-radius:10px}
+        .opt{padding:12px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;background:var(--surface);color:var(--text-2)}
+        .opt:hover{border-color:var(--blue);background:var(--blue-light);transform:translateX(2px)}
+        .opt.sel{border-color:var(--blue);background:#EFF6FF;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .opt .fl{font-size:20px}.opt .ck{font-size:10px;color:var(--blue);margin-left:auto;visibility:hidden}
+        .opt.sel .ck{visibility:visible}
+        .oplist{display:flex;flex-direction:column;gap:7px}
+        .opo{padding:13px 15px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600;background:var(--surface);color:var(--text)}
+        .opo:hover{border-color:var(--blue);background:var(--surface-hover);transform:translateX(3px)}
+        .opo.sel{border-color:var(--blue);background:#EFF6FF}
+        .oi{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700}
+        .oit{background:linear-gradient(135deg,#FFD700,#FFB300)}.oimv{background:linear-gradient(135deg,#00A3E0,#006699)}
+        .oim{background:linear-gradient(135deg,#FFCC00,#E6A800)}.oio{background:linear-gradient(135deg,#FF6600,#E05500)}
+        .oiw{background:linear-gradient(135deg,#1E90FF,#0055CC)}.oia{background:linear-gradient(135deg,#EE0000,#BB0000)}
+        .oif{background:linear-gradient(135deg,#E91E63,#C2185B)}.oiv{background:linear-gradient(135deg,#E60000,#CC0000)}
+        .oiz{background:linear-gradient(135deg,#4CAF50,#2E7D32)}
+        .fg{margin-bottom:13px}.flbl{font-size:10px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:block}
+        .fin{width:100%;padding:13px 15px;font-size:14px;font-weight:500;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);transition:all var(--transition);outline:none;font-family:'Inter',sans-serif}
+        .fin:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.06)}
+        .fsel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+        .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .amt{width:100%;padding:16px 18px;font-size:28px;font-weight:800;font-family:'Outfit',sans-serif;text-align:center;border:2px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);color:var(--text);transition:all var(--transition);outline:none}
+        .amt:focus{border-color:var(--blue);box-shadow:0 0 0 6px rgba(37,99,235,.08)}
+        .apresets{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+        .apre{padding:6px 14px;border:1px solid var(--border);border-radius:100px;cursor:pointer;font-size:11px;font-weight:600;color:var(--text-3);transition:all .2s;background:var(--surface)}
+        .apre:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+        .calc{background:linear-gradient(135deg,var(--surface-hover),var(--surface));border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;animation:scaleIn .4s ease-out}
+        .cr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+        .cr:last-child{border-bottom:none;padding-bottom:0}
+        .cl{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:7px}
+        .cv{font-size:14px;font-weight:700;font-family:'Outfit',sans-serif}
+        .cv.fee{color:var(--orange)}.cv.total{color:var(--blue);font-size:16px}.cv.recv{color:var(--green)}
+        .summary{animation:scaleIn .5s ease-out}
+        .sh{text-align:center;padding:20px 0 16px}
+        .sh i{font-size:36px;display:block;margin-bottom:8px;color:var(--green)}
+        .sh h3{font-size:18px;font-weight:800}
+        .sr{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;border-top:1px solid var(--border)}
+        .srl{display:flex;align-items:center;gap:10px}
+        .srl i{font-size:16px;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+        .srlbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4)}
+        .srv{font-size:13px;font-weight:600;color:var(--text);margin-top:1px}
+        .sra{font-size:16px;font-weight:800;font-family:'Outfit',sans-serif}
+        .sra.send{color:var(--blue)}.sra.fee{color:var(--orange)}.sra.recv{color:var(--green)}
+        .srhl{background:linear-gradient(135deg,var(--blue-light),var(--surface));border-radius:var(--radius-lg);margin:4px 14px}
+        .btn{width:100%;padding:15px 20px;font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;border:none;border-radius:var(--radius);cursor:pointer;transition:all var(--transition);display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--green));background-size:200% 200%;color:#fff;animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 28px rgba(37,99,235,.3)}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(37,99,235,.4)}
+        .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+        .btno{width:100%;padding:12px 20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-2);cursor:pointer;transition:all var(--transition)}
+        .btno:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .nav{display:flex;gap:10px;padding:0 28px 28px}.nav .btn{flex:1}.nav .btno{flex:0 0 auto;min-width:110px}
+        .loading{display:none;text-align:center;padding:8px;color:var(--blue);font-size:13px;font-weight:600}
+        .loading.show{display:block}
+        .error{background:#FEE2E2;color:#DC2626;padding:12px 16px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:14px;display:none}
+        .error.show{display:block}
+        @media(max-width:600px){.header{padding:14px 16px}.sc{padding:22px 16px}.grid{grid-template-columns:1fr}.frow{grid-template-columns:1fr}.amt{font-size:24px;padding:14px 16px}.nav{padding:0 20px 22px;flex-direction:column}.nav .btno{min-width:100%}}
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <a href="/dashboard" class="back"><i class="fa-solid fa-arrow-left"></i></a>
+    <div><div class="ht">Envoyer de l'argent</div><div class="hs">Transférez instantanément vers toute l'Afrique.</div></div>
+</header>
+
+<main class="container">
+    <div class="card">
+        <div class="progress">
+            <div class="pd active" id="d1">1</div><div class="pl" id="l1"></div>
+            <div class="pd" id="d2">2</div><div class="pl" id="l2"></div>
+            <div class="pd" id="d3">3</div>
+        </div>
+        <div class="error" id="err"></div>
+        <div class="loading" id="ld"><i class="fa-solid fa-spinner fa-spin"></i> Création de la transaction...</div>
+        <div class="sc" id="sc"></div>
+        <div class="nav" id="nav"></div>
+    </div>
+</main>
+
+<script>
+const COUNTRIES = {{ countries | tojson | safe }};
+const USER_COUNTRY = "{{ user.country }}";
+const USER_PHONE = "{{ user.phone }}";
+const USER_NAME = "{{ user.fullname }}";
+
+const OP_ICONS = {tmoney:'oit',moov:'oimv',mtn:'oim',orange:'oio',wave:'oiw',airtel:'oia',free:'oif',vodacom:'oiv',zamtel:'oiz'};
+const OP_SHORT = {tmoney:'TM',moov:'MV',mtn:'MTN',orange:'OR',wave:'WV',airtel:'AT',free:'FR',vodacom:'VC',zamtel:'ZT'};
+
+let step=1;
+let selSenderCountry=null, selSenderOp=null, selReceiverCountry=null, selReceiverOp=null;
+let amount=0, senderPhone=USER_PHONE||'', receiverPhone='', receiverName='';
+
+function render(){
+    updateProgress();
+    const sc=document.getElementById('sc'),nav=document.getElementById('nav');
+    if(step===1) renderStep1(sc,nav);
+    else if(step===2) renderStep2(sc,nav);
+    else if(step===3) renderStep3(sc,nav);
+}
+
+function updateProgress(){
+    for(let i=1;i<=3;i++){
+        let d=document.getElementById('d'+i),l=i<3?document.getElementById('l'+i):null;
+        d.classList.remove('active','done');if(l)l.classList.remove('done');
+        if(i<step){d.classList.add('done');d.innerHTML='<i class="fa-solid fa-check"></i>';if(l)l.classList.add('done')}
+        else if(i===step){d.classList.add('active');d.textContent=i}
+        else d.textContent=i;
+    }
+}
+
+function renderStep1(sc,nav){
+    sc.innerHTML=`
+        <div class="sec"><div class="sl">Étape 1 sur 3</div>
+        <div class="st"><div class="si"><i class="fa-solid fa-paper-plane"></i></div> Expéditeur</div>
+        <p style="font-size:12px;color:var(--text-4);margin-bottom:14px">Votre pays, votre opérateur et votre numéro.</p>
+        <div class="sl" style="margin-bottom:8px">Votre pays</div>
+        <div class="grid">${COUNTRIES.map(c=>`<div class="opt${selSenderCountry&&selSenderCountry.code===c.code?' sel':''}" onclick="pickSenderCountry('${c.code}')"><span class="fl">${c.flag}</span><span>${c.name}</span><i class="fa-solid fa-circle-check ck"></i></div>`).join('')}</div>
+        ${selSenderCountry?`<div style="margin-top:18px"><div class="sl" style="margin-bottom:8px">Votre opérateur</div><div class="oplist">${selSenderCountry.operators.map(o=>`<div class="opo${selSenderOp&&selSenderOp.id===o.id?' sel':''}" onclick="pickSenderOp('${o.id}')"><div class="oi ${OP_ICONS[o.id]||'oio'}">${OP_SHORT[o.id]||'OP'}</div><span>${o.name}</span><i class="fa-solid fa-circle-check ck" style="margin-left:auto;font-size:12px;color:var(--blue)"></i></div>`).join('')}</div>
+        <div class="fg" style="margin-top:14px"><label class="flbl">Votre numéro</label><input class="fin" id="sphone" value="${senderPhone}" oninput="senderPhone=this.value;checkStep1()" placeholder="+228 90 00 00 00"></div></div>`:''}
+        </div>`;
+    nav.innerHTML=`<a href="/dashboard" class="btno">Annuler</a><button class="btn" onclick="goNext()" ${selSenderCountry&&selSenderOp&&senderPhone?'':'disabled'}>Continuer <i class="fa-solid fa-arrow-right"></i></button>`;
+    setTimeout(()=>{if(selSenderCountry&&selSenderOp){let inp=document.getElementById('sphone');if(inp)inp.focus()}},100);
+}
+
+function renderStep2(sc,nav){
+    const currency = selReceiverCountry?selReceiverCountry.currency:'XOF';
+    const presets = ['XAF','CDF','UGX'].includes(currency)?[10000,25000,50000,100000]:[5000,10000,25000,50000,100000];
+    sc.innerHTML=`
+        <div class="sec"><div class="sl">Étape 2 sur 3</div>
+        <div class="st"><div class="si"><i class="fa-solid fa-user-group"></i></div> Destinataire & Montant</div>
+        <div class="sl" style="margin-bottom:8px">Pays du bénéficiaire</div>
+        <div class="grid">${COUNTRIES.map(c=>`<div class="opt${selReceiverCountry&&selReceiverCountry.code===c.code?' sel':''}" onclick="pickReceiverCountry('${c.code}')"><span class="fl">${c.flag}</span><span>${c.name}</span><i class="fa-solid fa-circle-check ck"></i></div>`).join('')}</div>
+        ${selReceiverCountry?`<div style="margin-top:16px"><div class="sl" style="margin-bottom:8px">Opérateur du bénéficiaire</div><div class="oplist">${selReceiverCountry.operators.map(o=>`<div class="opo${selReceiverOp&&selReceiverOp.id===o.id?' sel':''}" onclick="pickReceiverOp('${o.id}')"><div class="oi ${OP_ICONS[o.id]||'oio'}">${OP_SHORT[o.id]||'OP'}</div><span>${o.name}</span><i class="fa-solid fa-circle-check ck" style="margin-left:auto;font-size:12px;color:var(--blue)"></i></div>`).join('')}</div>
+        <div class="frow" style="margin-top:14px"><div class="fg"><label class="flbl">Numéro destinataire *</label><input class="fin" id="rphone" value="${receiverPhone}" oninput="receiverPhone=this.value;checkStep2()" placeholder="+228 90 00 00 00"></div><div class="fg"><label class="flbl">Nom (optionnel)</label><input class="fin" id="rname" value="${receiverName}" oninput="receiverName=this.value" placeholder="Nom du bénéficiaire"></div></div>
+        <div class="fg" style="margin-top:16px"><label class="flbl">Montant à envoyer</label><input class="amt" id="amtInp" value="${amount||''}" placeholder="0" oninput="onAmt(this.value)"></div>
+        <div class="apresets">${presets.map(p=>`<div class="apre" onclick="setPreset(${p})">${p.toLocaleString('fr')} ${currency}</div>`).join('')}</div>
+        <div class="calc" id="calc" style="margin-top:16px;${amount>0?'':'display:none'}">
+            <div class="cr"><span class="cl"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span><span class="cv" id="cvSend">${amount.toLocaleString('fr')} ${currency}</span></div>
+            <div class="cr"><span class="cl"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (1%)</span><span class="cv fee" id="cvFee">${Math.ceil(amount*0.01).toLocaleString('fr')} ${currency}</span></div>
+            <div class="cr"><span class="cl"><i class="fa-solid fa-arrow-down" style="color:var(--green)"></i> Bénéficiaire reçoit</span><span class="cv recv" id="cvRecv">${Math.ceil(amount*0.99).toLocaleString('fr')} ${currency}</span></div>
+            <div class="cr" style="border-bottom:none;border-top:2px solid var(--border);padding-top:14px;margin-top:4px"><span class="cl" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total à payer</span><span class="cv total" id="cvTotal">${amount.toLocaleString('fr')} ${currency}</span></div>
+        </div></div>`:''}
+        </div>`;
+    nav.innerHTML=`<button class="btno" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn" id="step2btn" onclick="goNext()" ${amount>0&&selReceiverCountry&&selReceiverOp&&receiverPhone?'':'disabled'}>Continuer <i class="fa-solid fa-arrow-right"></i></button>`;
+    setTimeout(checkStep2,100);
+}
+
+function renderStep3(sc,nav){
+    const currency = selReceiverCountry?selReceiverCountry.currency:'XOF';
+    const fee = Math.ceil(amount*0.01);
+    const recv = amount - fee;
+    sc.innerHTML=`
+        <div class="sec"><div class="sl">Étape 3 sur 3</div>
+        <div class="st"><div class="si"><i class="fa-solid fa-clipboard-check"></i></div> Résumé du transfert</div></div>
+        <div class="summary"><div class="sh"><i class="fa-solid fa-circle-check"></i><h3>Prêt à envoyer</h3><p style="font-size:11px;color:var(--text-4)">Vérifiez les détails avant de continuer.</p></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl">Expéditeur</div><div class="srv">${selSenderCountry.flag} ${selSenderCountry.name} · ${selSenderOp.name} · ${senderPhone}</div></div></div><div></div></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i><div><div class="srlbl">Destinataire</div><div class="srv">${selReceiverCountry.flag} ${selReceiverCountry.name} · ${selReceiverOp.name} · ${receiverPhone}${receiverName?' ('+receiverName+')':''}</div></div></div><div></div></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-paper-plane" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl">Vous envoyez</div></div></div><div class="sra send">${amount.toLocaleString('fr')} ${currency}</div></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i><div><div class="srlbl">Frais (1%)</div></div></div><div class="sra fee">${fee.toLocaleString('fr')} ${currency}</div></div>
+        <div class="sr srhl"><div class="srl"><i class="fa-solid fa-circle-dollar" style="background:var(--green-light);color:var(--green)"></i><div><div class="srlbl">Bénéficiaire reçoit</div></div></div><div class="sra recv">${recv.toLocaleString('fr')} ${currency}</div></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-cart-shopping" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl" style="font-size:11px;color:var(--text)">Total à payer</div></div></div><div class="sra total" style="color:var(--blue);font-size:18px;">${amount.toLocaleString('fr')} ${currency}</div></div>
+        <div style="text-align:center;padding:16px 0 0"><p style="font-size:10px;color:var(--text-4)"><i class="fa-solid fa-lock"></i> Paiement sécurisé via SoleasPay · Instantané</p></div></div>`;
+    nav.innerHTML=`<button class="btno" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button><button class="btn" onclick="submitTransfer()"><i class="fa-solid fa-lock"></i> Confirmer le transfert</button>`;
+}
+
+function pickSenderCountry(code){selSenderCountry=COUNTRIES.find(c=>c.code===code)||null;selSenderOp=null;render()}
+function pickSenderOp(id){selSenderOp=selSenderCountry.operators.find(o=>o.id===id)||null;render()}
+function pickReceiverCountry(code){selReceiverCountry=COUNTRIES.find(c=>c.code===code)||null;selReceiverOp=null;render()}
+function pickReceiverOp(id){selReceiverOp=selReceiverCountry.operators.find(o=>o.id===id)||null;render()}
+function checkStep1(){let b=document.getElementById('step1btn');if(b)b.disabled=!(selSenderCountry&&selSenderOp&&senderPhone.trim())}
+function checkStep2(){let b=document.getElementById('step2btn');if(b)b.disabled=!(amount>0&&selReceiverCountry&&selReceiverOp&&receiverPhone.trim())}
+
+function onAmt(v){
+    amount=parseInt(v)||0;
+    let calc=document.getElementById('calc');
+    if(calc){if(amount>0){calc.style.display='block';calc.style.animation='none';calc.offsetHeight;calc.style.animation='scaleIn .4s ease-out'}else calc.style.display='none'}
+    updateCalc();checkStep2();
+}
+function updateCalc(){
+    let currency=selReceiverCountry?selReceiverCountry.currency:'XOF';
+    let fee=Math.ceil(amount*0.01),recv=amount-fee;
+    let el=id=>document.getElementById(id);
+    if(el('cvSend'))el('cvSend').textContent=amount.toLocaleString('fr')+' '+currency;
+    if(el('cvFee'))el('cvFee').textContent=fee.toLocaleString('fr')+' '+currency;
+    if(el('cvRecv'))el('cvRecv').textContent=recv.toLocaleString('fr')+' '+currency;
+    if(el('cvTotal'))el('cvTotal').textContent=amount.toLocaleString('fr')+' '+currency;
+}
+function setPreset(v){amount=v;let inp=document.getElementById('amtInp');if(inp)inp.value=v;onAmt(v)}
+
+function goNext(){
+    if(step===1&&!(selSenderCountry&&selSenderOp&&senderPhone))return;
+    if(step===2&&!(amount>0&&selReceiverCountry&&selReceiverOp&&receiverPhone))return;
+    step=Math.min(3,step+1);render();window.scrollTo({top:0,behavior:'smooth'});
+}
+function goBack(){step=Math.max(1,step-1);render();window.scrollTo({top:0,behavior:'smooth'});}
+
+async function submitTransfer(){
+    document.getElementById('ld').classList.add('show');
+    document.getElementById('err').classList.remove('show');
+    let btn=document.querySelector('.nav .btn');if(btn)btn.disabled=true;
+    try{
+        let res=await fetch('/send-money',{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                amount,sender_country:selSenderCountry.code,sender_operator:selSenderOp.id,
+                sender_number:senderPhone,receiver_country:selReceiverCountry.code,
+                receiver_operator:selReceiverOp.id,receiver_number:receiverPhone,
+                receiver_name:receiverName,currency:selReceiverCountry.currency
+            })
+        });
+        let data=await res.json();
+        if(data.success){window.location.href=data.redirect}
+        else{showError(data.message)}
+    }catch(e){showError('Erreur réseau. Veuillez réessayer.')}
+    document.getElementById('ld').classList.remove('show');
+    if(btn)btn.disabled=false;
+}
+function showError(msg){let e=document.getElementById('err');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),5000)}
+
+const theme=localStorage.getItem('transafrik-theme')||'light';
+document.documentElement.setAttribute('data-theme',theme);
+render();
+</script>
+</body>
+</html>
