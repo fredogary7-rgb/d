@@ -1155,37 +1155,47 @@ def api_toggle_favorite(beneficiary_id):
 @login_required
 def api_recent_contacts():
     """Retourne les 5 derniers destinataires uniques (même non enregistrés)."""
-    recent = db.session.query(
-        Transaction.recipient_name,
+    # Subquery: last transaction per (phone, country)
+    subq = db.session.query(
         Transaction.recipient_phone,
         Transaction.recipient_country,
-        Transaction.recipient_operator,
+        db.func.max(Transaction.created_at).label('max_ts')
     ).filter(
         Transaction.user_id == current_user.id,
         Transaction.type == 'send',
         Transaction.recipient_phone.isnot(None),
-    ).order_by(
-        db.func.max(Transaction.created_at).desc()
     ).group_by(
         Transaction.recipient_phone,
         Transaction.recipient_country,
-    ).limit(5).all()
+    ).subquery()
+
+    recent = db.session.query(Transaction).join(
+        subq,
+        db.and_(
+            Transaction.recipient_phone == subq.c.recipient_phone,
+            Transaction.recipient_country == subq.c.recipient_country,
+            Transaction.created_at == subq.c.max_ts,
+        )
+    ).filter(
+        Transaction.user_id == current_user.id,
+    ).order_by(subq.c.max_ts.desc()).limit(5).all()
 
     contacts = []
-    for r in recent:
-        # Vérifier si déjà enregistré comme bénéficiaire
+    for tx in recent:
         already = Beneficiary.query.filter_by(
             user_id=current_user.id,
-            phone=r.recipient_phone,
-            country=r.recipient_country,
+            phone=tx.recipient_phone,
+            country=tx.recipient_country,
         ).first()
         contacts.append({
-            'name': r.recipient_name or 'Inconnu',
-            'phone': r.recipient_phone,
-            'country': r.recipient_country,
-            'operator': r.recipient_operator or '',
+            'name': tx.recipient_name or 'Inconnu',
+            'phone': tx.recipient_phone,
+            'country': tx.recipient_country,
+            'operator': tx.recipient_operator or '',
             'is_saved': already is not None,
         })
+
+    
 
     return jsonify({
         'success': True,
