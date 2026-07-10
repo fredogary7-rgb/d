@@ -6,4 +6,5 @@ python-dotenv
 qrcode
 pillow
 gunicorn
+psycopg2-binary
 requests
