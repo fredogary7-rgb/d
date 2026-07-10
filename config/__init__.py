@@ -1,0 +1,1 @@
+# Package config — Configuration centralisée de TransAfrik
