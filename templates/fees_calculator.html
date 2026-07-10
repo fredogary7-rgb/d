@@ -251,11 +251,24 @@ var currentResult = null;
 var debounceTimer = null;
 
 // Bloquer les swipes horizontaux (rubber-band sur mobile)
-document.addEventListener('touchmove', function(e) {
-    if (Math.abs(e.touches[0].clientX - (e._lastX || e.touches[0].clientX)) > 10) {
-        e.preventDefault();
-    }
-}, { passive: false });
+// Ne bloque QUE le scroll horizontal, laisse le vertical
+(function() {
+    var lastX = 0, lastY = 0;
+    document.addEventListener('touchstart', function(e) {
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchmove', function(e) {
+        var dx = Math.abs(e.touches[0].clientX - lastX);
+        var dy = Math.abs(e.touches[0].clientY - lastY);
+        // Bloque uniquement si le mouvement est majoritairement horizontal
+        if (dx > dy && dx > 10) {
+            e.preventDefault();
+        }
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+    }, { passive: false });
+})();
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
