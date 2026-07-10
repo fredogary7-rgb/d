@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfert en cours — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;
+            --green:#10B981;--green-light:#D1FAE5;--orange:#F97316;--red:#EF4444;--red-light:#FEE2E2;
+            --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
+            --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
+            --border:#E2E8F0;--shadow-xl:0 20px 60px rgba(0,0,0,.08);
+            --radius-sm:12px;--radius:18px;--radius-lg:24px;--radius-xl:32px;
+            --transition:.3s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"]{--bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;--text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;--border:#1E293B;--shadow-xl:0 20px 60px rgba(0,0,0,.5)}
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;transition:background .5s,color .5s}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none}
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);padding:44px 36px;max-width:540px;width:100%;text-align:center;animation:fadeUp .5s ease-out}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .icon-wrap{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px}
+        .icon-wrap.blue{background:var(--blue-light);color:var(--blue)}
+        .icon-wrap.green{background:var(--green-light);color:var(--green);animation:pulse 2s ease-in-out infinite}
+        .icon-wrap.red{background:var(--red-light);color:var(--red)}
+        .icon-wrap.spin i{animation:spin 1.2s linear infinite}
+        .title{font-size:22px;font-weight:800;margin-bottom:6px}
+        .subtitle{font-size:13px;color:var(--text-4);margin-bottom:28px;line-height:1.5}
+        .info-box{background:var(--bg);border-radius:var(--radius-lg);padding:18px;margin-bottom:8px;text-align:left}
+        .info-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px}
+        .info-row:last-child{border-bottom:none}
+        .info-lbl{color:var(--text-4);font-weight:500;display:flex;align-items:center;gap:8px}
+        .info-val{font-weight:700;font-family:'Outfit',sans-serif;color:var(--text)}
+        .badge{display:inline-block;padding:5px 14px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;transition:all .3s}
+        .badge.processing{background:var(--blue-light);color:var(--blue)}
+        .badge.success{background:var(--green-light);color:var(--green)}
+        .badge.failed{background:var(--red-light);color:var(--red)}
+        .status-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:20px 0;padding:0 8px}
+        .sb-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:var(--bg);transition:all .4s;position:relative;z-index:2}
+        .sb-dot.done{background:var(--green);border-color:var(--green)}
+        .sb-dot.failed{background:var(--red);border-color:var(--red)}
+        .sb-dot.active{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.2);animation:pulse 1.8s ease-in-out infinite}
+        .sb-line{width:60px;height:2px;background:var(--border);transition:all .4s}
+        .sb-line.done{background:var(--green)}
+        .sb-line.active{background:var(--blue)}
+        .sb-labels{display:flex;justify-content:space-between;padding:0 20px;margin-top:6px;font-size:10px;color:var(--text-4);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;font-size:14px;font-weight:700;font-family:'Outfit',sans-serif;border:none;border-radius:var(--radius);cursor:pointer;transition:all var(--transition);background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--green));background-size:200% 200%;color:#fff;animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 28px rgba(37,99,235,.3);margin-top:24px;width:100%}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(37,99,235,.4)}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .btno{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-3);cursor:pointer;transition:all var(--transition);width:100%;margin-top:10px}
+        .btno:hover{border-color:var(--blue);color:var(--blue)}
+        .ref{font-size:11px;font-family:monospace;color:var(--text-4);word-break:break-all;margin-top:4px}
+        .progress-ring{width:64px;height:64px;margin:0 auto 16px;position:relative}
+        .progress-ring svg{transform:rotate(-90deg)}
+        .progress-ring .bg{fill:none;stroke:var(--border);stroke-width:4}
+        .progress-ring .fg{fill:none;stroke:var(--blue);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .8s ease}
+        .progress-ring .pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--blue)}
+        @media(max-width:480px){.card{padding:32px 22px}.title{font-size:19px}.sb-line{width:36px}}
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="icon-wrap blue spin" id="statusIcon">
+        <i class="fa-solid fa-sync"></i>
+    </div>
+    <h2 class="title" id="statusTitle">Transfert en cours</h2>
+    <p class="subtitle" id="statusSub">
+        Votre transfert est en cours de traitement par <strong>SoleasPay</strong>.<br>
+        Suivi en temps réel...
+    </p>
+
+    <div id="statusBadge" class="badge processing">{{ transfer.status }}</div>
+
+    <!-- Barre de progression étapes -->
+    <div class="status-bar">
+        <div class="sb-dot active" id="dot1"></div><div class="sb-line active" id="line1"></div>
+        <div class="sb-dot" id="dot2"></div><div class="sb-line" id="line2"></div>
+        <div class="sb-dot" id="dot3"></div><div class="sb-line" id="line3"></div>
+        <div class="sb-dot" id="dot4"></div>
+    </div>
+    <div class="sb-labels">
+        <span>Créé</span><span>Pay-In</span><span>Retrait</span><span>Terminé</span>
+    </div>
+
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-lbl"><i class="fa-solid fa-hashtag" style="color:var(--text-4)"></i> Référence</span>
+            <span class="ref">{{ transfer.reference }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-lbl"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Montant envoyé</span>
+            <span class="info-val">{{ "{:,}".format(transfer.amount).replace(',', ' ') }} {{ transfer.currency }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-lbl"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais</span>
+            <span class="info-val" style="color:var(--orange)">{{ "{:,}".format(transfer.fees).replace(',', ' ') }} {{ transfer.currency }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-lbl"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total débité</span>
+            <span class="info-val" style="font-size:16px">{{ "{:,}".format(transfer.total_amount).replace(',', ' ') }} {{ transfer.currency }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-lbl"><i class="fa-solid fa-arrow-down" style="color:var(--green)"></i> Bénéficiaire reçoit</span>
+            <span class="info-val" style="color:var(--green)">{{ "{:,}".format(transfer.amount).replace(',', ' ') }} {{ transfer.currency }}</span>
+        </div>
+    </div>
+
+    <a href="/dashboard" class="btn" id="dashBtn" style="display:none">
+        <i class="fa-solid fa-home"></i> Retour au tableau de bord
+    </a>
+    <a href="/send-money" class="btno">
+        <i class="fa-solid fa-plus"></i> Nouveau transfert
+    </a>
+</div>
+
+<script>
+const REF = "{{ transfer.reference }}";
+const POLL_INTERVAL = 3000; // 3 secondes
+let pollTimer = null;
+
+const STATUS_FLOW = ['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING', 'PAYMENT_SUCCESS',
+                     'WITHDRAW_PROCESSING', 'COMPLETED'];
+const TERMINAL = ['COMPLETED', 'FAILED', 'CANCELLED'];
+
+const $ = id => document.getElementById(id);
+
+function updateUI(status) {
+    // Badge
+    let b = $('statusBadge');
+    if (b) {
+        b.textContent = status;
+        b.className = 'badge';
+        if (status === 'COMPLETED') b.classList.add('success');
+        else if (status === 'FAILED' || status === 'CANCELLED') b.classList.add('failed');
+        else b.classList.add('processing');
+    }
+
+    // Barre de progression
+    let step = 1;
+    if (['WAITING_PAYMENT', 'PAYMENT_PROCESSING'].includes(status)) step = 2;
+    else if (status === 'PAYMENT_SUCCESS') step = 3;
+    else if (status === 'WITHDRAW_PROCESSING') step = 3;
+    else if (status === 'COMPLETED') step = 4;
+
+    const isTerminal = TERMINAL.includes(status);
+    const isSuccess = status === 'COMPLETED';
+    const isFailed = status === 'FAILED' || status === 'CANCELLED';
+
+    for (let i = 1; i <= 4; i++) {
+        let dot = $('dot' + i);
+        let line = i < 4 ? $('line' + i) : null;
+        if (dot) {
+            dot.className = 'sb-dot';
+            if (i < step) { dot.classList.add('done'); }
+            else if (i === step && !isTerminal) { dot.classList.add('active'); }
+            else if (i === step && isFailed) { dot.classList.add('failed'); }
+        }
+        if (line) {
+            line.className = 'sb-line';
+            if (i < step) line.classList.add('done');
+            else if (i === step - 1 && !isTerminal) line.classList.add('active');
+        }
+    }
+
+    // Icone & Titre
+    let icon = $('statusIcon');
+    let title = $('statusTitle');
+    let sub = $('statusSub');
+    let dashBtn = $('dashBtn');
+
+    if (isSuccess) {
+        if (icon) { icon.className = 'icon-wrap green'; icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>'; }
+        if (title) title.textContent = 'Transfert réussi !';
+        if (sub) sub.innerHTML = 'Le bénéficiaire a reçu l\'argent.<br><strong>Merci d\'utiliser TransAfrik !</strong>';
+        if (dashBtn) dashBtn.style.display = 'flex';
+    } else if (isFailed) {
+        if (icon) { icon.className = 'icon-wrap red'; icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>'; }
+        if (title) title.textContent = 'Transfert échoué';
+        if (sub) sub.innerHTML = 'Une erreur est survenue lors du traitement.<br>Veuillez réessayer.';
+        if (dashBtn) dashBtn.style.display = 'flex';
+    } else {
+        if (icon) { icon.className = 'icon-wrap blue spin'; icon.innerHTML = '<i class="fa-solid fa-sync"></i>'; }
+        if (title) title.textContent = 'Transfert en cours';
+        if (sub) sub.innerHTML = 'Votre transfert est en cours de traitement par <strong>SoleasPay</strong>.<br>Suivi en temps réel...';
+        if (dashBtn) dashBtn.style.display = 'none';
+    }
+}
+
+async function pollStatus() {
+    try {
+        let res = await fetch('/api/transfer/' + REF + '/status');
+        let data = await res.json();
+        if (data.success) {
+            updateUI(data.status);
+            if (TERMINAL.includes(data.status)) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+    } catch(e) {
+        console.error('Poll error:', e);
+    }
+}
+
+// Démarrer le polling immédiatement
+updateUI('{{ transfer.status }}');
+pollStatus();
+pollTimer = setInterval(pollStatus, POLL_INTERVAL);
+
+const theme=localStorage.getItem('transafrik-theme')||'light';
+document.documentElement.setAttribute('data-theme',theme);
+</script>
+</body>
+</html>

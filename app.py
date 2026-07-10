@@ -12,6 +12,7 @@ from transfer_config import COUNTRIES, get_operators, get_country
 from transfer_utils import calculate_fees, calculate_total
 from services.service_ids import get_service_id
 from services.transfer_service import get_transfer_by_reference
+from services.payment_workflow import start_transfer_payment as start_payment
 from services.payment_workflow import (
     handle_payment_success,
     handle_withdraw_success,
@@ -188,6 +189,13 @@ def send_money():
         fees = calculate_fees(amount)
         total_amount = calculate_total(amount)
 
+        # Nettoyage des numéros (format simple sans + ni espaces)
+        def clean_phone(num):
+            return num.replace('+', '').replace(' ', '').replace('-', '').strip()
+
+        sender_number = clean_phone(sender_number)
+        receiver_number = clean_phone(receiver_number)
+
         # Création de la transaction en base (status CREATED)
         sender_operator_id = get_service_id(sender_country, sender_operator)
         receiver_operator_id = get_service_id(receiver_country, receiver_operator)
@@ -214,10 +222,15 @@ def send_money():
         db.session.add(transfer)
         db.session.commit()
 
+        # ---- LANCEMENT IMMÉDIAT DU PAY-IN SOLEASPAY ----
+        pay_result = start_payment(transfer)
+        db.session.refresh(transfer)
+
         return jsonify({
             'success': True,
-            'message': 'Transaction créée avec succès.',
+            'message': 'Transaction créée et paiement lancé.',
             'transfer': transfer.to_dict(),
+            'pay_result': pay_result,
             'redirect': url_for('send_money_confirm', ref=transfer.reference),
         })
 
