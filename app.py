@@ -188,21 +188,28 @@ def send_money():
         fees = calculate_fees(amount)
         total_amount = calculate_total(amount)
 
-        # Création de la transaction en base (status PENDING)
-        transfer = MoneyTransfer(
-            user_id=current_user.id,
+        # Création de la transaction en base (status CREATED)
+        sender_operator_id = get_service_id(sender_country, sender_operator)
+        receiver_operator_id = get_service_id(receiver_country, receiver_operator)
+
+        transfer = Transfer(
+            sender_user_id=current_user.id,
+            sender_name=current_user.fullname,
+            sender_email=current_user.email,
+            sender_phone=sender_number,
             sender_country=sender_country,
-            sender_operator=sender_operator,
-            sender_number=sender_number,
-            receiver_country=receiver_country,
-            receiver_operator=receiver_operator,
-            receiver_number=receiver_number,
+            sender_operator=sender_operator.upper(),
+            sender_operator_id=sender_operator_id,
             receiver_name=receiver_name,
+            receiver_phone=receiver_number,
+            receiver_country=receiver_country,
+            receiver_operator=receiver_operator.upper(),
+            receiver_operator_id=receiver_operator_id,
             amount=amount,
             fees=fees,
             total_amount=total_amount,
             currency=currency,
-            status='PENDING',
+            status='CREATED',
         )
         db.session.add(transfer)
         db.session.commit()
@@ -224,7 +231,7 @@ def send_money():
 @login_required
 def send_money_confirm():
     ref = request.args.get('ref', '')
-    transfer = MoneyTransfer.query.filter_by(reference=ref, user_id=current_user.id).first()
+    transfer = Transfer.query.filter_by(reference=ref, sender_user_id=current_user.id).first()
     if not transfer:
         flash('Transaction introuvable.', 'error')
         return redirect(url_for('send_money'))
