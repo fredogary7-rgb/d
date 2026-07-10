@@ -1,0 +1,599 @@
+import os
+import logging
+import hmac
+import hashlib
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+from models import db, User, Transfer
+from transfer_config import COUNTRIES, get_operators, get_country
+from transfer_utils import calculate_fees, calculate_total
+from services.service_ids import get_service_id
+from services.transfer_service import get_transfer_by_reference
+from services.payment_workflow import (
+    handle_payment_success,
+    handle_withdraw_success,
+    handle_withdraw_failed,
+    is_payment_success,
+    is_payment_failed,
+)
+
+load_dotenv()
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 5,
+    'pool_recycle': 300,
+    'pool_pre_ping': True,
+}
+
+db.init_app(app)
+
+# Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
+login_manager.login_message_category = 'info'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
+# Create tables
+with app.app_context():
+    db.create_all()
+
+# ==================== ROUTES ====================
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# --- LOGIN ---
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({'success': False, 'message': 'Email ou mot de passe incorrect.'}), 401
+
+        login_user(user, remember=data.get('remember', False))
+        return jsonify({'success': True, 'message': 'Connexion réussie !', 'redirect': url_for('dashboard')})
+
+    return render_template('connexion.html')
+
+# --- REGISTER ---
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        data = request.get_json()
+
+        email = data.get('email', '').strip().lower()
+        fullname = data.get('fullname', '').strip()
+        phone = data.get('phone', '').strip()
+        country = data.get('country', '').strip().upper()
+        password = data.get('password', '')
+
+        # Validation
+        errors = []
+        if not fullname or len(fullname) < 2:
+            errors.append('Nom complet requis (minimum 2 caractères).')
+        if not email or '@' not in email:
+            errors.append('Adresse e-mail invalide.')
+        if User.query.filter_by(email=email).first():
+            errors.append('Cet e-mail est déjà utilisé.')
+        if not phone or len(phone.replace(' ', '').replace('+', '').replace('-', '')) < 8:
+            errors.append('Numéro de téléphone invalide.')
+        if country not in ['TG','BJ','CM','CI','BF','CG','CD','GA','UG','ZM','SN']:
+            errors.append('Pays invalide.')
+        if len(password) < 8:
+            errors.append('Le mot de passe doit contenir au moins 8 caractères.')
+
+        if errors:
+            return jsonify({'success': False, 'message': errors[0], 'errors': errors}), 400
+
+        # Create user
+        user = User(
+            fullname=fullname,
+            email=email,
+            phone=phone,
+            country=country,
+            password_hash=generate_password_hash(password)
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        login_user(user)
+        return jsonify({'success': True, 'message': 'Compte créé avec succès !', 'redirect': url_for('dashboard')})
+
+    return render_template('inscription.html')
+
+# --- LOGOUT ---
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+# --- TRANSFER ---
+@app.route('/transfer')
+@login_required
+def transfer():
+    return render_template('transfer.html',
+                           countries=COUNTRIES,
+                           user=current_user)
+
+# --- TRANSFER CONFIRM ---
+@app.route('/transfer/confirm')
+@login_required
+def transfer_confirm():
+    return render_template('transfer_confirm.html', user=current_user)
+
+# --- SEND MONEY (nouveau workflow) ---
+@app.route('/send-money', methods=['GET', 'POST'])
+@login_required
+def send_money():
+    if request.method == 'POST':
+        data = request.get_json()
+
+        # Extraction des données
+        amount = int(data.get('amount', 0))
+        sender_country = data.get('sender_country', '').upper()
+        sender_operator = data.get('sender_operator', '').lower()
+        sender_number = data.get('sender_number', '').strip()
+        receiver_country = data.get('receiver_country', '').upper()
+        receiver_operator = data.get('receiver_operator', '').lower()
+        receiver_number = data.get('receiver_number', '').strip()
+        receiver_name = data.get('receiver_name', '').strip()
+        currency = data.get('currency', 'XOF')
+
+        # Validation
+        errors = []
+        if amount < 500:
+            errors.append('Le montant minimum est de 500 FCFA.')
+        if not sender_country or not sender_operator:
+            errors.append('Veuillez sélectionner votre pays et opérateur.')
+        if not sender_number:
+            errors.append('Votre numéro de téléphone est requis.')
+        if not receiver_country or not receiver_operator:
+            errors.append('Veuillez sélectionner le pays et opérateur du destinataire.')
+        if not receiver_number:
+            errors.append('Le numéro du destinataire est requis.')
+        if get_service_id(sender_country, sender_operator) is None:
+            errors.append(f'Service non disponible pour {sender_country}/{sender_operator}.')
+        if get_service_id(receiver_country, receiver_operator) is None:
+            errors.append(f'Service non disponible pour {receiver_country}/{receiver_operator}.')
+
+        if errors:
+            return jsonify({'success': False, 'message': errors[0], 'errors': errors}), 400
+
+        # Calcul des frais
+        fees = calculate_fees(amount)
+        total_amount = calculate_total(amount)
+
+        # Création de la transaction en base (status PENDING)
+        transfer = MoneyTransfer(
+            user_id=current_user.id,
+            sender_country=sender_country,
+            sender_operator=sender_operator,
+            sender_number=sender_number,
+            receiver_country=receiver_country,
+            receiver_operator=receiver_operator,
+            receiver_number=receiver_number,
+            receiver_name=receiver_name,
+            amount=amount,
+            fees=fees,
+            total_amount=total_amount,
+            currency=currency,
+            status='PENDING',
+        )
+        db.session.add(transfer)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Transaction créée avec succès.',
+            'transfer': transfer.to_dict(),
+            'redirect': url_for('send_money_confirm', ref=transfer.reference),
+        })
+
+    # GET : afficher la page
+    return render_template('send_money.html',
+                           countries=COUNTRIES,
+                           user=current_user)
+
+# --- SEND MONEY CONFIRM ---
+@app.route('/send-money/confirm')
+@login_required
+def send_money_confirm():
+    ref = request.args.get('ref', '')
+    transfer = MoneyTransfer.query.filter_by(reference=ref, user_id=current_user.id).first()
+    if not transfer:
+        flash('Transaction introuvable.', 'error')
+        return redirect(url_for('send_money'))
+    return render_template('send_money_confirm.html', transfer=transfer, user=current_user)
+
+# --- API: Get operators for a country ---
+@app.route('/api/operators/<country_code>')
+@login_required
+def api_operators(country_code):
+    operators = get_operators(country_code.upper())
+    return jsonify({'operators': operators})
+
+# --- API: Get country info ---
+@app.route('/api/country/<country_code>')
+@login_required
+def api_country(country_code):
+    country = get_country(country_code.upper())
+    if country:
+        return jsonify({'country': country})
+    return jsonify({'error': 'Pays non trouvé'}), 404
+
+# --- DASHBOARD ---
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    user = current_user
+
+    # Agrégats
+    tx_count = user.tx_count
+    beneficiary_count = user.beneficiary_count
+    total_sent = user.total_sent
+    total_received = user.total_received
+    unread_notifications = user.unread_notifications
+
+    # Transactions récentes
+    recent_txs = user.recent_transactions(limit=5)
+
+    # Pays / drapeau mapping
+    country_flags = {
+        'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮', 'BF': '🇧🇫',
+        'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦', 'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
+    }
+    country_names = {
+        'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': 'Côte d\'Ivoire',
+        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
+    }
+
+    return render_template(
+        'dashboard.html',
+        user=user,
+        tx_count=tx_count,
+        beneficiary_count=beneficiary_count,
+        total_sent=total_sent,
+        total_received=total_received,
+        unread_notifications=unread_notifications,
+        recent_txs=recent_txs,
+        country_flags=country_flags,
+        country_names=country_names,
+    )
+
+# --- API: Calculate fees ---
+@app.route('/api/calculate-fees', methods=['POST'])
+@login_required
+def api_calculate_fees():
+    data = request.get_json()
+    amount = int(data.get('amount', 0))
+    fees = calculate_fees(amount)
+    total = calculate_total(amount)
+    return jsonify({
+        'amount': amount,
+        'fees': fees,
+        'total': total,
+    })
+
+# --- API: Check auth status ---
+@app.route('/api/me')
+def api_me():
+    if current_user.is_authenticated:
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'id': current_user.id,
+                'fullname': current_user.fullname,
+                'email': current_user.email,
+                'phone': current_user.phone,
+                'country': current_user.country,
+            }
+        })
+    return jsonify({'authenticated': False})
+
+# ==================== LOGGER WEBHOOK ====================
+
+# Crée le dossier logs si nécessaire
+os.makedirs('logs', exist_ok=True)
+
+webhook_logger = logging.getLogger('webhook')
+webhook_logger.setLevel(logging.INFO)
+
+# Handler fichier
+fh = logging.FileHandler('logs/payment.log', encoding='utf-8')
+fh.setFormatter(logging.Formatter(
+    '[%(asctime)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+))
+webhook_logger.addHandler(fh)
+
+# Handler console (pour debug en dev)
+ch = logging.StreamHandler()
+ch.setFormatter(logging.Formatter('[%(asctime)s] WEBHOOK | %(message)s'))
+webhook_logger.addHandler(ch)
+
+# Clé secrète pour la validation de signature SoleasPay
+SOLEAS_WEBHOOK_SECRET = os.getenv('SOLEAS_WEBHOOK_SECRET', '')
+
+
+def _verify_webhook_signature(payload_body: bytes, signature_header: str) -> bool:
+    """Vérifie la signature HMAC-SHA256 du webhook SoleasPay.
+
+    Si SOLEAS_WEBHOOK_SECRET n'est pas configuré, la vérification est ignorée
+    (mode développement).
+    """
+    if not SOLEAS_WEBHOOK_SECRET:
+        webhook_logger.warning('SOLEAS_WEBHOOK_SECRET non configuré — signature ignorée')
+        return True
+
+    if not signature_header:
+        webhook_logger.warning('Signature manquante dans le header')
+        return False
+
+    computed = hmac.new(
+        SOLEAS_WEBHOOK_SECRET.encode('utf-8'),
+        payload_body,
+        hashlib.sha256,
+    ).hexdigest()
+
+    # Comparaison sécurisée (timing-safe)
+    return hmac.compare_digest(computed, signature_header)
+
+
+def _log_webhook(webhook_type: str, reference: str, status: str, payload: dict):
+    """Enregistre un webhook dans logs/payment.log."""
+    ip = request.remote_addr or 'unknown'
+    webhook_logger.info(
+        f"Type={webhook_type} | Reference={reference} | Status={status} | "
+        f"IP={ip} | Payload={payload}"
+    )
+
+
+# ==================== WEBHOOKS SOLEASPAY ====================
+
+# --- Webhook Pay-In ---
+@app.route('/webhook/soleaspay/payment', methods=['POST'])
+def webhook_payment():
+    """Reçoit les notifications de Pay-In de SoleasPay.
+
+    Idempotent : ne traite que si statut = PAYMENT_PROCESSING.
+    """
+    # Vérification de la signature
+    signature = request.headers.get('X-SoleasPay-Signature', '')
+    raw_body = request.get_data()
+    if not _verify_webhook_signature(raw_body, signature):
+        webhook_logger.warning('Signature invalide — webhook rejeté')
+        return jsonify({'success': False, 'message': 'Signature invalide'}), 403
+
+    payload = request.get_json(silent=True) or {}
+    if not payload:
+        return jsonify({'success': False, 'message': 'Payload invalide'}), 400
+
+    # Récupérer le Transfer via external_reference
+    external_ref = payload.get('external_reference') or payload.get('order_id') or ''
+    transfer = get_transfer_by_reference(external_ref) if external_ref else None
+
+    _log_webhook('PAYMENT', external_ref, payload.get('status', 'UNKNOWN'), payload)
+
+    if not transfer:
+        webhook_logger.warning(f'Transfer introuvable pour external_reference={external_ref}')
+        return jsonify({'success': False, 'message': 'Transfer introuvable'}), 404
+
+    # ---- IDEMPOTENCE : ne traiter que si PAYMENT_PROCESSING ----
+    if transfer.status not in ('PAYMENT_PROCESSING', 'WAITING_PAYMENT'):
+        webhook_logger.info(
+            f'Webhook ignoré (idempotent) : transfert déjà au statut {transfer.status}'
+        )
+        return jsonify({
+            'success': True,
+            'message': f'Transfert déjà traité (statut={transfer.status})',
+            'reference': transfer.reference,
+            'status': transfer.status,
+        })
+
+    # ---- Traitement ----
+    if is_payment_success(payload):
+        transfer.webhook_payload = payload
+        db.session.commit()
+        handle_payment_success(transfer, payin_response=payload)
+        webhook_logger.info(f'Pay-In SUCCESS → PAYMENT_SUCCESS + Withdraw lancé pour {transfer.reference}')
+        return jsonify({
+            'success': True,
+            'message': 'Paiement confirmé, retrait lancé',
+            'reference': transfer.reference,
+            'status': transfer.status,
+        })
+
+    elif is_payment_failed(payload):
+        from services.transfer_service import mark_payment_failed
+        transfer.webhook_payload = payload
+        mark_payment_failed(transfer, payin_response=payload)
+        webhook_logger.info(f'Pay-In FAILED pour {transfer.reference}')
+        return jsonify({
+            'success': False,
+            'message': 'Paiement échoué',
+            'reference': transfer.reference,
+            'status': transfer.status,
+        })
+
+    else:
+        # Statut inconnu — on loggue sans modifier
+        transfer.webhook_payload = payload
+        db.session.commit()
+        webhook_logger.warning(f'Statut Pay-In inconnu pour {transfer.reference}: {payload.get("status")}')
+        return jsonify({
+            'success': True,
+            'message': 'Statut inconnu, payload enregistré',
+            'reference': transfer.reference,
+        })
+
+
+# --- Webhook Withdraw ---
+@app.route('/webhook/soleaspay/withdraw', methods=['POST'])
+def webhook_withdraw():
+    """Reçoit les notifications de Withdraw de SoleasPay.
+
+    Idempotent : ne traite que si statut = WITHDRAW_PROCESSING.
+    """
+    # Vérification de la signature
+    signature = request.headers.get('X-SoleasPay-Signature', '')
+    raw_body = request.get_data()
+    if not _verify_webhook_signature(raw_body, signature):
+        webhook_logger.warning('Signature invalide — webhook rejeté')
+        return jsonify({'success': False, 'message': 'Signature invalide'}), 403
+
+    payload = request.get_json(silent=True) or {}
+    if not payload:
+        return jsonify({'success': False, 'message': 'Payload invalide'}), 400
+
+    # Récupérer le Transfer via reference (dans data)
+    data = payload.get('data', {})
+    if isinstance(data, list) and len(data) > 0:
+        ref = data[0].get('reference') or data[0].get('external_reference') or ''
+    elif isinstance(data, dict):
+        ref = data.get('reference') or data.get('external_reference') or ''
+    else:
+        ref = ''
+
+    transfer = get_transfer_by_reference(ref) if ref else None
+
+    _log_webhook('WITHDRAW', ref, payload.get('status', 'UNKNOWN'), payload)
+
+    if not transfer:
+        webhook_logger.warning(f'Transfer introuvable pour reference={ref}')
+        return jsonify({'success': False, 'message': 'Transfer introuvable'}), 404
+
+    # ---- IDEMPOTENCE : ne traiter que si WITHDRAW_PROCESSING ----
+    if transfer.status != 'WITHDRAW_PROCESSING':
+        webhook_logger.info(
+            f'Webhook ignoré (idempotent) : transfert déjà au statut {transfer.status}'
+        )
+        return jsonify({
+            'success': True,
+            'message': f'Transfert déjà traité (statut={transfer.status})',
+            'reference': transfer.reference,
+            'status': transfer.status,
+        })
+
+    # ---- Traitement ----
+    if is_payment_success(payload):
+        handle_withdraw_success(transfer, withdraw_response=payload)
+        webhook_logger.info(f'Withdraw SUCCESS → COMPLETED pour {transfer.reference}')
+        return jsonify({
+            'success': True,
+            'message': 'Transfert terminé avec succès',
+            'reference': transfer.reference,
+            'status': 'COMPLETED',
+        })
+
+    elif is_payment_failed(payload):
+        handle_withdraw_failed(
+            transfer,
+            reason=payload.get('message', 'Échec du retrait'),
+            webhook_payload=payload,
+        )
+        webhook_logger.info(f'Withdraw FAILED pour {transfer.reference}')
+        return jsonify({
+            'success': False,
+            'message': 'Retrait échoué',
+            'reference': transfer.reference,
+            'status': 'FAILED',
+        })
+
+    else:
+        transfer.webhook_payload = payload
+        db.session.commit()
+        webhook_logger.warning(f'Statut Withdraw inconnu pour {transfer.reference}: {payload.get("status")}')
+        return jsonify({
+            'success': True,
+            'message': 'Statut inconnu, payload enregistré',
+            'reference': transfer.reference,
+        })
+
+
+# ==================== API STATUS ====================
+
+@app.route('/api/transfer/<reference>/status')
+def api_transfer_status(reference):
+    """Retourne le statut en temps réel d'un transfert.
+
+    GET /api/transfer/TA20260710A83F91/status
+
+    Response:
+        {
+            "reference": "TA20260710A83F91",
+            "status": "WITHDRAW_PROCESSING",
+            "amount": 15000,
+            "fees": 250,
+            "total_amount": 15250,
+            "currency": "XOF",
+            "sender_operator": "TMoney",
+            "receiver_operator": "Orange Money",
+            "receiver_name": "Jean Dupont",
+            "created_at": "2026-07-10T08:00:00",
+            "updated_at": "2026-07-10T08:05:00"
+        }
+    """
+    transfer = get_transfer_by_reference(reference)
+    if not transfer:
+        return jsonify({'success': False, 'message': 'Transfert introuvable'}), 404
+
+    return jsonify({
+        'success': True,
+        'reference': transfer.reference,
+        'status': transfer.status,
+        'amount': transfer.amount,
+        'fees': transfer.fees,
+        'total_amount': transfer.total_amount,
+        'currency': transfer.currency,
+        'exchange_rate': transfer.exchange_rate,
+        'sender_country': transfer.sender_country,
+        'sender_operator': transfer.sender_operator,
+        'receiver_country': transfer.receiver_country,
+        'receiver_operator': transfer.receiver_operator,
+        'receiver_name': transfer.receiver_name,
+        'payin_reference': transfer.payin_reference,
+        'withdraw_reference': transfer.withdraw_reference,
+        'created_at': transfer.created_at.isoformat() if transfer.created_at else None,
+        'updated_at': transfer.updated_at.isoformat() if transfer.updated_at else None,
+    })
+
+
+# ==================== HEALTH CHECK ====================
+
+@app.route('/health')
+def health():
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        return jsonify({'status': 'ok', 'db': 'connected'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'db': str(e)}), 500
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
