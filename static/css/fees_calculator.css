@@ -39,12 +39,18 @@
     background: var(--fc-bg);
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
 }
 
 .fc-container {
     max-width: 780px;
     margin: 0 auto;
     padding: 40px 24px 80px;
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* Header */
