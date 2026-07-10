@@ -34,6 +34,14 @@
     --fc-border: #1E293B;
 }
 
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    overscroll-behavior-x: none;
+    -webkit-overscroll-behavior-x: none;
+}
+
 .fc-page {
     min-height: 100vh;
     background: var(--fc-bg);
@@ -42,6 +50,9 @@
     overflow-x: hidden;
     max-width: 100vw;
     width: 100%;
+    overscroll-behavior-x: none;
+    -webkit-overscroll-behavior-x: none;
+    touch-action: pan-y;
 }
 
 .fc-container {

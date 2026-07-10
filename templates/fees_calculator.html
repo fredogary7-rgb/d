@@ -10,6 +10,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fees_calculator.css') }}">
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body {
+            overflow-x: clip;
+            overflow-y: auto;
+            max-width: 100vw;
+            width: 100%;
+            overscroll-behavior-x: none;
+            -webkit-overscroll-behavior-x: none;
+            touch-action: pan-y pinch-zoom;
+            position: relative;
+        }
+
         /* Navbar simple */
         .fc-nav {
             background: var(--fc-surface);
@@ -236,6 +249,13 @@ var userCountry = "{{ user.country }}";
 
 var currentResult = null;
 var debounceTimer = null;
+
+// Bloquer les swipes horizontaux (rubber-band sur mobile)
+document.addEventListener('touchmove', function(e) {
+    if (Math.abs(e.touches[0].clientX - (e._lastX || e.touches[0].clientX)) > 10) {
+        e.preventDefault();
+    }
+}, { passive: false });
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
