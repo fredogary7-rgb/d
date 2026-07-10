@@ -478,12 +478,12 @@ def webhook_withdraw():
     if not payload:
         return jsonify({'success': False, 'message': 'Payload invalide'}), 400
 
-    # Récupérer le Transfer via reference (dans data)
+    # Récupérer le Transfer via external_reference (contient transfer.reference)
     data = payload.get('data', {})
     if isinstance(data, list) and len(data) > 0:
-        ref = data[0].get('reference') or data[0].get('external_reference') or ''
+        ref = data[0].get('external_reference') or data[0].get('reference') or ''
     elif isinstance(data, dict):
-        ref = data.get('reference') or data.get('external_reference') or ''
+        ref = data.get('external_reference') or data.get('reference') or ''
     else:
         ref = ''
 
