@@ -265,7 +265,7 @@ async function loadMyQR() {
         if (!data.success) throw new Error(data.error || 'Erreur serveur');
         qrData = data;
 
-        document.getElementById('qrImage').src = 'data:image/png;base64,' + data.qr_image;
+        document.getElementById('qrImage').src = data.qr_image;
         const u = data.user;
         document.getElementById('qrAvatar').textContent = (u.name || '?')[0].toUpperCase();
         document.getElementById('qrProfileName').textContent = u.name || 'Utilisateur';

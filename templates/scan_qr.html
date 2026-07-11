@@ -18,7 +18,7 @@
             --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
             --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
             --border:#E2E8F0;
-            --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 8px 24px rgba(0,0,0,.06);--shadow-md:0 16px 40px rgba(0,0,0,.08);
+            --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 8px 24px rgba(0,0,0,.06);--shadow-md:0 16px 40px rgba(0,0,0,.08);--shadow-xl:0 24px 64px rgba(0,0,0,.1);
             --radius:14px;--radius-lg:20px;--radius-xl:28px;
             --transition:.3s cubic-bezier(.25,.46,.45,.94);
             --sidebar-w:260px;
@@ -27,14 +27,14 @@
             --bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;
             --text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;
             --border:#1E293B;
-            --shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 8px 24px rgba(0,0,0,.3);--shadow-md:0 16px 40px rgba(0,0,0,.4);
+            --shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 8px 24px rgba(0,0,0,.3);--shadow-md:0 16px 40px rgba(0,0,0,.4);--shadow-xl:0 24px 64px rgba(0,0,0,.5);
         }
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .5s,color .5s;line-height:1.6}
-        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .5s,color .5s;line-height:1.6;overflow-x:hidden}
+        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         a{text-decoration:none;color:inherit}
 
-        /* TOPBAR */
+        /* ---- TOPBAR ---- */
         .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
         .topbar-left{display:flex;align-items:center;gap:16px}
         .topbar-logo{display:flex;align-items:center;gap:10px}
@@ -49,7 +49,7 @@
         .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
         .topbar-profile-role{font-size:10px;color:var(--text-4)}
 
-        /* SIDEBAR */
+        /* ---- SIDEBAR ---- */
         .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
         .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
         .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
@@ -59,53 +59,82 @@
         .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
         .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
 
-        /* MAIN */
-        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:40px;min-height:calc(100vh - 72px);animation:fadeIn .5s ease-out}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        .page-header{margin-bottom:32px}
-        .page-header .breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-4);margin-bottom:8px}
-        .breadcrumb a{color:var(--blue);transition:color .2s}.breadcrumb a:hover{color:var(--blue-dark)}
-        .breadcrumb i{font-size:10px}
-        .page-header h1{font-size:28px;font-weight:800}
-        .page-header p{font-size:14px;color:var(--text-4);margin-top:4px}
+        /* ---- MAIN ---- */
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;min-height:calc(100vh - 72px)}
 
-        /* SCAN GRID */
-        .scan-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px}
-        .scan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:32px 28px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-        .scan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--green))}
-        .scan-card-title{font-size:18px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:10px}
-        .scan-card-title i{color:var(--blue)}
+        /* ==================== HERO HEADER ==================== */
+        .scan-hero{position:relative;padding:60px 40px 50px;overflow:hidden;background:linear-gradient(135deg,#0B1A3B 0%,#0F2A5B 30%,#0A1E40 60%,#0B1120 100%)}
+        [data-theme="dark"] .scan-hero{background:linear-gradient(135deg,#0B1A3B 0%,#0F2A5B 30%,#0A1E40 60%,#0B1120 100%)}
+        [data-theme="light"] .scan-hero{background:linear-gradient(135deg,#0F2557 0%,#1E3F8C 35%,#2563EB 70%,#1D4ED8 100%);color:#fff}
+        .scan-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(37,99,235,.35),transparent 70%),radial-gradient(ellipse 60% 50% at 20% 80%,rgba(139,92,246,.2),transparent 60%),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(16,185,129,.15),transparent 50%);pointer-events:none}
+        .scan-hero::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");opacity:.5;pointer-events:none}
+
+        .hero-content{position:relative;z-index:2;max-width:900px;margin:0 auto;text-align:center}
+        .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:100px;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.85);margin-bottom:24px;animation:fadeInUp .6s ease-out}
+        .hero-badge .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);animation:pulse 2s ease-in-out infinite}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.8)}}
+        .hero-title{font-size:clamp(32px,5vw,52px);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(180deg,#FFFFFF 0%,rgba(255,255,255,.7) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fadeInUp .6s ease-out .1s both;letter-spacing:-.03em}
+        .hero-subtitle{font-size:16px;color:rgba(255,255,255,.55);max-width:600px;margin:0 auto 36px;animation:fadeInUp .6s ease-out .2s both;line-height:1.7}
+        .hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;animation:fadeInUp .6s ease-out .3s both}
+        .hero-stat{text-align:center}
+        .hero-stat-value{font-size:28px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif}
+        .hero-stat-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        /* Floating orbs */
+        .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.2;pointer-events:none;animation:orbFloat 8s ease-in-out infinite}
+        .orb-1{width:280px;height:280px;background:var(--blue);top:-60px;right:-80px;animation-delay:0s}
+        .orb-2{width:200px;height:200px;background:var(--purple);bottom:-40px;left:-60px;animation-delay:-3s}
+        .orb-3{width:160px;height:160px;background:var(--green);top:40%;left:50%;animation-delay:-6s}
+        @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(30px,-20px) scale(1.1)}50%{transform:translate(-20px,15px) scale(.95)}75%{transform:translate(-15px,-30px) scale(1.05)}}
+
+        /* ---- SCANNER SECTION ---- */
+        .scan-section{padding:40px}
+        .scan-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto}
+        .scan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:32px 28px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:all var(--transition)}
+        .scan-card:hover{box-shadow:var(--shadow-md)}
+        .scan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--green))}
+        .scan-card-title{font-size:17px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+        .scan-card-title i{color:var(--blue);font-size:18px}
         .scan-card-subtitle{color:var(--text-4);font-size:13px;margin-bottom:24px}
 
         /* Camera viewport */
-        .scanner-viewport{position:relative;width:100%;aspect-ratio:1/1;margin:0 auto 20px;background:#000;border-radius:var(--radius-lg);overflow:hidden}
+        .scanner-viewport{position:relative;width:100%;aspect-ratio:1/1;margin:0 auto 20px;background:#000;border-radius:20px;overflow:hidden;border:2px solid rgba(255,255,255,.08)}
         .scanner-viewport video{width:100%;height:100%;object-fit:cover}
         .scanner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,.4);gap:16px;pointer-events:none}
-        .scanner-placeholder i{font-size:64px;opacity:.5}
+        .scanner-placeholder i{font-size:56px;opacity:.5;animation:float 3s ease-in-out infinite}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         .scanner-placeholder p{font-size:14px;font-weight:500}
-        .scanner-retical{position:absolute;inset:14%;pointer-events:none}
-        .scan-corner{position:absolute;width:32px;height:32px;border-color:var(--blue);border-style:solid}
-        .scan-corner.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:6px 0 0 0}
-        .scan-corner.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 6px 0 0}
-        .scan-corner.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 6px}
-        .scan-corner.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 6px 0}
-        .scan-line{position:absolute;left:0;top:0;width:100%;height:2px;background:var(--blue);box-shadow:0 0 10px var(--blue),0 0 30px var(--blue);animation:scanLine 2.5s ease-in-out infinite}
-        @keyframes scanLine{0%,100%{top:0;opacity:.8}50%{top:calc(100% - 2px);opacity:1}}
-        .scan-hint{position:absolute;bottom:8%;left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:13px;pointer-events:none}
+        .scanner-reticle{position:absolute;inset:12%;pointer-events:none}
+        .scan-corner{position:absolute;width:36px;height:36px;border-color:var(--blue);border-style:solid;filter:drop-shadow(0 0 6px rgba(37,99,235,.6))}
+        .scan-corner.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:8px 0 0 0}
+        .scan-corner.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 8px 0 0}
+        .scan-corner.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 8px}
+        .scan-corner.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 8px 0}
+        .scan-line{position:absolute;left:0;top:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--blue),var(--green),transparent);box-shadow:0 0 12px var(--blue),0 0 40px var(--blue);animation:scanLine 2.5s ease-in-out infinite}
+        @keyframes scanLine{0%,100%{top:0;opacity:.6}50%{top:calc(100% - 2px);opacity:1}}
+        .scan-hint{position:absolute;bottom:7%;left:0;right:0;text-align:center;color:rgba(255,255,255,.55);font-size:12px;pointer-events:none;font-weight:500}
 
         /* Controls */
         .scanner-controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
         .scan-btn{padding:12px 22px;border-radius:100px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all var(--transition);display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif}
-        .scan-btn-primary{background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;box-shadow:0 8px 24px rgba(37,99,235,.3)}
-        .scan-btn-primary:hover{box-shadow:0 14px 36px rgba(37,99,235,.45);transform:translateY(-2px)}
+        .scan-btn-primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;box-shadow:0 8px 24px rgba(37,99,235,.35)}
+        .scan-btn-primary:hover{box-shadow:0 14px 36px rgba(37,99,235,.5);transform:translateY(-2px)}
         .scan-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
         .scan-btn-outline{background:var(--surface);color:var(--text-2);border:1.5px solid var(--border)}
         .scan-btn-outline:hover{border-color:var(--blue);color:var(--blue);background:var(--surface-hover)}
+        .scan-btn-danger{background:var(--red-light);color:var(--red);border:1.5px solid var(--red)}
+        .scan-btn-danger:hover{background:var(--red);color:#fff}
 
         /* Manual input */
-        .manual-textarea{width:100%;min-height:80px;padding:14px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'SF Mono','Fira Code',monospace;font-size:13px;resize:vertical;transition:border-color var(--transition)}
+        .manual-textarea{width:100%;min-height:80px;padding:14px;border-radius:var(--radius-lg);border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'SF Mono','Fira Code',monospace;font-size:13px;resize:vertical;transition:all var(--transition)}
         .manual-textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
         .manual-textarea::placeholder{color:var(--text-4)}
+
+        /* Quick tips */
+        .quick-tips{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+        .tip-chip{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:100px;background:var(--bg);color:var(--text-3);font-size:12px;font-weight:500;border:1px solid var(--border)}
+        .tip-chip i{color:var(--blue);font-size:13px}
 
         /* Feedback */
         .scan-feedback{display:none;padding:20px;border-radius:var(--radius-lg);margin-top:20px;align-items:center;gap:16px}
@@ -118,36 +147,43 @@
         .feedback-body{flex:1;min-width:0}
         .feedback-title{font-weight:700;font-size:15px;margin-bottom:2px}
         .feedback-sub{font-size:12px;color:var(--text-3)}
-        .feedback-action{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:100px;background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Outfit',sans-serif;box-shadow:0 8px 24px rgba(37,99,235,.3);white-space:nowrap;transition:all var(--transition)}
-        .feedback-action:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(37,99,235,.45)}
+        .feedback-action{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:100px;background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Outfit',sans-serif;box-shadow:0 8px 24px rgba(16,185,129,.3);white-space:nowrap;transition:all var(--transition)}
+        .feedback-action:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(16,185,129,.45)}
 
         /* User preview */
         .scanned-user{display:flex;align-items:center;gap:14px;padding:16px;background:var(--bg);border-radius:var(--radius-lg);margin-top:12px}
-        .scanned-user-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;font-family:'Outfit',sans-serif;flex-shrink:0}
+        .scanned-user-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;font-family:'Outfit',sans-serif;flex-shrink:0;box-shadow:0 4px 16px rgba(37,99,235,.3)}
         .scanned-user-info{flex:1;min-width:0}
         .scanned-user-name{font-weight:700;font-size:15px}
         .scanned-user-details{font-size:12px;color:var(--text-3);margin-top:2px}
+        .scanned-user-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;background:var(--green-light);color:var(--green-dark);font-size:11px;font-weight:600;margin-top:6px}
 
         /* Toast */
         .toast-container{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-        .toast{background:var(--surface);border:1px solid var(--border);padding:14px 24px;border-radius:var(--radius);font-size:13px;font-weight:600;color:var(--text);box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;animation:toastIn .4s ease-out;pointer-events:auto}
+        .toast{background:var(--surface);border:1px solid var(--border);padding:14px 24px;border-radius:var(--radius-lg);font-size:13px;font-weight:600;color:var(--text);box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;animation:toastIn .4s ease-out,cubic-bezier(.65,.05,.36,1);pointer-events:auto}
         .toast.success{border-color:var(--green);color:var(--green-dark);background:var(--green-light)}
         .toast.error{border-color:var(--red);color:var(--red);background:var(--red-light)}
-        @keyframes toastIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
 
+        /* Responsive */
         @media (max-width:1024px){
             .scan-grid{grid-template-columns:1fr}
+            .scan-hero{padding:48px 24px 40px}
             .sidebar{transform:translateX(-100%);width:280px}
             .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-md)}
             .main-content{margin-left:0}
             .topbar{padding:0 20px}
         }
         @media (max-width:640px){
-            .main-content{padding:16px 12px}
+            .scan-section{padding:20px 12px}
             .scan-card{padding:24px 16px}
+            .scan-hero{padding:40px 16px 32px}
+            .hero-title{font-size:28px}
+            .hero-stats{gap:20px}
+            .hero-stat-value{font-size:22px}
             .scanner-controls{flex-direction:column;align-items:stretch}
             .scan-btn{justify-content:center}
-            .scanner-placeholder i{font-size:48px}
+            .scanner-placeholder i{font-size:44px}
         }
     </style>
 </head>
@@ -162,7 +198,7 @@
     </div>
     <div class="topbar-right">
         <a href="/my-qrcode" class="topbar-icon-btn" title="Mon QR"><i class="fa-solid fa-qrcode"></i></a>
-        <a href="/logout" class="topbar-icon-btn" title="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></a>
+        <a href="/logout" class="topbar-icon-btn" title="Deconnexion"><i class="fa-solid fa-right-from-bracket"></i></a>
         <div class="topbar-profile" onclick="window.location='/dashboard'">
             <div class="topbar-profile-avatar">{{ user.fullname[0] | upper if user.fullname else '?' }}</div>
             <div>
@@ -178,9 +214,9 @@
         <div class="sidebar-section-title">Principal</div>
         <a href="/dashboard" class="sidebar-link"><i class="fa-solid fa-house"></i> Tableau de bord</a>
         <a href="/transfer" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer de l'argent</a>
-        <a href="/deposit" class="sidebar-link"><i class="fa-solid fa-arrow-down"></i> Déposer</a>
+        <a href="/deposit" class="sidebar-link"><i class="fa-solid fa-arrow-down"></i> Deposer</a>
         <a href="/history" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
-        <a href="/beneficiaries" class="sidebar-link"><i class="fa-solid fa-users"></i> Bénéficiaires</a>
+        <a href="/beneficiaries" class="sidebar-link"><i class="fa-solid fa-users"></i> Beneficiaires</a>
         <div class="sidebar-section-title">QR Code</div>
         <a href="/my-qrcode" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> Mon QR Code</a>
         <a href="/scan" class="sidebar-link active"><i class="fa-solid fa-camera"></i> Scanner</a>
@@ -188,88 +224,118 @@
         <div class="sidebar-section-title">Outils</div>
         <a href="/fees-calculator" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur de frais</a>
     </nav>
-    <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
+    <div class="sidebar-footer">(c) 2026 TransAfrik v1.0</div>
 </aside>
 
 <main class="main-content">
-    <div class="page-header">
-        <div class="breadcrumb">
-            <a href="/dashboard">Tableau de bord</a>
-            <i class="fa-solid fa-chevron-right"></i>
-            <span>Scanner QR</span>
-        </div>
-        <h1>Scanner QR Code</h1>
-        <p>Scannez un QR Code TransAfrik pour envoyer de l'argent en quelques secondes.</p>
-    </div>
-
-    <div class="scan-grid">
-        <!-- CAMERA -->
-        <div class="scan-card">
-            <div class="scan-card-title"><i class="fa-solid fa-camera"></i> Caméra</div>
-            <p class="scan-card-subtitle">Pointez votre caméra vers un QR Code.</p>
-
-            <div class="scanner-viewport" id="scannerViewport">
-                <video id="scannerVideo" style="display:none;" autoplay playsinline muted></video>
-                <div class="scanner-placeholder" id="scannerPlaceholder">
-                    <i class="fa-solid fa-camera-retro"></i>
-                    <p>Appuyez sur Démarrer</p>
-                </div>
-                <div class="scanner-retical" id="scannerRetical" style="display:none;">
-                    <div class="scan-corner tl"></div>
-                    <div class="scan-corner tr"></div>
-                    <div class="scan-corner bl"></div>
-                    <div class="scan-corner br"></div>
-                    <div class="scan-line"></div>
-                </div>
-                <div class="scan-hint" id="scannerHint" style="display:none;">Placez le QR Code dans le cadre</div>
+    <!-- ======== HERO HEADER ======== -->
+    <section class="scan-hero">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="pulse-dot"></span> Scanner QR Code
             </div>
-
-            <div class="scanner-controls">
-                <button class="scan-btn scan-btn-primary" id="btnStartScan">
-                    <i class="fa-solid fa-play"></i> Démarrer la caméra
-                </button>
-                <button class="scan-btn scan-btn-outline" id="btnStopScan" style="display:none;">
-                    <i class="fa-solid fa-stop"></i> Arrêter
-                </button>
-                <button class="scan-btn scan-btn-outline" id="btnUploadQR">
-                    <i class="fa-solid fa-image"></i> Importer une image
-                </button>
-                <input type="file" id="fileInput" accept="image/*" style="display:none;">
-            </div>
-        </div>
-
-        <!-- MANUAL INPUT + RESULT -->
-        <div class="scan-card">
-            <div class="scan-card-title"><i class="fa-solid fa-keyboard"></i> Saisie manuelle</div>
-            <p class="scan-card-subtitle">Collez le contenu d'un QR Code ou un identifiant.</p>
-
-            <textarea class="manual-textarea" id="manualText" placeholder='Collez ici le texte du QR Code (ex: {"qr_id":"ABC123"})...'></textarea>
-            <button class="scan-btn scan-btn-primary" id="btnManualScan" style="width:100%;margin-top:12px;">
-                <i class="fa-solid fa-magnifying-glass"></i> Analyser
-            </button>
-
-            <!-- Result feedback -->
-            <div class="scan-feedback" id="scanFeedback">
-                <i class="fa-solid" id="feedbackIcon"></i>
-                <div class="feedback-body">
-                    <div class="feedback-title" id="feedbackTitle"></div>
-                    <div class="feedback-sub" id="feedbackSub"></div>
+            <h1 class="hero-title">Envoyez de l'argent<br>en un seul scan</h1>
+            <p class="hero-subtitle">Scannez le QR Code d'un contact TransAfrik ou importez une image pour envoyer de l'argent instantanement. Rapide, securise et sans erreur de saisie.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value"><i class="fa-solid fa-bolt"></i></div>
+                    <div class="hero-stat-label">Instantane</div>
                 </div>
-                <button class="feedback-action" id="feedbackAction" style="display:none;">
-                    Envoyer de l'argent <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- User preview -->
-            <div class="scanned-user" id="userPreview" style="display:none;">
-                <div class="scanned-user-avatar" id="previewAvatar">?</div>
-                <div class="scanned-user-info">
-                    <div class="scanned-user-name" id="previewName">—</div>
-                    <div class="scanned-user-details" id="previewDetails">—</div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="hero-stat-label">Securise</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value"><i class="fa-solid fa-globe-africa"></i></div>
+                    <div class="hero-stat-label">11 pays</div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- ======== SCANNER SECTION ======== -->
+    <section class="scan-section">
+        <div class="scan-grid">
+            <!-- CAMERA -->
+            <div class="scan-card">
+                <div class="scan-card-title"><i class="fa-solid fa-camera-retro"></i> Camera en direct</div>
+                <p class="scan-card-subtitle">Pointez votre camera vers un QR Code TransAfrik.</p>
+
+                <div class="scanner-viewport" id="scannerViewport">
+                    <video id="scannerVideo" style="display:none;" autoplay playsinline muted></video>
+                    <div class="scanner-placeholder" id="scannerPlaceholder">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <p>Appuyez sur "Demarrer"</p>
+                    </div>
+                    <div class="scanner-reticle" id="scannerReticle" style="display:none;">
+                        <div class="scan-corner tl"></div>
+                        <div class="scan-corner tr"></div>
+                        <div class="scan-corner bl"></div>
+                        <div class="scan-corner br"></div>
+                        <div class="scan-line"></div>
+                    </div>
+                    <div class="scan-hint" id="scannerHint" style="display:none;">Placez le QR Code dans le cadre</div>
+                </div>
+
+                <div class="scanner-controls">
+                    <button class="scan-btn scan-btn-primary" id="btnStartScan">
+                        <i class="fa-solid fa-play"></i> Demarrer la camera
+                    </button>
+                    <button class="scan-btn scan-btn-danger" id="btnStopScan" style="display:none;">
+                        <i class="fa-solid fa-stop"></i> Arreter
+                    </button>
+                    <button class="scan-btn scan-btn-outline" id="btnUploadQR">
+                        <i class="fa-solid fa-image"></i> Importer une image
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+                </div>
+            </div>
+
+            <!-- MANUAL INPUT + RESULT -->
+            <div class="scan-card">
+                <div class="scan-card-title"><i class="fa-solid fa-keyboard"></i> Saisie manuelle</div>
+                <p class="scan-card-subtitle">Collez le contenu d'un QR Code ou un identifiant TA-XXXX.</p>
+
+                <textarea class="manual-textarea" id="manualText" placeholder='Collez ici le texte du QR Code ou un identifiant TA-XXXX...'></textarea>
+                <button class="scan-btn scan-btn-primary" id="btnManualScan" style="width:100%;margin-top:12px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analyser
+                </button>
+
+                <div class="quick-tips">
+                    <span class="tip-chip"><i class="fa-solid fa-lightbulb"></i> QR Photo</span>
+                    <span class="tip-chip"><i class="fa-solid fa-lightbulb"></i> Texte JSON</span>
+                    <span class="tip-chip"><i class="fa-solid fa-lightbulb"></i> ID TA-XXXX</span>
+                </div>
+
+                <!-- Result feedback -->
+                <div class="scan-feedback" id="scanFeedback">
+                    <i class="fa-solid" id="feedbackIcon"></i>
+                    <div class="feedback-body">
+                        <div class="feedback-title" id="feedbackTitle"></div>
+                        <div class="feedback-sub" id="feedbackSub"></div>
+                    </div>
+                    <button class="feedback-action" id="feedbackAction" style="display:none;">
+                        Envoyer <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+
+                <!-- User preview -->
+                <div class="scanned-user" id="userPreview" style="display:none;">
+                    <div class="scanned-user-avatar" id="previewAvatar">?</div>
+                    <div class="scanned-user-info">
+                        <div class="scanned-user-name" id="previewName">—</div>
+                        <div class="scanned-user-details" id="previewDetails">—</div>
+                        <div class="scanned-user-badge">
+                            <i class="fa-solid fa-circle-check"></i> Verifie
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
@@ -284,7 +350,7 @@ let lastScannedValue = '';
 
 const video = document.getElementById('scannerVideo');
 const placeholder = document.getElementById('scannerPlaceholder');
-const retical = document.getElementById('scannerRetical');
+const reticle = document.getElementById('scannerReticle');
 const hint = document.getElementById('scannerHint');
 const btnStart = document.getElementById('btnStartScan');
 const btnStop = document.getElementById('btnStopScan');
@@ -299,14 +365,15 @@ const feedbackSub = document.getElementById('feedbackSub');
 const feedbackAction = document.getElementById('feedbackAction');
 const userPreview = document.getElementById('userPreview');
 
-function toast(msg, type = 'success') {
-    const c = document.getElementById('toastContainer');
-    const el = document.createElement('div');
+function toast(msg, type) {
+    type = type || 'success';
+    var c = document.getElementById('toastContainer');
+    var el = document.createElement('div');
     el.className = 'toast ' + type;
     el.innerHTML = '<i class="fa-solid ' + (type==='success'?'fa-circle-check':'fa-circle-exclamation') + '"></i> ' + msg;
     c.appendChild(el);
-    setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; }, 2500);
-    setTimeout(() => el.remove(), 3000);
+    setTimeout(function(){ el.style.opacity='0'; el.style.transition='opacity .3s'; }, 2500);
+    setTimeout(function(){ el.remove(); }, 3000);
 }
 
 // ========== CAMERA ==========
@@ -318,22 +385,23 @@ async function startCamera() {
         video.srcObject = videoStream;
         video.style.display = 'block';
         placeholder.style.display = 'none';
-        retical.style.display = 'block';
+        reticle.style.display = 'block';
         hint.style.display = 'block';
         btnStart.style.display = 'none';
         btnStop.style.display = 'flex';
         scanInterval = setInterval(scanFrame, 300);
+        toast('Camera activee — scannez un QR Code.');
     } catch(e) {
-        toast('Accès caméra refusé. Utilisez la saisie manuelle ou l\'import d\'image.', 'error');
+        toast('Acces camera refuse. Utilisez l\'import d\'image ou la saisie manuelle.', 'error');
     }
 }
 
 function stopCamera() {
-    if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+    if (videoStream) { videoStream.getTracks().forEach(function(t){ t.stop(); }); videoStream = null; }
     if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
     video.style.display = 'none';
     placeholder.style.display = 'flex';
-    retical.style.display = 'none';
+    reticle.style.display = 'none';
     hint.style.display = 'none';
     btnStart.style.display = 'flex';
     btnStop.style.display = 'none';
@@ -341,39 +409,39 @@ function stopCamera() {
 
 function scanFrame() {
     if (!videoStream || video.readyState !== video.HAVE_ENOUGH_DATA) return;
-    const canvas = document.createElement('canvas');
+    var canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
+    var ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-    if (code?.data && code.data !== lastScannedValue) {
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code && code.data && code.data !== lastScannedValue) {
         lastScannedValue = code.data;
         processScan(code.data);
     }
 }
 
 // ========== FILE UPLOAD ==========
-btnUpload.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
+btnUpload.addEventListener('click', function(){ fileInput.click(); });
+fileInput.addEventListener('change', function(e){
+    var file = e.target.files[0];
     if (!file) return;
     btnUpload.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyse...';
     btnUpload.disabled = true;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
+    var reader = new FileReader();
+    reader.onload = function(ev){
+        var img = new Image();
+        img.onload = function(){
+            var canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
+            var ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
-            const imageData = ctx.getImageData(0, 0, img.width, img.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            if (code?.data) processScan(code.data);
-            else toast('Aucun QR Code détecté dans l\'image.', 'error');
+            var imageData = ctx.getImageData(0, 0, img.width, img.height);
+            var code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code && code.data) processScan(code.data);
+            else toast('Aucun QR Code detecte dans l\'image.', 'error');
             btnUpload.innerHTML = '<i class="fa-solid fa-image"></i> Importer une image';
             btnUpload.disabled = false;
         };
@@ -383,13 +451,13 @@ fileInput.addEventListener('change', (e) => {
 });
 
 // ========== MANUAL ==========
-btnManual.addEventListener('click', () => {
-    const text = manualText.value.trim();
+btnManual.addEventListener('click', function(){
+    var text = manualText.value.trim();
     if (!text) return toast('Veuillez entrer un contenu de QR Code.', 'error');
     btnManual.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyse...';
     btnManual.disabled = true;
     processScan(text);
-    setTimeout(() => { btnManual.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyser'; btnManual.disabled = false; }, 4000);
+    setTimeout(function(){ btnManual.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyser'; btnManual.disabled = false; }, 4000);
 });
 
 btnStart.addEventListener('click', startCamera);
@@ -398,26 +466,26 @@ btnStop.addEventListener('click', stopCamera);
 // ========== PROCESS SCAN ==========
 async function processScan(raw) {
     stopCamera();
-    let parsed;
+    var parsed;
     try { parsed = JSON.parse(raw); } catch(e) { parsed = { raw: raw }; }
 
-    const payload = {
+    var payload = {
         qr_identifier: parsed.qr_id || parsed.qr_identifier || parsed.id || raw,
     };
 
     try {
-        const res = await fetch('/api/qrcode/validate', {
+        var res = await fetch('/api/qrcode/validate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        const data = await res.json();
+        var data = await res.json();
 
         if (data.success) {
-            const u = data.user;
+            var u = data.user;
             showFeedback(true,
-                'Utilisateur trouvé !',
-                'Envoyez de l\'argent à ' + (u.name || 'cet utilisateur') + ' en toute sécurité.',
+                'Utilisateur identifie !',
+                'Envoyez de l\'argent a ' + (u.name || 'cet utilisateur') + ' en toute securite.',
                 '/send-money?qr_id=' + encodeURIComponent(u.qr_id)
             );
             document.getElementById('previewAvatar').textContent = (u.name || '?')[0].toUpperCase();
@@ -426,15 +494,15 @@ async function processScan(raw) {
                 '<i class="fa-solid fa-phone"></i> ' + (u.phone || '—') +
                 ' &nbsp;|&nbsp; ' + (u.flag || '') + ' ' + (u.country_name || u.country || '—');
             userPreview.style.display = 'flex';
-            toast('QR Code valide — utilisateur identifié.');
+            toast('QR Code valide — utilisateur identifie.');
         } else {
-            showFeedback(false, 'Utilisateur non trouvé', data.error || 'Aucun utilisateur correspondant à ce QR Code.');
+            showFeedback(false, 'Utilisateur non trouve', data.error || 'Aucun utilisateur correspondant a ce QR Code.');
             userPreview.style.display = 'none';
-            toast('Aucun utilisateur trouvé pour ce QR Code.', 'error');
+            toast('Aucun utilisateur trouve pour ce QR Code.', 'error');
         }
     } catch(e) {
-        showFeedback(false, 'Erreur réseau', 'Impossible de contacter le serveur. Vérifiez votre connexion.');
-        toast('Erreur réseau.', 'error');
+        showFeedback(false, 'Erreur reseau', 'Impossible de contacter le serveur. Verifiez votre connexion.');
+        toast('Erreur reseau.', 'error');
     }
     lastScannedValue = '';
 }
@@ -446,7 +514,7 @@ function showFeedback(success, title, sub, actionUrl) {
     feedbackSub.textContent = sub;
     if (actionUrl) {
         feedbackAction.style.display = 'inline-flex';
-        feedbackAction.onclick = () => window.location = actionUrl;
+        feedbackAction.onclick = function(){ window.location = actionUrl; };
     } else {
         feedbackAction.style.display = 'none';
     }
@@ -454,16 +522,16 @@ function showFeedback(success, title, sub, actionUrl) {
 }
 
 // Mobile sidebar toggle
-document.addEventListener('DOMContentLoaded', () => {
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.createElement('button');
+document.addEventListener('DOMContentLoaded', function(){
+    var sidebar = document.getElementById('sidebar');
+    var toggle = document.createElement('button');
     toggle.className = 'topbar-icon-btn';
     toggle.style.display = 'none';
     toggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
-    toggle.onclick = () => sidebar.classList.toggle('open');
+    toggle.onclick = function(){ sidebar.classList.toggle('open'); };
     document.querySelector('.topbar-left').prepend(toggle);
     if (window.innerWidth <= 1024) toggle.style.display = 'flex';
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', function(){
         toggle.style.display = window.innerWidth <= 1024 ? 'flex' : 'none';
     });
 });
