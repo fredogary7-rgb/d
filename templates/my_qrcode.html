@@ -10,39 +10,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;
-            --cyan:#06B6D4;--cyan-light:#CFFAFE;
-            --green:#10B981;--green-light:#D1FAE5;
-            --orange:#F97316;--orange-light:#FFEDD5;
-            --red:#EF4444;--red-light:#FEE2E2;
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;--blue-glow:rgba(37,99,235,.25);
+            --green:#10B981;--green-light:#D1FAE5;--green-dark:#059669;
+            --orange:#F97316;--red:#EF4444;--red-light:#FEE2E2;
             --purple:#8B5CF6;--purple-light:#EDE9FE;
-            --gray:#6B7280;--gray-light:#F3F4F6;--gray-dark:#374151;
             --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
             --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
             --border:#E2E8F0;
-            --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 4px 12px rgba(0,0,0,.06);--shadow-md:0 8px 24px rgba(0,0,0,.08);--shadow-xl:0 20px 60px rgba(0,0,0,.1);
-            --radius:12px;--radius-lg:18px;--radius-xl:24px;
-            --transition:.25s cubic-bezier(.25,.46,.45,.94);
+            --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 8px 24px rgba(0,0,0,.06);--shadow-md:0 16px 40px rgba(0,0,0,.08);--shadow-xl:0 24px 64px rgba(0,0,0,.1);
+            --radius:14px;--radius-lg:20px;--radius-xl:28px;
+            --transition:.3s cubic-bezier(.25,.46,.45,.94);
             --sidebar-w:260px;
         }
         [data-theme="dark"]{
             --bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;
             --text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;
-            --gray-light:#1F2937;--border:#1E293B;
-            --shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 4px 12px rgba(0,0,0,.3);--shadow-md:0 8px 24px rgba(0,0,0,.4);--shadow-xl:0 20px 60px rgba(0,0,0,.5);
+            --border:#1E293B;
+            --shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 8px 24px rgba(0,0,0,.3);--shadow-md:0 16px 40px rgba(0,0,0,.4);--shadow-xl:0 24px 64px rgba(0,0,0,.5);
         }
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .5s,color .5s}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .5s,color .5s;line-height:1.6}
         h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         a{text-decoration:none;color:inherit}
 
-        /* ===== TOP BAR ===== */
+        /* TOPBAR */
         .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
         .topbar-left{display:flex;align-items:center;gap:16px}
         .topbar-logo{display:flex;align-items:center;gap:10px}
-        .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
+        .topbar-logo img{width:38px;height:38px;border-radius:10px}
         .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .topbar-right{display:flex;align-items:center;gap:16px}
+        .topbar-right{display:flex;align-items:center;gap:12px}
         .topbar-icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all var(--transition);color:var(--text-3)}
         .topbar-icon-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
         .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
@@ -51,7 +48,7 @@
         .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
         .topbar-profile-role{font-size:10px;color:var(--text-4)}
 
-        /* ===== SIDEBAR ===== */
+        /* SIDEBAR */
         .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
         .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
         .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
@@ -61,43 +58,69 @@
         .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
         .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
 
-        /* ===== MAIN CONTENT ===== */
-        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px);animation:fadeIn .5s ease-out}
+        /* MAIN */
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:40px;min-height:calc(100vh - 72px);animation:fadeIn .5s ease-out}
         @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        .page-header{margin-bottom:24px}
-        .page-header h1{font-size:26px;font-weight:800}
-        .page-header p{font-size:13px;color:var(--text-4);margin-top:4px}
+        .page-header{margin-bottom:32px}
         .page-header .breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-4);margin-bottom:8px}
-        .breadcrumb a{color:var(--blue);transition:color .2s}
-        .breadcrumb a:hover{color:var(--blue-dark)}
+        .breadcrumb a{color:var(--blue);transition:color .2s}.breadcrumb a:hover{color:var(--blue-dark)}
         .breadcrumb i{font-size:10px}
+        .page-header h1{font-size:28px;font-weight:800}
+        .page-header p{font-size:14px;color:var(--text-4);margin-top:4px}
 
-        /* ===== QR CARD ===== */
-        .qr-grid{max-width:680px;margin:0 auto}
-        .qr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:32px 28px;box-shadow:var(--shadow);text-align:center}
-        .qr-card-title{font-size:20px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:10px}
-        .qr-card-title i{color:var(--blue)}
-        .qr-card-subtitle{color:var(--text-4);font-size:13px;margin-bottom:28px}
-        .qr-loading{padding:40px 0;text-align:center}
-        .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+        /* QR CARD */
+        .qr-container{max-width:520px;margin:0 auto}
+        .qr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:40px 36px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+        .qr-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--green),var(--orange))}
+        .qr-card.loading .qr-card-body{opacity:.3;pointer-events:none}
+        .qr-card-body{transition:opacity .4s}
+        .qr-card-loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s}
+        .qr-card.loading .qr-card-loader{opacity:1}
+        .qr-loader-ring{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
-        .qr-image-wrapper{display:flex;justify-content:center;padding:16px;background:var(--bg);border-radius:var(--radius-lg);margin-bottom:24px}
-        .qr-image-wrapper img{width:240px;height:240px;border-radius:12px;box-shadow:var(--shadow-md);border:1px solid var(--border);background:#fff;padding:8px}
-        .qr-profile-row{display:flex;align-items:center;gap:14px;justify-content:center;margin-bottom:16px}
-        .qr-profile-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;font-family:'Outfit',sans-serif}
-        .qr-profile-info{text-align:left}
-        .qr-profile-name{font-weight:700;font-size:16px}
-        .qr-profile-phone,.qr-profile-country{font-size:13px;color:var(--text-3)}
-        .qr-id-badge{display:inline-flex;align-items:center;gap:8px;background:var(--blue-light);color:var(--blue);padding:10px 20px;border-radius:100px;font-size:14px;font-weight:700;font-family:'SF Mono','Fira Code',monospace;margin-bottom:24px;border:1px solid var(--blue);letter-spacing:.5px}
-        .qr-id-badge i{font-size:14px}
-        .qr-actions-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-        .qr-action-btn{display:flex;align-items:center;gap:6px;padding:11px 20px;border-radius:100px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--text-2);transition:all var(--transition);font-family:'Inter',sans-serif}
-        .qr-action-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 8px 24px rgba(37,99,235,.25);transform:translateY(-2px)}
-        .qr-action-btn i{font-size:14px}
-        .qr-action-btn.primary{background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;border:none;box-shadow:0 8px 24px rgba(37,99,235,.3)}
-        .qr-action-btn.primary:hover{box-shadow:0 12px 32px rgba(37,99,235,.45)}
+        .qr-loader-text{font-size:13px;color:var(--text-4);font-weight:500}
 
-        /* ===== RESPONSIVE ===== */
+        /* QR Image */
+        .qr-image-section{display:flex;justify-content:center;margin-bottom:28px}
+        .qr-frame{position:relative;padding:20px;background:#FFFFFF;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);display:inline-block}
+        [data-theme="dark"] .qr-frame{box-shadow:0 4px 32px rgba(0,0,0,.4)}
+        .qr-frame img{width:220px;height:220px;display:block}
+        .qr-frame-shine{position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.15) 50%,transparent 60%);animation:qrShine 3s ease-in-out infinite;pointer-events:none}
+        @keyframes qrShine{0%,100%{transform:translateX(-100%) translateY(-100%)}50%{transform:translateX(100%) translateY(100%)}}
+
+        /* Profile info */
+        .qr-profile{display:flex;align-items:center;gap:16px;justify-content:center;margin-bottom:20px;padding:16px 20px;background:var(--bg);border-radius:var(--radius-lg)}
+        .qr-profile-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;font-family:'Outfit',sans-serif;flex-shrink:0;box-shadow:0 4px 16px rgba(37,99,235,.3)}
+        .qr-profile-info{text-align:left}
+        .qr-profile-name{font-weight:700;font-size:17px;color:var(--text)}
+        .qr-profile-phone{font-size:13px;color:var(--text-3);margin-top:2px;display:flex;align-items:center;gap:4px}
+        .qr-profile-country{font-size:12px;color:var(--text-4);margin-top:1px}
+
+        /* QR ID Badge */
+        .qr-id-section{text-align:center;margin-bottom:28px}
+        .qr-id-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);margin-bottom:8px}
+        .qr-id-badge{display:inline-flex;align-items:center;gap:10px;background:var(--blue-light);color:var(--blue);padding:12px 24px;border-radius:100px;font-size:15px;font-weight:700;font-family:'SF Mono','Fira Code','Courier New',monospace;border:1.5px solid var(--blue);letter-spacing:.5px;cursor:pointer;transition:all var(--transition);user-select:all}
+        .qr-id-badge:hover{background:var(--blue);color:#fff;box-shadow:0 8px 24px var(--blue-glow);transform:translateY(-1px)}
+        .qr-id-badge:active{transform:scale(.97)}
+        .qr-id-badge i{font-size:14px}
+        .qr-id-badge.copied{background:var(--green-light);color:var(--green-dark);border-color:var(--green-dark)}
+
+        /* Actions */
+        .qr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .qr-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--text-2);transition:all var(--transition);font-family:'Inter',sans-serif}
+        .qr-action-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 8px 24px var(--blue-glow);transform:translateY(-2px)}
+        .qr-action-btn i{font-size:15px}
+        .qr-action-btn.primary{background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;border:none;box-shadow:0 8px 24px rgba(16,185,129,.3);grid-column:1/-1}
+        .qr-action-btn.primary:hover{box-shadow:0 14px 36px rgba(16,185,129,.45)}
+
+        /* Toast */
+        .toast-container{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+        .toast{background:var(--surface);border:1px solid var(--border);padding:14px 24px;border-radius:var(--radius);font-size:13px;font-weight:600;color:var(--text);box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;animation:toastIn .4s ease-out;pointer-events:auto}
+        .toast.success{border-color:var(--green);color:var(--green-dark);background:var(--green-light)}
+        .toast.error{border-color:var(--red);color:var(--red);background:var(--red-light)}
+        @keyframes toastIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+        /* Responsive */
         @media (max-width:1024px){
             .sidebar{transform:translateX(-100%);width:280px}
             .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-xl)}
@@ -106,16 +129,16 @@
         }
         @media (max-width:640px){
             .main-content{padding:20px 14px}
-            .qr-card{padding:24px 16px}
-            .qr-image-wrapper img{width:200px;height:200px}
-            .qr-actions-row{gap:8px}
-            .qr-action-btn{padding:10px 16px;font-size:12px}
+            .qr-card{padding:28px 16px}
+            .qr-frame img{width:180px;height:180px}
+            .qr-actions{grid-template-columns:1fr}
+            .qr-profile{flex-direction:column;text-align:center}
+            .qr-profile-info{text-align:center}
         }
     </style>
 </head>
 <body>
 
-<!-- ===== TOP BAR ===== -->
 <header class="topbar">
     <div class="topbar-left">
         <a href="/dashboard" class="topbar-logo">
@@ -124,7 +147,7 @@
         </a>
     </div>
     <div class="topbar-right">
-        <a href="/scan" class="topbar-icon-btn" title="Scanner QR"><i class="fa-solid fa-qrcode"></i></a>
+        <a href="/scan" class="topbar-icon-btn" title="Scanner"><i class="fa-solid fa-camera"></i></a>
         <a href="/logout" class="topbar-icon-btn" title="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></a>
         <div class="topbar-profile" onclick="window.location='/dashboard'">
             <div class="topbar-profile-avatar">{{ user.fullname[0] | upper if user.fullname else '?' }}</div>
@@ -136,7 +159,6 @@
     </div>
 </header>
 
-<!-- ===== SIDEBAR ===== -->
 <aside class="sidebar" id="sidebar">
     <nav class="sidebar-nav">
         <div class="sidebar-section-title">Principal</div>
@@ -155,7 +177,6 @@
     <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
 </aside>
 
-<!-- ===== MAIN CONTENT ===== -->
 <main class="main-content">
     <div class="page-header">
         <div class="breadcrumb">
@@ -163,50 +184,53 @@
             <i class="fa-solid fa-chevron-right"></i>
             <span>Mon QR Code</span>
         </div>
-        <h1><i class="fa-solid fa-qrcode" style="color:var(--blue);margin-right:8px;"></i>Mon QR Code</h1>
-        <p>Faites scanner ce QR Code par vos contacts pour recevoir de l'argent instantanément.</p>
+        <h1>Mon QR Code</h1>
+        <p>Partagez ce QR Code avec vos contacts pour recevoir des paiements instantanément.</p>
     </div>
 
-    <div class="qr-grid">
-        <div class="qr-card">
+    <div class="qr-container">
+        <div class="qr-card loading" id="qrCard">
             <!-- Loader -->
-            <div id="qrLoading" class="qr-loading">
-                <div class="spinner"></div>
-                <span style="font-size:13px;color:var(--text-4)">Génération de votre QR Code…</span>
+            <div class="qr-card-loader">
+                <div class="qr-loader-ring"></div>
+                <span class="qr-loader-text">Génération du QR Code…</span>
             </div>
 
-            <!-- QR Image -->
-            <div id="qrImageContainer" style="display:none;">
-                <div class="qr-image-wrapper">
-                    <img id="qrImage" src="" alt="Mon QR Code TransAfrik">
+            <!-- Content -->
+            <div class="qr-card-body">
+                <div class="qr-image-section">
+                    <div class="qr-frame">
+                        <div class="qr-frame-shine"></div>
+                        <img id="qrImage" src="" alt="QR Code TransAfrik">
+                    </div>
                 </div>
 
-                <div class="qr-profile-row">
+                <div class="qr-profile">
                     <div class="qr-profile-avatar" id="qrAvatar">?</div>
                     <div class="qr-profile-info">
                         <div class="qr-profile-name" id="qrProfileName">—</div>
-                        <div class="qr-profile-phone" id="qrProfilePhone">—</div>
+                        <div class="qr-profile-phone" id="qrProfilePhone"><i class="fa-solid fa-phone"></i> —</div>
                         <div class="qr-profile-country" id="qrProfileCountry">—</div>
                     </div>
                 </div>
 
-                <div class="qr-id-badge">
-                    <i class="fa-solid fa-fingerprint"></i>
-                    <span id="qrIdentifier">—</span>
+                <div class="qr-id-section">
+                    <div class="qr-id-label">Identifiant QR</div>
+                    <div class="qr-id-badge" id="qrIdBadge" onclick="copyQRId()" title="Cliquez pour copier">
+                        <i class="fa-solid fa-fingerprint"></i>
+                        <span id="qrIdentifier">—</span>
+                    </div>
                 </div>
 
-                <div class="qr-actions-row">
-                    <button class="qr-action-btn primary" onclick="shareQR()">
-                        <i class="fa-solid fa-share-nodes"></i> Partager
+                <div class="qr-actions">
+                    <button class="qr-action-btn primary" id="btnShare">
+                        <i class="fa-solid fa-share-nodes"></i> Partager mon QR
                     </button>
-                    <button class="qr-action-btn" onclick="downloadQR()">
+                    <button class="qr-action-btn" id="btnDownload">
                         <i class="fa-solid fa-download"></i> Télécharger
                     </button>
-                    <button class="qr-action-btn" onclick="printQR()">
+                    <button class="qr-action-btn" id="btnPrint">
                         <i class="fa-solid fa-print"></i> Imprimer
-                    </button>
-                    <button class="qr-action-btn" onclick="copyQRId()">
-                        <i class="fa-solid fa-copy"></i> Copier mon ID
                     </button>
                 </div>
             </div>
@@ -214,83 +238,110 @@
     </div>
 </main>
 
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
 const theme = localStorage.getItem('transafrik-theme') || 'light';
 document.documentElement.setAttribute('data-theme', theme);
 
 let qrData = null;
 
+// Toast system
+function toast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.innerHTML = '<i class="fa-solid ' + (type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation') + '"></i> ' + message;
+    container.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; }, 2500);
+    setTimeout(() => el.remove(), 3000);
+}
+
 async function loadMyQR() {
+    const card = document.getElementById('qrCard');
     try {
         const res = await fetch('/api/qrcode/my');
         const data = await res.json();
-        if (!data.success) { alert('Erreur: ' + data.error); return; }
+        if (!data.success) throw new Error(data.error || 'Erreur serveur');
         qrData = data;
 
-        document.getElementById('qrLoading').style.display = 'none';
-        document.getElementById('qrImageContainer').style.display = 'block';
-
         document.getElementById('qrImage').src = 'data:image/png;base64,' + data.qr_image;
-
         const u = data.user;
-        document.getElementById('qrAvatar').textContent = (u.name||'?')[0].toUpperCase();
-        document.getElementById('qrProfileName').textContent = u.name || '—';
-        document.getElementById('qrProfilePhone').innerHTML = '<i class="fa-solid fa-phone" style="margin-right:4px;"></i>' + (u.phone || '—');
-        document.getElementById('qrProfileCountry').innerHTML = (u.flag||'') + ' ' + (u.country_name || u.country || '—');
+        document.getElementById('qrAvatar').textContent = (u.name || '?')[0].toUpperCase();
+        document.getElementById('qrProfileName').textContent = u.name || 'Utilisateur';
+        document.getElementById('qrProfilePhone').innerHTML = '<i class="fa-solid fa-phone"></i> ' + (u.phone || '—');
+        document.getElementById('qrProfileCountry').textContent = (u.flag || '') + ' ' + (u.country_name || u.country || '—');
         document.getElementById('qrIdentifier').textContent = u.qr_id || '—';
+
+        card.classList.remove('loading');
     } catch(e) {
-        document.getElementById('qrLoading').innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size:24px;color:var(--red);"></i><p style="margin-top:8px;color:var(--red)">Erreur de chargement</p>';
+        card.classList.remove('loading');
+        card.innerHTML = '<div style="text-align:center;padding:60px 20px"><i class="fa-solid fa-triangle-exclamation" style="font-size:48px;color:var(--red);margin-bottom:16px;display:block"></i><h3 style="margin-bottom:8px">Erreur de chargement</h3><p style="color:var(--text-4);margin-bottom:20px">Impossible de générer votre QR Code.</p><button onclick="loadMyQR()" style="padding:12px 24px;border-radius:100px;background:var(--blue);color:#fff;border:none;cursor:pointer;font-weight:600">Réessayer</button></div>';
+        toast('Erreur lors du chargement du QR Code', 'error');
     }
 }
 
-function shareQR() {
+// Copy QR ID
+async function copyQRId() {
+    if (!qrData?.user?.qr_id) return;
+    try {
+        await navigator.clipboard.writeText(qrData.user.qr_id);
+        const badge = document.getElementById('qrIdBadge');
+        badge.classList.add('copied');
+        const iconEl = badge.querySelector('i');
+        const origIcon = iconEl.className;
+        iconEl.className = 'fa-solid fa-check';
+        toast('Identifiant QR copié !');
+        setTimeout(() => { badge.classList.remove('copied'); iconEl.className = origIcon; }, 2000);
+    } catch {
+        toast('Impossible de copier', 'error');
+    }
+}
+
+// Share
+document.getElementById('btnShare').addEventListener('click', async () => {
     const img = document.getElementById('qrImage');
     if (!img.src) return;
     if (navigator.share) {
-        fetch(img.src).then(r => r.blob()).then(blob => {
-            const file = new File([blob], 'transafrik-qr.png', {type:'image/png'});
-            navigator.share({files:[file], title:'Mon QR Code TransAfrik', text:'Scannez mon QR Code avec TransAfrik'}).catch(()=>{});
-        });
+        try {
+            const blob = await fetch(img.src).then(r => r.blob());
+            const file = new File([blob], 'transafrik-qr.png', { type: 'image/png' });
+            await navigator.share({ files: [file], title: 'Mon QR Code TransAfrik', text: 'Scannez mon QR Code avec TransAfrik pour m\'envoyer de l\'argent' });
+        } catch { /* user cancelled */ }
     } else {
         downloadQR();
-        alert('QR Code téléchargé ! Partagez-le depuis votre galerie.');
+        toast('QR Code téléchargé. Partagez-le depuis votre galerie.');
     }
-}
+});
 
-function downloadQR() {
+// Download
+document.getElementById('btnDownload').addEventListener('click', () => {
     const img = document.getElementById('qrImage');
     if (!img.src) return;
     const a = document.createElement('a');
     a.href = img.src;
-    a.download = 'transafrik-qr.png';
+    a.download = 'transafrik-mon-qr.png';
     a.click();
-}
+    toast('QR Code téléchargé !');
+});
 
-function printQR() {
+// Print
+document.getElementById('btnPrint').addEventListener('click', () => {
     const img = document.getElementById('qrImage');
     if (!img.src) return;
-    const w = window.open('','_blank','width=500,height=600');
-    w.document.write('<html><head><title>Mon QR Code</title><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:sans-serif}img{max-width:320px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15)}</style></head><body><img src="'+img.src+'"></body></html>');
+    const w = window.open('', '_blank', 'width=500,height=600');
+    w.document.write(`
+        <html><head><title>Mon QR Code TransAfrik</title>
+        <style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:sans-serif;background:#fff}img{max-width:320px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.1)}</style>
+        </head><body><img src="${img.src}"></body></html>
+    `);
     w.document.close();
-    w.print();
-}
-
-function copyQRId() {
-    if (!qrData || !qrData.user) return;
-    navigator.clipboard.writeText(qrData.user.qr_id || '').then(() => {
-        const btn = event.target.closest('button');
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copié !';
-        btn.style.background = 'var(--green)';
-        btn.style.borderColor = 'var(--green)';
-        btn.style.color = '#fff';
-        setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = ''; }, 2000);
-    });
-}
+    setTimeout(() => w.print(), 500);
+});
 
 loadMyQR();
 
-// Mobile: toggle sidebar
+// Mobile sidebar
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
     const toggle = document.createElement('button');
