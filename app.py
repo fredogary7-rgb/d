@@ -323,7 +323,7 @@ def forgot_password():
             'redirect': url_for('verify_otp_page', purpose='reset_password'),
         })
 
-    return render_template('connexion.html', forgot_password=True)
+    return render_template('forgot_password.html')
 
 
 # --- RESET PASSWORD ---
