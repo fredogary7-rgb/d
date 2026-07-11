@@ -67,7 +67,7 @@ with app.app_context():
 def index():
     return render_template('index.html')
 
-# --- LOGIN (avec OTP téléphone) ---
+# --- LOGIN (connexion directe email + password) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -75,41 +75,22 @@ def login():
 
     if request.method == 'POST':
         data = request.get_json()
-        phone = data.get('phone', '').strip()
+        email = data.get('email', '').strip().lower()
         password = data.get('password', '')
+        remember = data.get('remember', False)
 
-        phone_clean = format_sms_phone(phone)
-        user = User.query.filter_by(phone=phone_clean).first()
+        user = User.query.filter_by(email=email).first()
 
         if not user or not check_password_hash(user.password_hash, password):
-            return jsonify({'success': False, 'message': 'Téléphone ou mot de passe incorrect.'}), 401
+            return jsonify({'success': False, 'message': 'Email ou mot de passe incorrect.'}), 401
 
-        otp_result = create_otp(phone_clean, 'login')
-        if not otp_result.get('success'):
-            return jsonify({'success': False, 'message': otp_result.get('error', 'Erreur OTP.')}), 429
-
-        code = otp_result['code']
-        sms_message = (
-            f"TransAfrik\n"
-            f"Votre code de verification est :\n"
-            f"{code}\n\n"
-            f"Ce code expire dans 5 minutes.\n"
-            f"Ne le partagez avec personne."
-        )
-        sms_result = send_sms(phone_clean, sms_message)
-
-        session['pending_login_user_id'] = user.id
-        session['pending_phone'] = phone_clean
-
-        app.logger.info(
-            f"OTP login créé pour {phone_clean} | "
-            f"sms_sent={sms_result.get('success', False)}"
-        )
+        login_user(user, remember=remember)
+        app.logger.info(f"Connexion réussie pour {email}")
 
         return jsonify({
             'success': True,
-            'message': 'Un code de vérification a été envoyé par SMS.',
-            'redirect': url_for('verify_otp_page', purpose='login'),
+            'message': 'Connexion réussie !',
+            'redirect': url_for('dashboard'),
         })
 
     return render_template('connexion.html')
