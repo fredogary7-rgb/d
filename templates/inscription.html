@@ -380,8 +380,8 @@ form.addEventListener('submit',async function(e){
         const data=await res.json();
         const toast=document.getElementById('toast');
         if(data.success){
-            toast.style.background='var(--green)';toast.textContent='✓ Compte créé ! Redirection...';toast.classList.add('show');
-            setTimeout(()=>{window.location.href=data.redirect||'/'},1500);
+            toast.style.background='var(--green)';toast.textContent='✓ '+(data.message||'Code envoyé ! Redirection...');toast.classList.add('show');
+            setTimeout(()=>{window.location.href=data.redirect||'/'},1200);
         }else{
             registerBtn.innerHTML='Créer mon compte';registerBtn.disabled=false;
             toast.style.background='#EF4444';toast.textContent='✗ '+(data.message||'Erreur');toast.classList.add('show');

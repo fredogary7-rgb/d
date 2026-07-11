@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 db = SQLAlchemy()
@@ -333,3 +333,32 @@ class Beneficiary(db.Model):
 
     def __repr__(self):
         return f'<Beneficiary {self.name}>'
+
+
+class OtpCode(db.Model):
+    """Code OTP pour vérification par SMS (inscription, connexion, reset mdp)."""
+
+    __tablename__ = 'otp_codes'
+
+    # ---- Identification ----
+    id = db.Column(db.Integer, primary_key=True)
+    phone = db.Column(db.String(30), nullable=False, index=True)
+    code = db.Column(db.String(10), nullable=False)
+    purpose = db.Column(db.String(20), nullable=False, index=True)  # register | login | reset_password | change_phone
+    expires_at = db.Column(db.DateTime, nullable=False)
+    attempts = db.Column(db.Integer, default=0)
+    is_verified = db.Column(db.Boolean, default=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    @property
+    def is_expired(self):
+        """Vérifie si le code OTP a expiré."""
+        return datetime.now(timezone.utc) > self.expires_at.replace(tzinfo=timezone.utc)
+
+    @property
+    def attempts_remaining(self):
+        """Nombre de tentatives restantes (max 3)."""
+        return max(0, 3 - self.attempts)
+
+    def __repr__(self):
+        return f'<OtpCode {self.id} phone={self.phone} purpose={self.purpose} verified={self.is_verified}>'
