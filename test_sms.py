@@ -180,6 +180,55 @@ def main():
     print(f"  Temps    : {elapsed:.3f}s")
     print(f"{'=' * 60}")
 
+    # ── Mode batch si --batch est passé ───────────────────────
+    if len(sys.argv) > 1 and sys.argv[1] == "--batch":
+        print(f"\n{'=' * 60}")
+        print("MODE BATCH — Test de plusieurs formats de numéro")
+        print(f"{'=' * 60}")
+        batch_test()
+
+
+def batch_test():
+    """Teste plusieurs formats de numéro et messages pour identifier la cause du 500."""
+    import time as t
+
+    test_cases = [
+        ("22871339325", "Test SMS court"),
+        ("22871339325", "Test"),
+        ("71339325", "Test sans indicatif"),
+        ("+22871339325", "Test avec plus"),
+        ("0022871339325", "Test avec 00"),
+        ("228 71 33 93 25", "Test avec espaces"),
+        ("22871339325", "A" * 160),
+    ]
+
+    for i, (contact, message) in enumerate(test_cases, 1):
+        payload = {"key": SOSMS_API_KEY, "contact": contact, "message": message}
+        start = time.time()
+        try:
+            r = requests.post(
+                SOSMS_SEND_URL,
+                data=payload,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=10,
+            )
+            elapsed = time.time() - start
+            body_preview = r.text[:200] if r.text else "(vide)"
+            print(
+                f"\nTest {i}/{len(test_cases)}: "
+                f"contact={contact:<20} "
+                f"msg_len={len(message):<4} "
+                f"HTTP {r.status_code} "
+                f"| {len(r.text)}o "
+                f"| {elapsed:.3f}s"
+            )
+            if r.status_code != 200:
+                print(f"  Corps: {body_preview}")
+        except Exception as e:
+            elapsed = time.time() - start
+            print(f"\nTest {i}/{len(test_cases)}: {contact} ERREUR={e} | {elapsed:.3f}s")
+        t.sleep(0.3)
+
 
 if __name__ == "__main__":
     main()
