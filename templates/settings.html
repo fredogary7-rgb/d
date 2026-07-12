@@ -35,31 +35,25 @@
         a{text-decoration:none;color:inherit}
         h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         img{max-width:100%;height:auto}
-
         .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-
         @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
         @keyframes slideRight{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
 
-        /* ===== TOP BAR ===== */
         .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
         .topbar-left{display:flex;align-items:center;gap:16px}
         .topbar-logo{display:flex;align-items:center;gap:10px}
-        .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
         .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .topbar-right{display:flex;align-items:center;gap:16px}
         .topbar-icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all var(--transition);color:var(--text-3)}
         .topbar-icon-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
-        .topbar-icon-btn .badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:#EF4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
         .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
         .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
         .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
         .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
         .topbar-profile-role{font-size:10px;color:var(--text-4)}
 
-        /* ===== SIDEBAR ===== */
         .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
         .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
         .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
@@ -69,20 +63,16 @@
         .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
         .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
 
-        /* ===== MAIN CONTENT ===== */
         .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px)}
         .page-header{margin-bottom:32px;animation:fadeUp .6s ease-out}
         .page-back-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-4);margin-bottom:8px;font-weight:500}
         .page-back-row a:hover{color:var(--blue)}
-        .page-back-row i{font-size:12px}
         .page-title{font-size:clamp(24px,3vw,32px);font-weight:900;font-family:'Outfit',sans-serif}
         .page-subtitle{font-size:14px;color:var(--text-3);margin-top:4px}
 
-        /* ===== SETTINGS GRID ===== */
         .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
         .settings-full{grid-column:1 / -1}
 
-        /* ===== SECTION CARD ===== */
         .settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow);transition:all var(--transition);position:relative;overflow:hidden;animation:scaleIn .5s ease-out}
         .settings-card:nth-child(1){animation-delay:.05s}
         .settings-card:nth-child(2){animation-delay:.1s}
@@ -105,11 +95,9 @@
         .ci-yellow{background:#FEF3C7;color:#D97706}
         .ci-red{background:var(--red-light);color:var(--red)}
         .ci-slate{background:#F1F5F9;color:#475569}
-
         .card-title{font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;margin-bottom:20px}
         .card-subtitle{font-size:12px;color:var(--text-4);margin-bottom:16px}
 
-        /* ===== PROFILE SECTION ===== */
         .profile-header{display:flex;align-items:center;gap:20px;margin-bottom:24px}
         .profile-avatar-large{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--blue),var(--purple),var(--green));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;color:#fff;flex-shrink:0;box-shadow:0 8px 24px rgba(37,99,235,.25)}
         .profile-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
@@ -118,13 +106,11 @@
         .profile-info-value{font-size:14px;font-weight:600;color:var(--text)}
         .profile-info-value.email{color:var(--blue);font-size:13px}
 
-        /* ===== KYC BADGE ===== */
         .kyc-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700}
         .kyc-verified{background:var(--green-light);color:var(--green-dark)}
         .kyc-pending{background:#FEF3C7;color:#D97706}
         .kyc-rejected{background:var(--red-light);color:#DC2626}
 
-        /* ===== SECURITY SCORE ===== */
         .security-score{padding:20px 24px;margin-bottom:16px;background:linear-gradient(135deg,var(--blue-light),var(--purple-light));border-radius:var(--radius);text-align:center}
         .security-score-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px}
         .security-score-value{font-size:36px;font-weight:900;font-family:'Outfit',sans-serif;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -137,7 +123,6 @@
         .security-item i{font-size:14px;width:18px;text-align:center}
         .security-tip{font-size:11px;color:var(--text-4);margin-top:10px;font-style:italic}
 
-        /* ===== SETTINGS LIST ===== */
         .settings-list{display:flex;flex-direction:column;gap:0}
         .settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;margin:0 -8px}
         .settings-item:hover{background:var(--surface-hover)}
@@ -151,7 +136,6 @@
         .settings-item-right .tag.on{background:var(--green-light);color:var(--green-dark)}
         .settings-item-right .tag.off{background:var(--red-light);color:#DC2626}
 
-        /* ===== TOGGLE SWITCH ===== */
         .toggle-switch{position:relative;width:48px;height:28px;flex-shrink:0}
         .toggle-switch input{opacity:0;width:0;height:0}
         .toggle-slider{position:absolute;cursor:pointer;inset:0;background:#CBD5E1;border-radius:28px;transition:all .3s}
@@ -159,7 +143,6 @@
         .toggle-switch input:checked+.toggle-slider{background:var(--green)}
         .toggle-switch input:checked+.toggle-slider::before{transform:translateX(20px)}
 
-        /* ===== BUTTONS ===== */
         .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all var(--transition);border:none}
         .btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.25)}
         .btn-primary:hover{background:var(--blue-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,99,235,.35)}
@@ -170,43 +153,42 @@
         .btn-danger-outline{background:transparent;border:1.5px solid var(--red);color:var(--red)}
         .btn-danger-outline:hover{background:var(--red-light)}
         .btn-sm{padding:6px 14px;font-size:11px;border-radius:8px}
+        .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
 
-        /* ===== MODAL ===== */
         .modal-overlay{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:fadeIn .2s}
         .modal-overlay.show{display:flex}
-        .modal{background:var(--surface);border-radius:var(--radius-lg);padding:28px;max-width:420px;width:90%;box-shadow:var(--shadow-xl);animation:scaleIn .25s ease-out}
+        .modal{background:var(--surface);border-radius:var(--radius-lg);padding:28px;max-width:480px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-xl);animation:scaleIn .25s ease-out}
         .modal h3{font-size:18px;font-weight:700;margin-bottom:8px}
         .modal p{font-size:13px;color:var(--text-3);margin-bottom:20px}
         .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+        .form-group input,.form-group select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);transition:border .2s;outline:none}
+        .form-group input:focus,.form-group select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .form-group textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);resize:vertical;min-height:80px;outline:none;transition:border .2s}
+        .form-group textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .modal-error{color:var(--red);font-size:12px;margin-bottom:12px;display:none}
 
-        /* ===== TOAST ===== */
         .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;padding:12px 24px;border-radius:100px;font-size:13px;font-weight:600;box-shadow:var(--shadow-md);animation:toastIn .3s ease-out;color:#fff}
-
         @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
-        /* ===== RESPONSIVE ===== */
-        @media(max-width:1024px){
-            .settings-grid{grid-template-columns:1fr}
-            .profile-info-grid{grid-template-columns:1fr}
-        }
+        .spinner-inline{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        @media(max-width:1024px){.settings-grid{grid-template-columns:1fr}.profile-info-grid{grid-template-columns:1fr}}
         @media(max-width:768px){
             .sidebar{display:none}
-            .main-content{margin-left:0;padding:20px 16px}
+            .main-content{margin-left:0;padding:20px 16px 100px}
             .topbar{padding:0 16px}
-            .topbar-logo span{display:none}
             .settings-grid{grid-template-columns:1fr}
-            .main-content{padding-bottom:100px}
         }
     </style>
 </head>
 <body>
 
-<!-- ===== TOP BAR ===== -->
 <header class="topbar">
     <div class="topbar-left">
-        <div class="topbar-logo">
-            <span>TransAfrik</span>
-        </div>
+        <div class="topbar-logo"><span>TransAfrik</span></div>
     </div>
     <div class="topbar-right">
         <button class="topbar-icon-btn" id="themeToggle" onclick="toggleTheme()" title="Changer le thème">
@@ -225,7 +207,6 @@
     </div>
 </header>
 
-<!-- ===== SIDEBAR ===== -->
 <aside class="sidebar">
     <nav class="sidebar-nav">
         <a href="/dashboard" class="sidebar-link"><i class="fa-solid fa-grid-2"></i> Tableau de bord</a>
@@ -242,12 +223,9 @@
     <div class="sidebar-footer">TransAfrik v1.0</div>
 </aside>
 
-<!-- ===== MAIN CONTENT ===== -->
 <main class="main-content">
     <div class="page-header">
-        <div class="page-back-row">
-            <a href="/dashboard"><i class="fa-solid fa-arrow-left"></i> Retour Dashboard</a>
-        </div>
+        <div class="page-back-row"><a href="/dashboard"><i class="fa-solid fa-arrow-left"></i> Retour Dashboard</a></div>
         <h1 class="page-title gradient-text">Paramètres</h1>
         <p class="page-subtitle">Gérez votre compte et sécurisez vos paiements.</p>
     </div>
@@ -261,7 +239,7 @@
             <div class="profile-header">
                 <div class="profile-avatar-large">{{ user.fullname[0] | upper }}</div>
                 <div>
-                    <h3 style="font-size:20px;font-weight:700;">{{ user.fullname }}</h3>
+                    <h3 style="font-size:20px;font-weight:700;" id="displayFullname">{{ user.fullname }}</h3>
                     <span class="kyc-badge kyc-{{ user.kyc_status }}">
                         {% if user.kyc_status == 'verified' %}
                             <i class="fa-solid fa-shield-check"></i> KYC Vérifié
@@ -276,7 +254,7 @@
             <div class="profile-info-grid">
                 <div class="profile-info-item">
                     <div class="profile-info-label">Nom complet</div>
-                    <div class="profile-info-value">{{ user.fullname }}</div>
+                    <div class="profile-info-value" id="valFullname">{{ user.fullname }}</div>
                 </div>
                 <div class="profile-info-item">
                     <div class="profile-info-label">Email</div>
@@ -284,11 +262,11 @@
                 </div>
                 <div class="profile-info-item">
                     <div class="profile-info-label">Téléphone</div>
-                    <div class="profile-info-value">{{ user.phone }}</div>
+                    <div class="profile-info-value" id="valPhone">{{ user.phone }}</div>
                 </div>
                 <div class="profile-info-item">
                     <div class="profile-info-label">Pays</div>
-                    <div class="profile-info-value">
+                    <div class="profile-info-value" id="valCountry">
                         {% set flags = {'TG':'🇹🇬','BJ':'🇧🇯','CM':'🇨🇲','CI':'🇨🇮','BF':'🇧🇫','CG':'🇨🇬','CD':'🇨🇩','GA':'🇬🇦','UG':'🇺🇬','ZM':'🇿🇲','SN':'🇸🇳'} %}
                         {% set names = {'TG':'Togo','BJ':'Bénin','CM':'Cameroun','CI':'Côte d\'Ivoire','BF':'Burkina Faso','CG':'Congo','CD':'RD Congo','GA':'Gabon','UG':'Ouganda','ZM':'Zambie','SN':'Sénégal'} %}
                         {{ flags.get(user.country, '🌍') }} {{ names.get(user.country, user.country) }}
@@ -303,7 +281,7 @@
                     <div class="profile-info-value">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '—' }}</div>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="showToast('Fonctionnalité disponible prochainement.')">
+            <button class="btn btn-primary" onclick="openEditProfile()">
                 <i class="fa-solid fa-pen-to-square"></i> Modifier le profil
             </button>
         </div>
@@ -312,8 +290,6 @@
         <div class="settings-card">
             <div class="card-icon ci-green"><i class="fa-solid fa-shield-halved"></i></div>
             <div class="card-title">Sécurité</div>
-
-            <!-- Score de sécurité -->
             <div class="security-score">
                 <div class="security-score-label">Niveau de sécurité du compte</div>
                 <div class="security-score-value" id="securityPercent">80%</div>
@@ -321,13 +297,12 @@
                 {% set has_email = user.email and user.email|length > 0 %}
                 {% set has_phone = user.phone and user.phone|length > 5 %}
                 {% set has_kyc = user.kyc_status == 'verified' %}
-                {% set has_profile = user.profile_picture and user.profile_picture|length > 0 %}
+                {% set has_pin = user.pin_hash and user.pin_hash|length > 0 %}
                 {% set checks = [] %}
                 {% if has_email %}{% set _ = checks.append(('checked', 'Email vérifié')) %}{% else %}{% set _ = checks.append(('unchecked', 'Email non vérifié')) %}{% endif %}
                 {% if has_phone %}{% set _ = checks.append(('checked', 'Téléphone vérifié')) %}{% else %}{% set _ = checks.append(('unchecked', 'Téléphone non vérifié')) %}{% endif %}
                 {% set _ = checks.append(('checked', 'OTP activé')) %}
-                {% set _ = checks.append(('unchecked', 'PIN de transaction')) %}
-                {% if has_profile %}{% set _ = checks.append(('checked', 'Photo de profil')) %}{% else %}{% set _ = checks.append(('unchecked', 'Photo de profil')) %}{% endif %}
+                {% if has_pin %}{% set _ = checks.append(('checked', 'PIN de transaction')) %}{% else %}{% set _ = checks.append(('unchecked', 'PIN de transaction')) %}{% endif %}
                 {% if has_kyc %}{% set _ = checks.append(('checked', 'KYC validé')) %}{% else %}{% set _ = checks.append(('unchecked', 'KYC en attente')) %}{% endif %}
                 <div class="security-checklist">
                     {% for status, text in checks %}
@@ -338,55 +313,39 @@
                 </div>
                 <div class="security-tip" id="securityTip">Ajoutez votre PIN de transaction pour atteindre 100 % de sécurité.</div>
             </div>
-
             <div class="settings-list">
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openChangePassword()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-blue"><i class="fa-solid fa-lock"></i></div>
-                        <div>
-                            <div class="settings-item-text">Modifier le mot de passe</div>
-                            <div class="settings-item-sub">Dernière modification : jamais</div>
-                        </div>
+                        <div><div class="settings-item-text">Modifier le mot de passe</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openChangePhone()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-green"><i class="fa-solid fa-mobile-screen"></i></div>
-                        <div>
-                            <div class="settings-item-text">Modifier le numéro</div>
-                            <div class="settings-item-sub">{{ user.phone }}</div>
-                        </div>
+                        <div><div class="settings-item-text">Modifier le numéro</div><div class="settings-item-sub">{{ user.phone }}</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openChangeEmail()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-purple"><i class="fa-solid fa-envelope"></i></div>
-                        <div>
-                            <div class="settings-item-text">Modifier l'email</div>
-                            <div class="settings-item-sub">{{ user.email }}</div>
-                        </div>
+                        <div><div class="settings-item-text">Modifier l'email</div><div class="settings-item-sub">{{ user.email }}</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openChangePin()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-yellow"><i class="fa-solid fa-key"></i></div>
-                        <div>
-                            <div class="settings-item-text">Changer le code PIN de transaction</div>
-                            <div class="settings-item-sub">Protégez vos transferts</div>
-                        </div>
+                        <div><div class="settings-item-text">Changer le code PIN de transaction</div><div class="settings-item-sub">Protégez vos transferts</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
                 <div class="settings-item" id="twoFactorToggle">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-orange"><i class="fa-solid fa-fingerprint"></i></div>
-                        <div>
-                            <div class="settings-item-text">Double authentification (2FA)</div>
-                            <div class="settings-item-sub">Sécurisez votre compte avec OTP</div>
-                        </div>
+                        <div><div class="settings-item-text">Double authentification (2FA)</div><div class="settings-item-sub">Sécurisez votre compte avec OTP</div></div>
                     </div>
                     <div class="settings-item-right">
                         <label class="toggle-switch">
@@ -395,23 +354,17 @@
                         </label>
                     </div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openSessionInfo()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-slate"><i class="fa-solid fa-laptop"></i></div>
-                        <div>
-                            <div class="settings-item-text">Appareils connectés</div>
-                            <div class="settings-item-sub">Gérez vos sessions actives</div>
-                        </div>
+                        <div><div class="settings-item-text">Appareils connectés</div><div class="settings-item-sub">Gérez vos sessions actives</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openSessionInfo()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-slate"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                        <div>
-                            <div class="settings-item-text">Historique des connexions</div>
-                            <div class="settings-item-sub">Consultez vos dernières connexions</div>
-                        </div>
+                        <div><div class="settings-item-text">Historique des connexions</div><div class="settings-item-sub">Consultez vos dernières connexions</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
@@ -426,10 +379,7 @@
                 <div class="settings-item" id="themeToggleRow">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-blue"><i class="fa-solid fa-moon"></i></div>
-                        <div>
-                            <div class="settings-item-text">Mode sombre</div>
-                            <div class="settings-item-sub" id="themeStatus">Désactivé</div>
-                        </div>
+                        <div><div class="settings-item-text">Mode sombre</div><div class="settings-item-sub" id="themeStatus">Désactivé</div></div>
                     </div>
                     <div class="settings-item-right">
                         <label class="toggle-switch">
@@ -438,53 +388,47 @@
                         </label>
                     </div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openLanguageSelector()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-green"><i class="fa-solid fa-language"></i></div>
-                        <div>
-                            <div class="settings-item-text">Langue</div>
-                            <div class="settings-item-sub">Français</div>
-                        </div>
+                        <div><div class="settings-item-text">Langue</div><div class="settings-item-sub" id="langLabel">{{ 'Français' if user.language == 'fr' else 'English' }}</div></div>
                     </div>
-                    <div class="settings-item-right"><span class="tag">FR</span> <i class="fa-solid fa-chevron-right"></i></div>
+                    <div class="settings-item-right"><span class="tag" id="langTag">{{ user.language | upper }}</span> <i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openCurrencySelector()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-orange"><i class="fa-solid fa-coin"></i></div>
-                        <div>
-                            <div class="settings-item-text">Devise par défaut</div>
-                            <div class="settings-item-sub">{{ user.currency or 'XOF' }}</div>
-                        </div>
+                        <div><div class="settings-item-text">Devise par défaut</div><div class="settings-item-sub" id="currencyLabel">{{ user.currency or 'XOF' }}</div></div>
                     </div>
-                    <div class="settings-item-right"><span class="tag">{{ user.currency or 'XOF' }}</span> <i class="fa-solid fa-chevron-right"></i></div>
+                    <div class="settings-item-right"><span class="tag" id="currencyTag">{{ user.currency or 'XOF' }}</span> <i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" id="notifSMS">
+                <div class="settings-item" id="notifSMS" onclick="toggleNotif('sms')">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-yellow"><i class="fa-solid fa-comment-sms"></i></div>
                         <div><div class="settings-item-text">Notifications SMS</div></div>
                     </div>
-                    <div class="settings-item-right"><span class="tag on">Activé</span></div>
+                    <div class="settings-item-right"><span class="tag on" id="tagSMS">Activé</span></div>
                 </div>
-                <div class="settings-item" id="notifEmail">
+                <div class="settings-item" id="notifEmail" onclick="toggleNotif('email')">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-red"><i class="fa-solid fa-envelope-open-text"></i></div>
                         <div><div class="settings-item-text">Notifications Email</div></div>
                     </div>
-                    <div class="settings-item-right"><span class="tag on">Activé</span></div>
+                    <div class="settings-item-right"><span class="tag on" id="tagEmail">Activé</span></div>
                 </div>
-                <div class="settings-item" id="notifPush">
+                <div class="settings-item" id="notifPush" onclick="toggleNotif('push')">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-purple"><i class="fa-solid fa-bell"></i></div>
                         <div><div class="settings-item-text">Notifications Push</div></div>
                     </div>
-                    <div class="settings-item-right"><span class="tag off">Désactivé</span></div>
+                    <div class="settings-item-right"><span class="tag off" id="tagPush">Désactivé</span></div>
                 </div>
-                <div class="settings-item" id="notifVibrate">
+                <div class="settings-item" id="notifVibrate" onclick="toggleNotif('vibrate')">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-slate"><i class="fa-solid fa-mobile-retro"></i></div>
                         <div><div class="settings-item-text">Vibrations</div></div>
                     </div>
-                    <div class="settings-item-right"><span class="tag on">Activé</span></div>
+                    <div class="settings-item-right"><span class="tag on" id="tagVibrate">Activé</span></div>
                 </div>
             </div>
         </div>
@@ -521,28 +465,28 @@
             <div class="card-icon ci-slate"><i class="fa-solid fa-user-shield"></i></div>
             <div class="card-title">Confidentialité</div>
             <div class="settings-list">
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="exportMyData()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-blue"><i class="fa-solid fa-download"></i></div>
                         <div><div class="settings-item-text">Télécharger mes données</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openPrivacyPolicy()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-green"><i class="fa-solid fa-file-contract"></i></div>
                         <div><div class="settings-item-text">Politique de confidentialité</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openTerms()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-purple"><i class="fa-solid fa-scale-balanced"></i></div>
                         <div><div class="settings-item-text">Conditions d'utilisation</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openCookies()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-yellow"><i class="fa-solid fa-cookie-bite"></i></div>
                         <div><div class="settings-item-text">Gestion des cookies</div></div>
@@ -557,28 +501,28 @@
             <div class="card-icon ci-yellow"><i class="fa-solid fa-headset"></i></div>
             <div class="card-title">Support</div>
             <div class="settings-list">
-                <div class="settings-item" onclick="showToast('Support : contact@transafrik.com')">
+                <div class="settings-item" onclick="showToast('Email : contact@transafrik.com — WhatsApp : +228 90 00 00 00')">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-blue"><i class="fa-solid fa-message"></i></div>
                         <div><div class="settings-item-text">Contacter le support</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openFAQ()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-green"><i class="fa-solid fa-circle-question"></i></div>
                         <div><div class="settings-item-text">FAQ</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openHelpCenter()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-purple"><i class="fa-solid fa-book"></i></div>
                         <div><div class="settings-item-text">Centre d'aide</div></div>
                     </div>
                     <div class="settings-item-right"><i class="fa-solid fa-chevron-right"></i></div>
                 </div>
-                <div class="settings-item" onclick="showToast('Fonctionnalité disponible prochainement.')">
+                <div class="settings-item" onclick="openReportProblem()">
                     <div class="settings-item-left">
                         <div class="settings-item-icon ci-red"><i class="fa-solid fa-flag"></i></div>
                         <div><div class="settings-item-text">Signaler un problème</div></div>
@@ -615,7 +559,7 @@
                 <button class="btn btn-danger-outline" onclick="confirmLogout()">
                     <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
                 </button>
-                <button class="btn btn-danger" onclick="confirmDeleteAccount()">
+                <button class="btn btn-danger" onclick="openDeleteAccount()">
                     <i class="fa-solid fa-trash-can"></i> Supprimer mon compte
                 </button>
             </div>
@@ -624,13 +568,17 @@
     </div>
 </main>
 
-<!-- ===== MODAL CONFIRMATION ===== -->
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="genericModal">
+    <div class="modal" id="genericModalContent"></div>
+</div>
+
 <div class="modal-overlay" id="confirmModal">
     <div class="modal">
         <h3 id="modalTitle">Confirmation</h3>
         <p id="modalBody">Êtes-vous sûr de vouloir continuer ?</p>
         <div class="modal-actions">
-            <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+            <button class="btn btn-outline" onclick="closeConfirm()">Annuler</button>
             <button class="btn btn-danger" id="modalConfirmBtn" onclick="executeModalAction()">Confirmer</button>
         </div>
     </div>
@@ -654,15 +602,7 @@ function toggleDarkMode() {
     setTheme(current === 'dark' ? 'light' : 'dark');
     showToast('Thème ' + (getTheme() === 'dark' ? 'sombre' : 'clair') + ' activé.');
 }
-function toggleTheme() {
-    toggleDarkMode();
-}
-
-// ========== 2FA TOGGLE ==========
-function toggle2FA() {
-    var cb = document.getElementById('twoFactorCheckbox');
-    showToast(cb.checked ? '2FA activé.' : '2FA désactivé.');
-}
+function toggleTheme() { toggleDarkMode(); }
 
 // ========== TOAST ==========
 function showToast(msg, isError) {
@@ -673,48 +613,490 @@ function showToast(msg, isError) {
     el.style.background = isError ? 'var(--red)' : 'var(--green)';
     el.textContent = msg;
     document.body.appendChild(el);
-    setTimeout(function(){ el.style.opacity='0';el.style.transition='opacity .3s'; }, 2000);
-    setTimeout(function(){ el.remove(); }, 2500);
+    setTimeout(function(){ el.style.opacity='0';el.style.transition='opacity .3s'; }, 2500);
+    setTimeout(function(){ el.remove(); }, 3000);
 }
 
-// ========== MODAL ==========
-var modalAction = null;
-function openModal(title, body, action) {
+// ========== GENERIC MODAL ==========
+function openGenericModal(title, html) {
+    var content = document.getElementById('genericModalContent');
+    content.innerHTML = '<h3>' + title + '</h3>' + html;
+    document.getElementById('genericModal').classList.add('show');
+}
+function closeGenericModal() {
+    document.getElementById('genericModal').classList.remove('show');
+    document.getElementById('genericModalContent').innerHTML = '';
+}
+document.getElementById('genericModal').addEventListener('click', function(e) {
+    if (e.target === this) closeGenericModal();
+});
+
+// ========== CONFIRM MODAL ==========
+var confirmActionFn = null;
+function openConfirm(title, body, action) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').textContent = body;
     document.getElementById('confirmModal').classList.add('show');
-    modalAction = action;
+    confirmActionFn = action;
 }
-function closeModal() {
+function closeConfirm() {
     document.getElementById('confirmModal').classList.remove('show');
-    modalAction = null;
+    confirmActionFn = null;
 }
 function executeModalAction() {
-    if (modalAction) modalAction();
-    closeModal();
+    if (confirmActionFn) confirmActionFn();
+    closeConfirm();
 }
 document.getElementById('confirmModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
+    if (e.target === this) closeConfirm();
 });
+
+// ========== CONTENT MODAL ==========
+function openContentModal(title, subtitle, content) {
+    var html = '<p style="margin-bottom:16px;font-size:12px;color:var(--text-4)">' + subtitle + '</p>';
+    html += '<div style="white-space:pre-line;font-size:13px;color:var(--text-2);line-height:1.7;max-height:50vh;overflow-y:auto">' + content + '</div>';
+    html += '<div style="margin-top:20px;text-align:right"><button class="btn btn-outline" onclick="closeGenericModal()">Fermer</button></div>';
+    openGenericModal(title, html);
+}
+
+// ========== PROFILE ==========
+function openEditProfile() {
+    var countries = [
+        {code:'TG',name:'Togo'},{code:'BJ',name:'Bénin'},{code:'CM',name:'Cameroun'},{code:'CI',name:'Côte d\'Ivoire'},
+        {code:'BF',name:'Burkina Faso'},{code:'CG',name:'Congo'},{code:'CD',name:'RD Congo'},{code:'GA',name:'Gabon'},
+        {code:'UG',name:'Ouganda'},{code:'ZM',name:'Zambie'},{code:'SN',name:'Sénégal'}
+    ];
+    var currentCountry = '{{ user.country }}';
+    var opts = '';
+    countries.forEach(function(c) {
+        opts += '<option value="' + c.code + '"' + (c.code === currentCountry ? ' selected' : '') + '>' + c.name + '</option>';
+    });
+
+    var html = '<div class="form-group"><label>Nom complet</label><input type="text" id="editFullname" value="{{ user.fullname }}"></div>';
+    html += '<div class="form-group"><label>Pays</label><select id="editCountry">' + opts + '</select></div>';
+    html += '<div class="modal-error" id="editProfileError"></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSaveProfile" onclick="saveProfile()">Enregistrer</button></div>';
+    openGenericModal('Modifier le profil', html);
+}
+
+function saveProfile() {
+    var fullname = document.getElementById('editFullname').value.trim();
+    var country = document.getElementById('editCountry').value;
+    var err = document.getElementById('editProfileError');
+    var btn = document.getElementById('btnSaveProfile');
+
+    if (!fullname || fullname.length < 2) { err.textContent = 'Le nom doit contenir au moins 2 caractères.'; err.style.display='block'; return; }
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Enregistrement...';
+
+    fetch('/api/settings/update-profile', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({fullname: fullname, country: country})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('displayFullname').textContent = data.fullname;
+            document.getElementById('valFullname').textContent = data.fullname;
+            var flags = {TG:'🇹🇬',BJ:'🇧🇯',CM:'🇨🇲',CI:'🇨🇮',BF:'🇧🇫',CG:'🇨🇬',CD:'🇨🇩',GA:'🇬🇦',UG:'🇺🇬',ZM:'🇿🇲',SN:'🇸🇳'};
+            var names = {TG:'Togo',BJ:'Bénin',CM:'Cameroun',CI:'Côte d\'Ivoire',BF:'Burkina Faso',CG:'Congo',CD:'RD Congo',GA:'Gabon',UG:'Ouganda',ZM:'Zambie',SN:'Sénégal'};
+            document.getElementById('valCountry').textContent = (flags[data.country]||'🌍') + ' ' + (names[data.country]||data.country);
+            document.querySelector('.topbar-profile-name').textContent = data.fullname;
+            closeGenericModal();
+            showToast(data.message);
+        } else {
+            err.textContent = data.message;
+            err.style.display = 'block';
+        }
+    }).catch(function(e) {
+        err.textContent = 'Erreur réseau.';
+        err.style.display = 'block';
+    }).finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = 'Enregistrer';
+    });
+}
+
+// ========== PASSWORD ==========
+function openChangePassword() {
+    var html = '<div class="form-group"><label>Mot de passe actuel</label><input type="password" id="currentPw" placeholder="Mot de passe actuel"></div>';
+    html += '<div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="newPw" placeholder="Minimum 8 caractères"></div>';
+    html += '<div class="form-group"><label>Confirmer le mot de passe</label><input type="password" id="confirmPw" placeholder="Répéter le mot de passe"></div>';
+    html += '<div class="modal-error" id="pwError"></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSavePw" onclick="savePassword()">Changer le mot de passe</button></div>';
+    openGenericModal('Modifier le mot de passe', html);
+}
+
+function savePassword() {
+    var cur = document.getElementById('currentPw').value;
+    var np = document.getElementById('newPw').value;
+    var cp = document.getElementById('confirmPw').value;
+    var err = document.getElementById('pwError');
+    var btn = document.getElementById('btnSavePw');
+
+    if (!cur || !np || !cp) { err.textContent = 'Tous les champs sont obligatoires.'; err.style.display='block'; return; }
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Enregistrement...';
+
+    fetch('/api/settings/change-password', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({current_password:cur, new_password:np, confirm_password:cp})
+    }).then(r => r.json()).then(data => {
+        if (data.success) { closeGenericModal(); showToast(data.message); }
+        else { err.textContent = data.message; err.style.display = 'block'; }
+    }).catch(function() { err.textContent = 'Erreur réseau.'; err.style.display = 'block'; })
+    .finally(function() { btn.disabled = false; btn.innerHTML = 'Changer le mot de passe'; });
+}
+
+// ========== PHONE ==========
+function openChangePhone() {
+    var html = '<div class="form-group"><label>Nouveau numéro</label><input type="text" id="newPhone" value="{{ user.phone }}" placeholder="+228 90 00 00 00"></div>';
+    html += '<div class="form-group"><label>Mot de passe (vérification)</label><input type="password" id="phonePw" placeholder="Votre mot de passe"></div>';
+    html += '<div class="modal-error" id="phoneError"></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSavePhone" onclick="savePhone()">Mettre à jour</button></div>';
+    openGenericModal('Modifier le numéro', html);
+}
+
+function savePhone() {
+    var phone = document.getElementById('newPhone').value.trim();
+    var err = document.getElementById('phoneError');
+    var btn = document.getElementById('btnSavePhone');
+
+    if (!phone || phone.length < 7) { err.textContent = 'Numéro invalide.'; err.style.display='block'; return; }
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Mise à jour...';
+
+    fetch('/api/settings/change-phone', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({phone: phone})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('valPhone').textContent = data.phone;
+            closeGenericModal();
+            showToast(data.message);
+        } else { err.textContent = data.message; err.style.display = 'block'; }
+    }).catch(function() { err.textContent = 'Erreur réseau.'; err.style.display = 'block'; })
+    .finally(function() { btn.disabled = false; btn.innerHTML = 'Mettre à jour'; });
+}
+
+// ========== EMAIL ==========
+function openChangeEmail() {
+    var html = '<div class="form-group"><label>Nouvel email</label><input type="email" id="newEmail" value="{{ user.email }}" placeholder="exemple@email.com"></div>';
+    html += '<div class="form-group"><label>Mot de passe (vérification)</label><input type="password" id="emailPw" placeholder="Votre mot de passe"></div>';
+    html += '<div class="modal-error" id="emailError"></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSaveEmail" onclick="saveEmail()">Mettre à jour</button></div>';
+    openGenericModal("Modifier l'email", html);
+}
+
+function saveEmail() {
+    var email = document.getElementById('newEmail').value.trim().toLowerCase();
+    var pw = document.getElementById('emailPw').value;
+    var err = document.getElementById('emailError');
+    var btn = document.getElementById('btnSaveEmail');
+
+    if (!email || email.indexOf('@') === -1) { err.textContent = 'Email invalide.'; err.style.display='block'; return; }
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Mise à jour...';
+
+    fetch('/api/settings/change-email', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: email, password: pw})
+    }).then(r => r.json()).then(data => {
+        if (data.success) { closeGenericModal(); showToast(data.message); }
+        else { err.textContent = data.message; err.style.display = 'block'; }
+    }).catch(function() { err.textContent = 'Erreur réseau.'; err.style.display = 'block'; })
+    .finally(function() { btn.disabled = false; btn.innerHTML = 'Mettre à jour'; });
+}
+
+// ========== PIN ==========
+function openChangePin() {
+    var html = '<div class="form-group"><label>Mot de passe (vérification)</label><input type="password" id="pinPw" placeholder="Votre mot de passe"></div>';
+    html += '<div class="form-group"><label>Nouveau PIN (4-6 chiffres)</label><input type="password" id="newPin" maxlength="6" placeholder="0000 - 999999" inputmode="numeric" pattern="[0-9]*"></div>';
+    html += '<div class="form-group"><label>Confirmer le PIN</label><input type="password" id="confirmPin" maxlength="6" placeholder="Répéter le PIN" inputmode="numeric" pattern="[0-9]*"></div>';
+    html += '<div class="modal-error" id="pinError"></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSavePin" onclick="savePin()">Définir le PIN</button></div>';
+    openGenericModal('Changer le PIN de transaction', html);
+}
+
+function savePin() {
+    var pw = document.getElementById('pinPw').value;
+    var pin = document.getElementById('newPin').value;
+    var cpin = document.getElementById('confirmPin').value;
+    var err = document.getElementById('pinError');
+    var btn = document.getElementById('btnSavePin');
+
+    if (!pw || !pin || !cpin) { err.textContent = 'Tous les champs sont obligatoires.'; err.style.display='block'; return; }
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Définition...';
+
+    fetch('/api/settings/change-pin', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: pw, pin: pin, confirm_pin: cpin})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            closeGenericModal();
+            showToast(data.message);
+            location.reload();
+        } else { err.textContent = data.message; err.style.display = 'block'; }
+    }).catch(function() { err.textContent = 'Erreur réseau.'; err.style.display = 'block'; })
+    .finally(function() { btn.disabled = false; btn.innerHTML = 'Définir le PIN'; });
+}
+
+// ========== LANGUAGE ==========
+function openLanguageSelector() {
+    var currentLang = '{{ user.language or "fr" }}';
+    var html = '<div class="form-group"><label>Choisissez votre langue</label><select id="langSelect">';
+    html += '<option value="fr"' + (currentLang === 'fr' ? ' selected' : '') + '>🇫🇷 Français</option>';
+    html += '<option value="en"' + (currentLang === 'en' ? ' selected' : '') + '>🇬🇧 English</option>';
+    html += '</select></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSaveLang" onclick="saveLanguage()">Enregistrer</button></div>';
+    openGenericModal('Langue', html);
+}
+
+function saveLanguage() {
+    var lang = document.getElementById('langSelect').value;
+    var btn = document.getElementById('btnSaveLang');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Enregistrement...';
+
+    fetch('/api/settings/update-preferences', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({language: lang, currency: '{{ user.currency or "XOF" }}'})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('langLabel').textContent = lang === 'fr' ? 'Français' : 'English';
+            document.getElementById('langTag').textContent = lang.toUpperCase();
+            closeGenericModal();
+            showToast(data.message);
+        }
+    }).finally(function() { btn.disabled = false; btn.innerHTML = 'Enregistrer'; });
+}
+
+// ========== CURRENCY ==========
+function openCurrencySelector() {
+    var currencies = ['XOF','XAF','CDF','UGX'];
+    var current = '{{ user.currency or "XOF" }}';
+    var opts = '';
+    currencies.forEach(function(c) { opts += '<option value="' + c + '"' + (c === current ? ' selected' : '') + '>' + c + '</option>'; });
+    var html = '<div class="form-group"><label>Devise par défaut</label><select id="currencySelect">' + opts + '</select></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSaveCurr" onclick="saveCurrency()">Enregistrer</button></div>';
+    openGenericModal('Devise par défaut', html);
+}
+
+function saveCurrency() {
+    var cur = document.getElementById('currencySelect').value;
+    var btn = document.getElementById('btnSaveCurr');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Enregistrement...';
+
+    fetch('/api/settings/update-preferences', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({language: '{{ user.language or "fr" }}', currency: cur})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('currencyLabel').textContent = data.currency;
+            document.getElementById('currencyTag').textContent = data.currency;
+            closeGenericModal();
+            showToast(data.message);
+        }
+    }).finally(function() { btn.disabled = false; btn.innerHTML = 'Enregistrer'; });
+}
+
+// ========== NOTIFICATIONS ==========
+function toggleNotif(type) {
+    var tagId = {sms:'tagSMS',email:'tagEmail',push:'tagPush',vibrate:'tagVibrate'}[type];
+    var tag = document.getElementById(tagId);
+    var prefs = JSON.parse(localStorage.getItem('transafrik-notifs') || '{"sms":true,"email":true,"push":false,"vibrate":true}');
+    prefs[type] = !prefs[type];
+    localStorage.setItem('transafrik-notifs', JSON.stringify(prefs));
+    if (prefs[type]) { tag.textContent = 'Activé'; tag.className = 'tag on'; }
+    else { tag.textContent = 'Désactivé'; tag.className = 'tag off'; }
+    showToast('Notification ' + (prefs[type] ? 'activée' : 'désactivée') + '.');
+}
+
+// ========== SESSION INFO ==========
+function openSessionInfo() {
+    var html = '<div style="text-align:center;padding:20px"><span class="spinner-inline" style="border-color:var(--blue-light);border-top-color:var(--blue);width:32px;height:32px"></span><p style="margin-top:12px;color:var(--text-4)">Chargement...</p></div>';
+    openGenericModal('Session & Connexions', html);
+
+    fetch('/api/settings/session-info').then(r => r.json()).then(data => {
+        if (!data.success) { closeGenericModal(); showToast('Impossible de récupérer les infos.', true); return; }
+        var ua = data.user_agent || 'Inconnu';
+        var shortUa = ua.length > 60 ? ua.substring(0, 60) + '...' : ua;
+        var content = '<div class="profile-info-grid" style="text-align:left">';
+        content += '<div class="profile-info-item"><div class="profile-info-label">Adresse IP</div><div class="profile-info-value">' + (data.ip || 'Non disponible') + '</div></div>';
+        content += '<div class="profile-info-item"><div class="profile-info-label">Navigateur</div><div class="profile-info-value" style="font-size:11px">' + shortUa + '</div></div>';
+        content += '<div class="profile-info-item"><div class="profile-info-label">Dernière connexion</div><div class="profile-info-value">' + (data.last_login ? new Date(data.last_login).toLocaleString('fr') : '—') + '</div></div>';
+        content += '<div class="profile-info-item"><div class="profile-info-label">Membre depuis</div><div class="profile-info-value">' + (data.created_at ? new Date(data.created_at).toLocaleDateString('fr') : '—') + '</div></div>';
+        content += '</div>';
+        content += '<div style="text-align:right;margin-top:16px"><button class="btn btn-outline" onclick="closeGenericModal()">Fermer</button></div>';
+        document.getElementById('genericModalContent').innerHTML = '<h3>Session & Connexions</h3>' + content;
+    }).catch(function() { closeGenericModal(); showToast('Erreur réseau.', true); });
+}
+
+// ========== EXPORT DATA ==========
+function exportMyData() {
+    var html = '<div style="text-align:center;padding:20px"><span class="spinner-inline" style="border-color:var(--blue-light);border-top-color:var(--blue);width:32px;height:32px"></span><p style="margin-top:12px;color:var(--text-4)">Préparation de vos données...</p></div>';
+    openGenericModal('Télécharger mes données', html);
+
+    fetch('/api/settings/export-data').then(r => r.json()).then(data => {
+        if (!data.success) { closeGenericModal(); showToast('Erreur lors de l\'export.', true); return; }
+        var blob = new Blob([JSON.stringify(data.data, null, 2)], {type: 'application/json'});
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'transafrik-data-' + new Date().toISOString().split('T')[0] + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        closeGenericModal();
+        showToast('Données téléchargées avec succès !');
+    }).catch(function() { closeGenericModal(); showToast('Erreur réseau.', true); });
+}
+
+// ========== REPORT PROBLEM ==========
+function openReportProblem() {
+    var html = '<div class="form-group"><label>Sujet</label><input type="text" id="reportSubject" placeholder="Ex: Bug lors d\'un transfert"></div>';
+    html += '<div class="form-group"><label>Description</label><textarea id="reportDesc" placeholder="Décrivez le problème en détail..."></textarea></div>';
+    html += '<div class="modal-error" id="reportError"></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-primary" id="btnSendReport" onclick="sendReport()">Envoyer</button></div>';
+    openGenericModal('Signaler un problème', html);
+}
+
+function sendReport() {
+    var subject = document.getElementById('reportSubject').value.trim();
+    var desc = document.getElementById('reportDesc').value.trim();
+    var err = document.getElementById('reportError');
+    var btn = document.getElementById('btnSendReport');
+
+    if (!subject || !desc) { err.textContent = 'Veuillez remplir tous les champs.'; err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Envoi...';
+
+    fetch('/api/settings/report-problem', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({subject: subject, description: desc})
+    }).then(r => r.json()).then(data => {
+        closeGenericModal();
+        showToast(data.message, !data.success);
+    }).catch(function() {
+        err.textContent = 'Erreur réseau.';
+        err.style.display = 'block';
+    }).finally(function() { btn.disabled = false; btn.innerHTML = 'Envoyer'; });
+}
+
+// ========== DELETE ACCOUNT ==========
+function openDeleteAccount() {
+    var html = '<p style="margin-bottom:16px;color:var(--red);font-weight:600">⚠️ Cette action est irréversible.</p>';
+    html += '<div class="form-group"><label>Confirmez votre mot de passe</label><input type="password" id="deletePw" placeholder="Votre mot de passe"></div>';
+    html += '<div class="modal-error" id="deleteError"></div>';
+    html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeGenericModal()">Annuler</button><button class="btn btn-danger" id="btnDeleteAccount" onclick="confirmDeleteAccount()">Supprimer définitivement</button></div>';
+    openGenericModal('Supprimer mon compte', html);
+}
+
+function confirmDeleteAccount() {
+    var pw = document.getElementById('deletePw').value;
+    var err = document.getElementById('deleteError');
+    var btn = document.getElementById('btnDeleteAccount');
+
+    if (!pw) { err.textContent = 'Veuillez saisir votre mot de passe.'; err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Suppression...';
+
+    fetch('/api/settings/delete-account', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: pw})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            window.location.href = data.redirect || '/';
+        } else {
+            err.textContent = data.message;
+            err.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = 'Supprimer définitivement';
+        }
+    }).catch(function() { err.textContent = 'Erreur réseau.'; err.style.display = 'block'; btn.disabled = false; btn.innerHTML = 'Supprimer définitivement'; });
+}
 
 // ========== LOGOUT ==========
 function confirmLogout() {
-    openModal('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter ?', function() {
+    openConfirm('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter ?', function() {
         window.location.href = '/logout';
     });
 }
 
-// ========== DELETE ACCOUNT ==========
-function confirmDeleteAccount() {
-    openModal('Supprimer mon compte', '⚠️ Cette action est irréversible. Toutes vos données, transactions et bénéficiaires seront définitivement supprimés. Êtes-vous absolument sûr ?', function() {
-        showToast('Fonctionnalité de suppression disponible prochainement.', true);
-    });
+// ========== 2FA ==========
+function toggle2FA() {
+    var cb = document.getElementById('twoFactorCheckbox');
+    localStorage.setItem('transafrik-2fa', cb.checked ? '1' : '0');
+    showToast(cb.checked ? '2FA activé.' : '2FA désactivé.');
+}
+
+// ========== CONTENT HELPERS ==========
+function openPrivacyPolicy() {
+    openContentModal('Politique de confidentialite', 'Politique de confidentialite \u2013 TransAfrik',
+        'Vos donnees personnelles sont collectees uniquement pour le traitement de vos transferts. ' +
+        'Nous ne partageons jamais vos informations avec des tiers sans votre consentement explicite. ' +
+        'Conformement au RGPD, vous pouvez demander la suppression de vos donnees a tout moment via la zone dangereuse ou en contactant notre support.');
+}
+
+function openTerms() {
+    openContentModal('Conditions d\'utilisation', 'Conditions Generales d\'Utilisation \u2013 TransAfrik',
+        '1. Les transferts sont traites via les operateurs partenaires.\n' +
+        '2. Des frais de service s\'appliquent selon les montants.\n' +
+        '3. Les fonds sont proteges et securises.\n' +
+        '4. Toute utilisation frauduleuse entrainera la suspension du compte.\n' +
+        '5. Les taux de change sont applicables aux transferts internationaux.');
+}
+
+function openCookies() {
+    openContentModal('Gestion des cookies', 'Cookies \u2013 TransAfrik',
+        'Nous utilisons des cookies essentiels pour le bon fonctionnement de la plateforme (session, securite, preferences de langue et de theme). ' +
+        'Aucun cookie publicitaire ou de tracking tiers n\'est utilise. ' +
+        'Vous pouvez effacer vos cookies a tout moment via les parametres de votre navigateur.');
+}
+
+function openFAQ() {
+    openContentModal('FAQ', 'Questions frequentes \u2013 TransAfrik',
+        'Q : Quels sont les delais de transfert ?\n' +
+        'R : Instantane a 24h selon l\'operateur.\n\n' +
+        'Q : Puis-je annuler un transfert ?\n' +
+        'R : Oui, tant qu\'il est au statut Cre\u00e9 ou En attente.\n\n' +
+        'Q : Quels operateurs sont supportes ?\n' +
+        'R : TMoney, Moov, MTN MoMo, Orange Money, Wave, Airtel, Vodacom, Free, Wizall, Zamtel.\n\n' +
+        'Q : Y a-t-il des frais caches ?\n' +
+        'R : Non, tous les frais sont affiches avant confirmation.');
+}
+
+function openHelpCenter() {
+    openContentModal('Centre d\'aide', 'Centre d\'aide \u2013 TransAfrik',
+        'Bienvenue sur le centre d\'aide TransAfrik.\n\n' +
+        '1. Cr\u00e9er un transfert : allez dans Envoyer, selectionnez le pays et l\'operateur, entrez le montant.\n' +
+        '2. Ajouter un beneficiaire : dans Beneficiaires, cliquez sur +.\n' +
+        '3. Depot : rechargez votre portefeuille via Mobile Money.\n' +
+        '4. QR Code : scannez pour envoyer rapidement.\n\n' +
+        'Pour plus d\'aide, contactez notre support.');
 }
 
 // ========== SECURITY SCORE ==========
 (function computeSecurity() {
     var checks = document.querySelectorAll('.security-item.checked');
-    var total = document.querySelectorAll('.security-item').length || 6;
+    var total = document.querySelectorAll('.security-item').length || 5;
     var pct = Math.round((checks.length / total) * 100);
     document.getElementById('securityPercent').textContent = pct + '%';
     document.getElementById('securityBar').style.width = pct + '%';
@@ -732,9 +1114,30 @@ function confirmDeleteAccount() {
 // ========== INIT ==========
 setTheme(getTheme());
 
-// ========== KEYBOARD ESC TO CLOSE MODAL ==========
+// Restore notification prefs
+(function initNotifs() {
+    var prefs = JSON.parse(localStorage.getItem('transafrik-notifs') || '{"sms":true,"email":true,"push":false,"vibrate":true}');
+    ['sms','email','push','vibrate'].forEach(function(type) {
+        var tagId = {sms:'tagSMS',email:'tagEmail',push:'tagPush',vibrate:'tagVibrate'}[type];
+        var tag = document.getElementById(tagId);
+        if (tag) {
+            if (prefs[type]) { tag.textContent = 'Activé'; tag.className = 'tag on'; }
+            else { tag.textContent = 'Désactivé'; tag.className = 'tag off'; }
+        }
+    });
+})();
+
+// Restore 2FA pref
+(function() {
+    var twoFA = document.getElementById('twoFactorCheckbox');
+    if (twoFA) {
+        var saved = localStorage.getItem('transafrik-2fa');
+        if (saved !== null) twoFA.checked = (saved === '1');
+    }
+})();
+
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') { closeGenericModal(); closeConfirm(); }
 });
 </script>
 </body>

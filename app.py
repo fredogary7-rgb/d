@@ -1578,6 +1578,15 @@ def api_qrcode_history():
     return jsonify({'success': True, 'history': history})
 
 
+# ==================== SETTINGS / PARAMÈTRES ====================
+
+@app.route('/settings')
+@login_required
+def settings_page():
+    """Page paramètres du compte."""
+    return render_template('settings.html', user=current_user)
+
+
 # ==================== CONVERTISSEUR DE DEVISES ====================
 
 @app.route('/converter')
@@ -1695,6 +1704,222 @@ def api_converter():
     app.logger.info(f'[CONVERTER] Résultat : {amount} {from_currency} = {converted_value} {to_currency} (taux: {rate})')
     app.logger.info('=' * 45)
     return jsonify(result)
+
+
+# ==================== API PARAMÈTRES / SETTINGS ====================
+
+@app.route('/api/settings/update-profile', methods=['POST'])
+@login_required
+def api_update_profile():
+    """Mettre à jour le nom et le pays."""
+    data = request.get_json()
+    fullname = data.get('fullname', '').strip()
+    country = data.get('country', '').strip()
+
+    if not fullname or len(fullname) < 2:
+        return jsonify({'success': False, 'message': 'Le nom doit contenir au moins 2 caractères.'}), 400
+    if not country:
+        return jsonify({'success': False, 'message': 'Veuillez sélectionner un pays.'}), 400
+
+    current_user.fullname = fullname
+    current_user.country = country.upper()
+    db.session.commit()
+    app.logger.info(f'[SETTINGS] Profil mis à jour : {fullname}, {country}')
+    return jsonify({
+        'success': True,
+        'message': 'Profil mis à jour avec succès.',
+        'fullname': fullname,
+        'country': country.upper(),
+    })
+
+
+@app.route('/api/settings/change-password', methods=['POST'])
+@login_required
+def api_change_password():
+    """Changer le mot de passe."""
+    data = request.get_json()
+    current_pw = data.get('current_password', '')
+    new_pw = data.get('new_password', '')
+    confirm_pw = data.get('confirm_password', '')
+
+    if not current_pw or not new_pw or not confirm_pw:
+        return jsonify({'success': False, 'message': 'Tous les champs sont obligatoires.'}), 400
+    if not check_password_hash(current_user.password_hash, current_pw):
+        return jsonify({'success': False, 'message': 'Mot de passe actuel incorrect.'}), 400
+    if len(new_pw) < 8:
+        return jsonify({'success': False, 'message': 'Le nouveau mot de passe doit contenir au moins 8 caractères.'}), 400
+    if new_pw != confirm_pw:
+        return jsonify({'success': False, 'message': 'Les mots de passe ne correspondent pas.'}), 400
+
+    current_user.password_hash = generate_password_hash(new_pw)
+    db.session.commit()
+    app.logger.info(f'[SETTINGS] Mot de passe changé pour {current_user.email}')
+    return jsonify({'success': True, 'message': 'Mot de passe mis à jour avec succès.'})
+
+
+@app.route('/api/settings/change-phone', methods=['POST'])
+@login_required
+def api_change_phone():
+    """Changer le numéro de téléphone."""
+    data = request.get_json()
+    new_phone = data.get('phone', '').strip()
+
+    if not new_phone or len(new_phone) < 7:
+        return jsonify({'success': False, 'message': 'Numéro de téléphone invalide.'}), 400
+
+    # Vérifier si le numéro est déjà utilisé
+    existing = User.query.filter_by(phone=new_phone).first()
+    if existing and existing.id != current_user.id:
+        return jsonify({'success': False, 'message': 'Ce numéro est déjà utilisé.'}), 400
+
+    current_user.phone = new_phone
+    db.session.commit()
+    app.logger.info(f'[SETTINGS] Téléphone changé pour {current_user.email}: {new_phone}')
+    return jsonify({'success': True, 'message': 'Numéro mis à jour avec succès.', 'phone': new_phone})
+
+
+@app.route('/api/settings/change-email', methods=['POST'])
+@login_required
+def api_change_email():
+    """Changer l'adresse email."""
+    data = request.get_json()
+    new_email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+
+    if not new_email or '@' not in new_email:
+        return jsonify({'success': False, 'message': 'Adresse email invalide.'}), 400
+    if not check_password_hash(current_user.password_hash, password):
+        return jsonify({'success': False, 'message': 'Mot de passe incorrect.'}), 400
+
+    existing = User.query.filter_by(email=new_email).first()
+    if existing and existing.id != current_user.id:
+        return jsonify({'success': False, 'message': 'Cet email est déjà utilisé.'}), 400
+
+    current_user.email = new_email
+    db.session.commit()
+    app.logger.info(f'[SETTINGS] Email changé : {current_user.email}')
+    return jsonify({'success': True, 'message': 'Email mis à jour avec succès.', 'email': new_email})
+
+
+@app.route('/api/settings/change-pin', methods=['POST'])
+@login_required
+def api_change_pin():
+    """Changer le code PIN de transaction (4-6 chiffres)."""
+    data = request.get_json()
+    password = data.get('password', '')
+    new_pin = data.get('pin', '')
+    confirm_pin = data.get('confirm_pin', '')
+
+    if not password or not new_pin:
+        return jsonify({'success': False, 'message': 'Tous les champs sont obligatoires.'}), 400
+    if not check_password_hash(current_user.password_hash, password):
+        return jsonify({'success': False, 'message': 'Mot de passe incorrect.'}), 400
+    if not new_pin.isdigit() or len(new_pin) < 4 or len(new_pin) > 6:
+        return jsonify({'success': False, 'message': 'Le PIN doit contenir 4 à 6 chiffres.'}), 400
+    if new_pin != confirm_pin:
+        return jsonify({'success': False, 'message': 'Les PIN ne correspondent pas.'}), 400
+
+    current_user.pin_hash = generate_password_hash(new_pin)
+    db.session.commit()
+    app.logger.info(f'[SETTINGS] PIN changé pour {current_user.email}')
+    return jsonify({'success': True, 'message': 'PIN de transaction mis à jour avec succès.'})
+
+
+@app.route('/api/settings/update-preferences', methods=['POST'])
+@login_required
+def api_update_preferences():
+    """Mettre à jour la langue et la devise."""
+    data = request.get_json()
+    lang = data.get('language', 'fr')
+    currency = data.get('currency', 'XOF')
+
+    if lang not in ('fr', 'en'):
+        return jsonify({'success': False, 'message': 'Langue invalide.'}), 400
+
+    current_user.language = lang
+    current_user.currency = currency
+    db.session.commit()
+    app.logger.info(f'[SETTINGS] Préférences mises à jour : lang={lang}, currency={currency}')
+    return jsonify({
+        'success': True,
+        'message': 'Préférences mises à jour.',
+        'language': lang,
+        'currency': currency,
+    })
+
+
+@app.route('/api/settings/export-data')
+@login_required
+def api_export_data():
+    """Exporter toutes les données de l'utilisateur au format JSON."""
+    user_data = {
+        'fullname': current_user.fullname,
+        'email': current_user.email,
+        'phone': current_user.phone,
+        'country': current_user.country,
+        'currency': current_user.currency,
+        'balance': current_user.balance,
+        'pending_balance': current_user.pending_balance,
+        'kyc_status': current_user.kyc_status,
+        'language': current_user.language,
+        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
+        'last_login': current_user.last_login.isoformat() if current_user.last_login else None,
+        'transactions_count': current_user.tx_count,
+        'beneficiaries_count': current_user.beneficiary_count,
+        'total_sent': current_user.total_sent,
+        'total_received': current_user.total_received,
+    }
+    app.logger.info(f'[SETTINGS] Export données pour {current_user.email}')
+    return jsonify({'success': True, 'data': user_data})
+
+
+@app.route('/api/settings/report-problem', methods=['POST'])
+@login_required
+def api_report_problem():
+    """Signaler un problème."""
+    data = request.get_json()
+    subject = data.get('subject', '').strip()
+    description = data.get('description', '').strip()
+
+    if not subject or not description:
+        return jsonify({'success': False, 'message': 'Veuillez remplir tous les champs.'}), 400
+
+    # En production, on enverrait un email ou créerait un ticket
+    app.logger.warning(f'[REPORT] {current_user.email}: {subject} — {description}')
+    return jsonify({'success': True, 'message': 'Merci ! Votre signalement a été enregistré. Notre équipe vous contactera dans les plus brefs délais.'})
+
+
+@app.route('/api/settings/delete-account', methods=['POST'])
+@login_required
+def api_delete_account():
+    """Supprimer le compte (soft delete)."""
+    data = request.get_json()
+    password = data.get('password', '')
+
+    if not check_password_hash(current_user.password_hash, password):
+        return jsonify({'success': False, 'message': 'Mot de passe incorrect.'}), 400
+
+    current_user.is_deleted = True
+    current_user.is_active = False
+    db.session.commit()
+    logout_user()
+    app.logger.warning(f'[SETTINGS] Compte supprimé (soft) : {current_user.email}')
+    return jsonify({'success': True, 'message': 'Compte supprimé avec succès.', 'redirect': url_for('index')})
+
+
+@app.route('/api/settings/session-info')
+@login_required
+def api_session_info():
+    """Infos sur la session actuelle."""
+    user_agent = request.headers.get('User-Agent', 'Inconnu')
+    ip = request.remote_addr
+    return jsonify({
+        'success': True,
+        'ip': ip,
+        'user_agent': user_agent,
+        'last_login': current_user.last_login.isoformat() if current_user.last_login else None,
+        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
+    })
 
 
 # ==================== PAGE 404 ====================

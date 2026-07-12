@@ -29,6 +29,10 @@ class User(db.Model, UserMixin):
     profile_picture = db.Column(db.String(255), nullable=True)
     kyc_status = db.Column(db.String(20), default='pending')   # pending | verified | rejected
     referral_code = db.Column(db.String(30), unique=True, default=generate_referral_code)
+    last_login = db.Column(db.DateTime, nullable=True)          # dernière connexion
+    language = db.Column(db.String(5), default='fr')            # fr | en
+    pin_hash = db.Column(db.String(255), nullable=True)         # code PIN transaction
+    is_deleted = db.Column(db.Boolean, default=False)           # soft delete
     qr_identifier = db.Column(db.String(20), unique=True, nullable=True)  # TA-XXXX
 
     # Relations
