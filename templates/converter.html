@@ -368,11 +368,11 @@ async function doConvert() {
         var res = await fetch('/api/converter?amount=' + encodeURIComponent(amount) + '&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to));
         var data = await res.json();
 
-        if (!data.success) {
-            showError(data.message || 'Erreur lors de la conversion.');
+        if (!data.success || data.result === undefined || data.rate === undefined) {
+            showError(data.message || 'Impossible de recuperer le taux de change.');
         } else {
-            var converted = data.result || data.converted_amount || (data.rate ? amount * data.rate : amount);
-            var rate = data.rate || (converted / amount);
+            var converted = data.result;
+            var rate = data.rate;
 
             document.getElementById('resultFrom').textContent = fmt(amount) + ' ' + from;
             document.getElementById('resultTo').textContent = fmt(converted) + ' ' + to;
@@ -450,9 +450,8 @@ async function loadPopularRates() {
         try {
             var res = await fetch('/api/converter?amount=1&from=' + pair[0] + '&to=' + pair[1]);
             var data = await res.json();
-            if (data.success) {
-                var rate = data.rate || data.result || '—';
-                grid.children[i].innerHTML = '<div class="pc-pair">' + pair[0] + ' → ' + pair[1] + '</div><div class="pc-rate">' + fmt(rate) + '</div>';
+            if (data.success && data.rate !== undefined) {
+                grid.children[i].innerHTML = '<div class="pc-pair">' + pair[0] + ' → ' + pair[1] + '</div><div class="pc-rate">' + fmt(data.rate) + '</div>';
             } else {
                 grid.children[i].innerHTML = '<div class="pc-pair">' + pair[0] + ' → ' + pair[1] + '</div><div class="pc-rate" style="color:var(--text-4)">—</div>';
             }

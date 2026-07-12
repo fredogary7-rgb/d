@@ -1590,27 +1590,36 @@ def converter_page():
 @app.route('/api/converter')
 @login_required
 def api_converter():
-    """Endpoint API : conversion de devise via SoleasPay."""
-    amount = request.args.get('amount', '1')
+    """Endpoint API : conversion de devise via SoleasPay.
+    Format attendu de SoleasPay : {"success": true, "data": {"USD": "1.741196"}}
+    Format renvoyé au frontend : {"success": true, "amount": 1000, "from": "XOF", "to": "USD", "result": 1.74, "rate": 0.00174}
+    """
+    import time as time_mod
+    t0 = time_mod.time()
+
+    raw_amount = request.args.get('amount', '1')
     from_currency = request.args.get('from', 'USD')
     to_currency = request.args.get('to', 'XOF')
 
     # Validation du montant
     try:
-        amount = float(amount)
+        amount = float(raw_amount)
         if amount <= 0:
+            app.logger.warning(f'[CONVERTER] Montant invalide: {raw_amount}')
             return jsonify({'success': False, 'message': 'Montant invalide.'}), 400
     except (ValueError, TypeError):
+        app.logger.warning(f'[CONVERTER] Montant non numérique: {raw_amount}')
         return jsonify({'success': False, 'message': 'Montant invalide.'}), 400
 
-    # Validation des codes devise
     from_currency = from_currency.upper().strip()
     to_currency = to_currency.upper().strip()
 
     if not from_currency or not to_currency:
         return jsonify({'success': False, 'message': 'Devises requises.'}), 400
 
+    # Cas même devise : pas d'appel API
     if from_currency == to_currency:
+        app.logger.info(f'[CONVERTER] Même devise {from_currency} — taux 1:1')
         return jsonify({
             'success': True,
             'amount': amount,
@@ -1619,17 +1628,72 @@ def api_converter():
             'result': amount,
             'rate': 1.0,
             'timestamp': datetime.utcnow().isoformat(),
+            'source': 'passthrough',
         })
 
-    from services.soleaspay import convert_currency
-    result = convert_currency(amount=amount, from_currency=from_currency, to_currency=to_currency)
+    app.logger.info('=' * 45)
+    app.logger.info(f'[CONVERTER] Amount : {amount}')
+    app.logger.info(f'[CONVERTER] From   : {from_currency}')
+    app.logger.info(f'[CONVERTER] To     : {to_currency}')
 
-    if result.get('success') is False:
+    from services.soleaspay import convert_currency
+    raw = convert_currency(amount=amount, from_currency=from_currency, to_currency=to_currency)
+
+    elapsed = round((time_mod.time() - t0) * 1000)
+    app.logger.info(f'[CONVERTER] Temps SoleasPay : {elapsed} ms')
+    app.logger.info(f'[CONVERTER] Réponse brute    : {raw}')
+
+    # Erreur réseau / timeout
+    if not raw.get('success'):
+        app.logger.error(f'[CONVERTER] ÉCHEC — {raw.get("message")}')
         return jsonify({
             'success': False,
-            'message': result.get('message', 'Erreur SoleasPay.')
+            'message': 'Impossible de récupérer le taux de change.',
         }), 502
 
+    # Parser la structure SoleasPay : {"success": true, "data": {"USD": "1.741196"}}
+    data_block = raw.get('data', {})
+    if not isinstance(data_block, dict) or not data_block:
+        app.logger.error(f'[CONVERTER] Bloc data absent ou invalide: {raw}')
+        return jsonify({
+            'success': False,
+            'message': 'Impossible de récupérer le taux de change.',
+        }), 502
+
+    # La clé dans data est le code de la devise cible (ex: "USD")
+    converted_value = data_block.get(to_currency)
+    if converted_value is None:
+        app.logger.error(f'[CONVERTER] Clé {to_currency} absente de data: {data_block}')
+        return jsonify({
+            'success': False,
+            'message': 'Impossible de récupérer le taux de change.',
+        }), 502
+
+    try:
+        converted_value = float(converted_value)
+    except (ValueError, TypeError):
+        app.logger.error(f'[CONVERTER] Valeur non numérique: {converted_value}')
+        return jsonify({
+            'success': False,
+            'message': 'Impossible de récupérer le taux de change.',
+        }), 502
+
+    rate = converted_value / amount
+
+    result = {
+        'success': True,
+        'amount': amount,
+        'from': from_currency,
+        'to': to_currency,
+        'result': converted_value,
+        'rate': rate,
+        'timestamp': datetime.utcnow().isoformat(),
+        'response_time_ms': elapsed,
+        'source': 'soleaspay',
+    }
+
+    app.logger.info(f'[CONVERTER] Résultat : {amount} {from_currency} = {converted_value} {to_currency} (taux: {rate})')
+    app.logger.info('=' * 45)
     return jsonify(result)
 
 
