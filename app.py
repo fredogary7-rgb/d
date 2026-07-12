@@ -1578,6 +1578,61 @@ def api_qrcode_history():
     return jsonify({'success': True, 'history': history})
 
 
+# ==================== CONVERTISSEUR DE DEVISES ====================
+
+@app.route('/converter')
+@login_required
+def converter_page():
+    """Page convertisseur de devises."""
+    return render_template('converter.html')
+
+
+@app.route('/api/converter')
+@login_required
+def api_converter():
+    """Endpoint API : conversion de devise via SoleasPay."""
+    amount = request.args.get('amount', '1')
+    from_currency = request.args.get('from', 'USD')
+    to_currency = request.args.get('to', 'XOF')
+
+    # Validation du montant
+    try:
+        amount = float(amount)
+        if amount <= 0:
+            return jsonify({'success': False, 'message': 'Montant invalide.'}), 400
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'message': 'Montant invalide.'}), 400
+
+    # Validation des codes devise
+    from_currency = from_currency.upper().strip()
+    to_currency = to_currency.upper().strip()
+
+    if not from_currency or not to_currency:
+        return jsonify({'success': False, 'message': 'Devises requises.'}), 400
+
+    if from_currency == to_currency:
+        return jsonify({
+            'success': True,
+            'amount': amount,
+            'from': from_currency,
+            'to': to_currency,
+            'result': amount,
+            'rate': 1.0,
+            'timestamp': datetime.utcnow().isoformat(),
+        })
+
+    from services.soleaspay import convert_currency
+    result = convert_currency(amount=amount, from_currency=from_currency, to_currency=to_currency)
+
+    if result.get('success') is False:
+        return jsonify({
+            'success': False,
+            'message': result.get('message', 'Erreur SoleasPay.')
+        }), 502
+
+    return jsonify(result)
+
+
 # ==================== PAGE 404 ====================
 
 @app.errorhandler(404)

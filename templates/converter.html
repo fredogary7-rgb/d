@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Convertisseur de devises — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#DBEAFE;--blue-glow:rgba(37,99,235,.25);
+            --green:#10B981;--green-light:#D1FAE5;--orange:#F97316;--red:#EF4444;--red-light:#FEE2E2;
+            --purple:#8B5CF6;--purple-light:#EDE9FE;
+            --bg:#F1F5F9;--surface:#FFFFFF;--surface-hover:#F8FAFC;
+            --text:#0F172A;--text-2:#334155;--text-3:#64748B;--text-4:#94A3B8;
+            --border:#E2E8F0;--shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow:0 8px 24px rgba(0,0,0,.06);--shadow-md:0 16px 40px rgba(0,0,0,.08);--shadow-xl:0 24px 64px rgba(0,0,0,.1);
+            --radius:14px;--radius-lg:20px;--radius-xl:28px;--transition:.3s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"]{
+            --bg:#0B1120;--surface:#111827;--surface-hover:#1F2937;
+            --text:#F1F5F9;--text-2:#CBD5E1;--text-3:#94A3B8;--text-4:#64748B;
+            --border:#1E293B;--shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow:0 8px 24px rgba(0,0,0,.3);--shadow-md:0 16px 40px rgba(0,0,0,.4);--shadow-xl:0 24px 64px rgba(0,0,0,.5);
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html,body{overflow-x:hidden;max-width:100vw;width:100%;overscroll-behavior-x:none;touch-action:pan-y pinch-zoom}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .5s,color .5s;line-height:1.6}
+        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none;color:inherit}
+
+        .header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);max-width:100vw}
+        .header-left{display:flex;align-items:center;gap:12px}
+        .back-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text-3);transition:all var(--transition)}
+        .back-btn:hover{color:var(--blue);transform:translateX(-3px)}
+        .header-title{font-size:17px;font-weight:700;font-family:'Outfit',sans-serif}
+
+        .container{max-width:720px;margin:0 auto;padding:24px 16px 80px}
+
+        /* Hero section */
+        .hero{text-align:center;padding:32px 0 24px;animation:fadeUp .5s ease-out;position:relative}
+        .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;background:linear-gradient(135deg,var(--blue-light),var(--purple-light));font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);margin-bottom:12px}
+        .hero h1{font-size:clamp(24px,5vw,36px);font-weight:900;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .hero p{font-size:14px;color:var(--text-3);margin-top:6px}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+        /* Floating currency animation */
+        .floating-icons{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:16px}
+        .f-icon{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:'Outfit',sans-serif;animation:floatIcon 4s ease-in-out infinite;box-shadow:var(--shadow-sm)}
+        .f-icon:nth-child(2){animation-delay:-.5s}.f-icon:nth-child(3){animation-delay:-1s}.f-icon:nth-child(4){animation-delay:-1.5s}.f-icon:nth-child(5){animation-delay:-2s}.f-icon:nth-child(6){animation-delay:-2.5s}.f-icon:nth-child(7){animation-delay:-3s}
+        @keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+        /* Main card */
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);padding:28px 24px;margin-bottom:24px;overflow:hidden;position:relative;animation:scaleIn .5s ease-out}
+        .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--green))}
+        .card-glass{background:rgba(255,255,255,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.3)}
+        [data-theme="dark"] .card-glass{background:rgba(17,24,39,.75);border-color:rgba(255,255,255,.06)}
+
+        /* Amount input */
+        .amount-section{margin-bottom:20px}
+        .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);margin-bottom:8px}
+        .amount-input{width:100%;padding:16px 18px;font-size:36px;font-weight:800;font-family:'Outfit',sans-serif;text-align:center;border:2px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);color:var(--text);transition:all var(--transition);outline:none}
+        .amount-input:focus{border-color:var(--blue);box-shadow:0 0 0 6px rgba(37,99,235,.08);background:var(--surface)}
+        .amount-input::placeholder{color:var(--text-4)}
+
+        /* Currency selects row */
+        .currency-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+        .currency-select{flex:1;min-width:0}
+        .currency-select select{width:100%;padding:14px 16px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;transition:all var(--transition)}
+        .currency-select select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.06)}
+        .swap-btn{width:48px;height:48px;border-radius:50%;border:2px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--blue);transition:all var(--transition);flex-shrink:0}
+        .swap-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);transform:rotate(180deg)}
+        .swap-btn.spin{animation:swapSpin .4s ease-in-out}
+        @keyframes swapSpin{from{transform:rotate(0deg)}to{transform:rotate(180deg)}}
+
+        /* Convert button */
+        .convert-btn{width:100%;padding:16px 24px;font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;border:none;border-radius:var(--radius);cursor:pointer;transition:all var(--transition);background:linear-gradient(135deg,var(--blue),var(--blue-dark),var(--green));background-size:200% 200%;color:#fff;animation:bgShift 6s ease-in-out infinite;box-shadow:0 8px 28px rgba(37,99,235,.3);display:flex;align-items:center;justify-content:center;gap:8px}
+        .convert-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(37,99,235,.4)}
+        .convert-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+        /* Result */
+        .result-card{display:none;background:linear-gradient(135deg,var(--surface-hover),var(--surface));border:1px solid var(--border);border-radius:var(--radius-xl);padding:24px;text-align:center;animation:scaleIn .5s ease-out;margin-top:16px}
+        .result-card.show{display:block}
+        .result-amount{font-size:clamp(28px,6vw,42px);font-weight:900;font-family:'Outfit',sans-serif;margin:4px 0}
+        .result-from{font-size:13px;color:var(--text-3)}
+        .result-equal{font-size:24px;color:var(--text-4);margin:8px 0}
+        .result-to{font-size:clamp(28px,6vw,42px);font-weight:900;font-family:'Outfit',sans-serif;color:var(--green)}
+        .result-rate{font-size:13px;color:var(--text-3);margin-top:12px;padding:8px 16px;background:var(--bg);border-radius:100px;display:inline-block}
+        .result-actions{display:flex;gap:8px;justify-content:center;margin-top:16px}
+        .result-action-btn{padding:10px 18px;border-radius:100px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-2);transition:all var(--transition);display:flex;align-items:center;gap:6px}
+        .result-action-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+
+        /* Loading */
+        .loading-spinner{display:none;text-align:center;padding:12px;color:var(--blue);font-size:13px;font-weight:600}
+        .loading-spinner.show{display:block}
+
+        /* Error */
+        .error-msg{display:none;background:var(--red-light);color:var(--red);padding:12px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;text-align:center;margin-top:12px}
+        .error-msg.show{display:block}
+
+        /* History */
+        .section-title{font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .section-title i{color:var(--blue)}
+        .history-list{display:flex;flex-direction:column;gap:8px}
+        .history-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all var(--transition);font-size:13px}
+        .history-item:hover{border-color:var(--blue);transform:translateX(4px);background:var(--surface-hover)}
+        .history-item .hi-from{font-weight:700;min-width:56px}
+        .history-item .hi-arrow{color:var(--text-4)}
+        .history-item .hi-to{font-weight:700;min-width:56px;color:var(--green)}
+        .history-item .hi-amount{font-weight:700;margin-left:auto}
+        .history-item .hi-rate{font-size:11px;color:var(--text-4)}
+        .no-history{text-align:center;color:var(--text-4);font-size:13px;padding:20px}
+
+        /* Popular rates */
+        .popular-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+        .popular-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;transition:all var(--transition);cursor:pointer}
+        .popular-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:var(--shadow)}
+        .popular-card .pc-pair{font-size:12px;font-weight:700;margin-bottom:4px}
+        .popular-card .pc-rate{font-size:18px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--green)}
+        .popular-card .pc-loading{font-size:12px;color:var(--text-4)}
+
+        @media(max-width:480px){
+            .card{padding:20px 16px}
+            .amount-input{font-size:28px;padding:14px}
+            .currency-row{flex-direction:column;gap:8px}
+            .swap-btn{align-self:center;transform:rotate(90deg)}
+            .swap-btn:hover{transform:rotate(270deg)}
+            .popular-grid{grid-template-columns:1fr 1fr}
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <a href="/dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <span class="header-title">Convertisseur de devises</span>
+    </div>
+    <a href="/dashboard" style="font-size:12px;color:var(--text-4);font-weight:500">
+        <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+</header>
+
+<main class="container">
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-badge"><i class="fa-solid fa-chart-line"></i> Taux en temps reel</div>
+        <h1>Convertisseur de devises</h1>
+        <p>Obtenez les taux de change en temps reel via SoleasPay.</p>
+        <div class="floating-icons">
+            <span class="f-icon">$</span><span class="f-icon">€</span><span class="f-icon">£</span>
+            <span class="f-icon">CFA</span><span class="f-icon">BTC</span><span class="f-icon">ETH</span>
+            <span class="f-icon">NGN</span>
+        </div>
+    </section>
+
+    <!-- Converter Card -->
+    <div class="card card-glass">
+        <!-- Amount -->
+        <div class="amount-section">
+            <div class="section-label">Montant</div>
+            <input type="number" class="amount-input" id="amountInput" value="1" min="0" step="any" placeholder="0">
+        </div>
+
+        <!-- From / To -->
+        <div class="currency-row">
+            <div class="currency-select">
+                <div class="section-label">De</div>
+                <select id="fromCurrency">
+                    <option value="USD">$ USD — Dollar US</option>
+                    <option value="EUR">€ EUR — Euro</option>
+                    <option value="XAF">XAF — Franc CFA (BEAC)</option>
+                    <option value="XOF" selected>XOF — Franc CFA (BCEAO)</option>
+                    <option value="CDF">CDF — Franc Congolais</option>
+                    <option value="UGX">UGX — Shilling Ougandais</option>
+                    <option value="KES">KES — Shilling Kenyan</option>
+                    <option value="NGN">NGN — Naira</option>
+                    <option value="GHS">GHS — Cedi</option>
+                    <option value="RWF">RWF — Franc Rwandais</option>
+                    <option value="ZMW">ZMW — Kwacha</option>
+                    <option value="SLE">SLE — Leone</option>
+                    <option value="MWK">MWK — Kwacha Malawien</option>
+                    <option value="MZN">MZN — Metical</option>
+                    <option value="GBP">£ GBP — Livre Sterling</option>
+                    <option value="AED">AED — Dirham</option>
+                    <option value="RUB">RUB — Rouble</option>
+                    <option value="CNY">CNY — Yuan</option>
+                    <option value="BTC">BTC — Bitcoin</option>
+                    <option value="ETH">ETH — Ethereum</option>
+                    <option value="DOGE">DOGE — Dogecoin</option>
+                    <option value="LTC">LTC — Litecoin</option>
+                    <option value="SPC">SPC — SpaceCoin</option>
+                </select>
+            </div>
+            <button class="swap-btn" id="swapBtn" title="Inverser les devises"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+            <div class="currency-select">
+                <div class="section-label">Vers</div>
+                <select id="toCurrency">
+                    <option value="USD" selected>USD — Dollar US</option>
+                    <option value="EUR">EUR — Euro</option>
+                    <option value="XAF">XAF — Franc CFA (BEAC)</option>
+                    <option value="XOF">XOF — Franc CFA (BCEAO)</option>
+                    <option value="CDF">CDF — Franc Congolais</option>
+                    <option value="UGX">UGX — Shilling Ougandais</option>
+                    <option value="KES">KES — Shilling Kenyan</option>
+                    <option value="NGN">NGN — Naira</option>
+                    <option value="GHS">GHS — Cedi</option>
+                    <option value="RWF">RWF — Franc Rwandais</option>
+                    <option value="ZMW">ZMW — Kwacha</option>
+                    <option value="SLE">SLE — Leone</option>
+                    <option value="MWK">MWK — Kwacha Malawien</option>
+                    <option value="MZN">MZN — Metical</option>
+                    <option value="GBP">GBP — Livre Sterling</option>
+                    <option value="AED">AED — Dirham</option>
+                    <option value="RUB">RUB — Rouble</option>
+                    <option value="CNY">CNY — Yuan</option>
+                    <option value="BTC">BTC — Bitcoin</option>
+                    <option value="ETH">ETH — Ethereum</option>
+                    <option value="DOGE">DOGE — Dogecoin</option>
+                    <option value="LTC">LTC — Litecoin</option>
+                    <option value="SPC">SPC — SpaceCoin</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Convert button -->
+        <button class="convert-btn" id="convertBtn" onclick="doConvert()">
+            <i class="fa-solid fa-rotate"></i> Convertir
+        </button>
+
+        <!-- Loading -->
+        <div class="loading-spinner" id="loading">
+            <i class="fa-solid fa-spinner fa-spin"></i> Conversion en cours...
+        </div>
+
+        <!-- Error -->
+        <div class="error-msg" id="errorMsg"></div>
+
+        <!-- Result -->
+        <div class="result-card" id="resultCard">
+            <div class="result-from" id="resultFrom">1 XOF =</div>
+            <div class="result-equal">=</div>
+            <div class="result-to" id="resultTo">0.0016 USD</div>
+            <div class="result-rate" id="resultRate">Taux : 1 XOF = 0.0016 USD</div>
+            <div class="result-actions">
+                <button class="result-action-btn" onclick="copyResult()"><i class="fa-solid fa-copy"></i> Copier</button>
+                <button class="result-action-btn" onclick="shareResult()"><i class="fa-solid fa-share-nodes"></i> Partager</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Rates -->
+    <section>
+        <h3 class="section-title"><i class="fa-solid fa-star"></i> Taux populaires aujourd'hui</h3>
+        <div class="popular-grid" id="popularGrid">
+            <div class="popular-card"><div class="pc-pair">USD → XOF</div><div class="pc-loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+            <div class="popular-card"><div class="pc-pair">EUR → XOF</div><div class="pc-loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+            <div class="popular-card"><div class="pc-pair">USD → XAF</div><div class="pc-loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+            <div class="popular-card"><div class="pc-pair">EUR → XAF</div><div class="pc-loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+            <div class="popular-card"><div class="pc-pair">XOF → USD</div><div class="pc-loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+            <div class="popular-card"><div class="pc-pair">XAF → EUR</div><div class="pc-loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+        </div>
+    </section>
+
+    <!-- History -->
+    <section style="margin-top:28px">
+        <h3 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Dernieres conversions</h3>
+        <div class="history-list" id="historyList">
+            <div class="no-history">Aucune conversion recente.</div>
+        </div>
+    </section>
+
+</main>
+
+<script>
+// ========== DEBOUNCE ==========
+let debounceTimer = null;
+function debounce(fn, delay) {
+    return function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fn, delay);
+    };
+}
+
+// ========== FORMAT NUMBER ==========
+function fmt(n) {
+    if (n === null || n === undefined) return '—';
+    if (Math.abs(n) < 0.000001 && n !== 0) return n.toFixed(8);
+    if (Math.abs(n) < 0.01) return n.toFixed(6);
+    if (Math.abs(n) < 1) return n.toFixed(4);
+    if (Math.abs(n) >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+    return n.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+}
+
+// ========== LOCAL STORAGE HISTORY ==========
+function getHistory() {
+    try { return JSON.parse(localStorage.getItem('ta_converter_history') || '[]'); } catch(e) { return []; }
+}
+function saveHistory(item) {
+    var h = getHistory();
+    h.unshift(item);
+    if (h.length > 10) h = h.slice(0, 10);
+    localStorage.setItem('ta_converter_history', JSON.stringify(h));
+    renderHistory();
+}
+function renderHistory() {
+    var h = getHistory();
+    var el = document.getElementById('historyList');
+    if (h.length === 0) {
+        el.innerHTML = '<div class="no-history">Aucune conversion recente.</div>';
+        return;
+    }
+    el.innerHTML = h.map(function(it, i) {
+        return '<div class="history-item" onclick="replayHistory(' + i + ')">' +
+            '<span class="hi-amount">' + fmt(it.amount) + '</span>' +
+            '<span class="hi-from">' + it.from + '</span>' +
+            '<span class="hi-arrow"><i class="fa-solid fa-arrow-right"></i></span>' +
+            '<span class="hi-to">' + it.to + '</span>' +
+            '<span class="hi-rate">= ' + fmt(it.result) + ' ' + it.to + '</span>' +
+            '</div>';
+    }).join('');
+}
+function replayHistory(index) {
+    var h = getHistory();
+    if (!h[index]) return;
+    document.getElementById('amountInput').value = h[index].amount;
+    document.getElementById('fromCurrency').value = h[index].from;
+    document.getElementById('toCurrency').value = h[index].to;
+    doConvert();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ========== SWAP ==========
+document.getElementById('swapBtn').addEventListener('click', function() {
+    this.classList.add('spin');
+    setTimeout(function() { document.getElementById('swapBtn').classList.remove('spin'); }, 400);
+    var from = document.getElementById('fromCurrency');
+    var to = document.getElementById('toCurrency');
+    var tmp = from.value;
+    from.value = to.value;
+    to.value = tmp;
+    doConvert();
+});
+
+// ========== CONVERT ==========
+async function doConvert() {
+    var amount = parseFloat(document.getElementById('amountInput').value) || 0;
+    var from = document.getElementById('fromCurrency').value;
+    var to = document.getElementById('toCurrency').value;
+
+    if (amount <= 0) return showError('Montant invalide.');
+
+    var btn = document.getElementById('convertBtn');
+    var loading = document.getElementById('loading');
+    var error = document.getElementById('errorMsg');
+    var result = document.getElementById('resultCard');
+
+    btn.disabled = true;
+    loading.classList.add('show');
+    error.classList.remove('show');
+    result.classList.remove('show');
+
+    try {
+        var res = await fetch('/api/converter?amount=' + encodeURIComponent(amount) + '&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to));
+        var data = await res.json();
+
+        if (!data.success) {
+            showError(data.message || 'Erreur lors de la conversion.');
+        } else {
+            var converted = data.result || data.converted_amount || (data.rate ? amount * data.rate : amount);
+            var rate = data.rate || (converted / amount);
+
+            document.getElementById('resultFrom').textContent = fmt(amount) + ' ' + from;
+            document.getElementById('resultTo').textContent = fmt(converted) + ' ' + to;
+            document.getElementById('resultRate').textContent = 'Taux : 1 ' + from + ' = ' + fmt(rate) + ' ' + to + ' · Mise a jour : maintenant';
+            result.classList.add('show');
+
+            // Save history
+            saveHistory({
+                amount: amount,
+                from: from,
+                to: to,
+                result: converted,
+                rate: rate,
+                timestamp: new Date().toISOString()
+            });
+        }
+    } catch(e) {
+        showError('Connexion impossible. Verifiez votre reseau.');
+    }
+
+    btn.disabled = false;
+    loading.classList.remove('show');
+}
+
+function showError(msg) {
+    var el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function() { el.classList.remove('show'); }, 4000);
+}
+
+// ========== COPY ==========
+function copyResult() {
+    var text = document.getElementById('resultTo').textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        showToast('Resultat copie !');
+    }).catch(function() {
+        showToast('Erreur lors de la copie.', true);
+    });
+}
+
+// ========== SHARE ==========
+function shareResult() {
+    var text = document.getElementById('resultFrom').textContent + ' = ' + document.getElementById('resultTo').textContent;
+    if (navigator.share) {
+        navigator.share({ title: 'Conversion TransAfrik', text: text });
+    } else {
+        navigator.clipboard.writeText(text).then(function() {
+            showToast('Lien copie pour partage !');
+        });
+    }
+}
+
+// ========== TOAST ==========
+function showToast(msg, isError) {
+    var existing = document.querySelector('.toast-temp');
+    if (existing) existing.remove();
+    var el = document.createElement('div');
+    el.className = 'toast-temp';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:' + (isError ? 'var(--red)' : 'var(--green)') + ';color:#fff;padding:12px 24px;border-radius:100px;font-size:13px;font-weight:600;box-shadow:var(--shadow-md);animation:toastIn .3s ease-out';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(function() { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; }, 2000);
+    setTimeout(function() { el.remove(); }, 2500);
+}
+
+// ========== POPULAR RATES ==========
+var POPULAR_PAIRS = [
+    ['USD', 'XOF'], ['EUR', 'XOF'], ['USD', 'XAF'], ['EUR', 'XAF'], ['XOF', 'USD'], ['XAF', 'EUR']
+];
+async function loadPopularRates() {
+    var grid = document.getElementById('popularGrid');
+    for (var i = 0; i < POPULAR_PAIRS.length; i++) {
+        var pair = POPULAR_PAIRS[i];
+        try {
+            var res = await fetch('/api/converter?amount=1&from=' + pair[0] + '&to=' + pair[1]);
+            var data = await res.json();
+            if (data.success) {
+                var rate = data.rate || data.result || '—';
+                grid.children[i].innerHTML = '<div class="pc-pair">' + pair[0] + ' → ' + pair[1] + '</div><div class="pc-rate">' + fmt(rate) + '</div>';
+            } else {
+                grid.children[i].innerHTML = '<div class="pc-pair">' + pair[0] + ' → ' + pair[1] + '</div><div class="pc-rate" style="color:var(--text-4)">—</div>';
+            }
+        } catch(e) {
+            grid.children[i].innerHTML = '<div class="pc-pair">' + pair[0] + ' → ' + pair[1] + '</div><div class="pc-rate" style="color:var(--text-4)">—</div>';
+        }
+    }
+}
+
+// ========== AUTO-CONVERT ON CHANGE ==========
+document.getElementById('amountInput').addEventListener('input', debounce(doConvert, 500));
+document.getElementById('fromCurrency').addEventListener('change', doConvert);
+document.getElementById('toCurrency').addEventListener('change', doConvert);
+
+// ========== INIT ==========
+var theme = localStorage.getItem('transafrik-theme') || 'light';
+document.documentElement.setAttribute('data-theme', theme);
+
+renderHistory();
+loadPopularRates();
+doConvert();
+</script>
+</body>
+</html>

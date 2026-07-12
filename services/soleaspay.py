@@ -206,6 +206,50 @@ def withdraw(
 # Helper : Masque le token Bearer dans les logs
 # ---------------------------------------------------------------------------
 
+def convert_currency(amount: float, from_currency: str, to_currency: str) -> Dict[str, Any]:
+    """Conversion de devise via l'API SoleasPay.
+
+    Endpoint : GET /api/convert?amount=100&from=XOF&to=USD
+
+    Args:
+        amount: Montant à convertir.
+        from_currency: Code devise source (ex: XOF).
+        to_currency: Code devise cible (ex: USD).
+
+    Returns:
+        dict: Réponse JSON de SoleasPay.
+    """
+    url = f"{SOLEAS_BASE_URL}/api/convert"
+    params = {
+        "amount": amount,
+        "from": from_currency.upper(),
+        "to": to_currency.upper(),
+    }
+
+    logger.info("=" * 50)
+    logger.info("====== CONVERT ======")
+    logger.info(f"URL     : {url}")
+    logger.info(f"Params  : {json.dumps(params)}")
+    logger.info("=" * 50)
+
+    try:
+        resp = requests.get(url, params=params, timeout=30)
+
+        logger.info(f"Status  : {resp.status_code}")
+        try:
+            logger.info(f"Response: {json.dumps(resp.json(), indent=2)}")
+        except Exception:
+            logger.info(f"Response: {resp.text[:500]}")
+        logger.info("=" * 50)
+
+        resp.raise_for_status()
+        return resp.json()
+
+    except requests.RequestException as e:
+        logger.error(f"convert_currency() failed: {e}")
+        return {"success": False, "message": str(e), "code": 0}
+
+
 def _mask_sensitive(headers: Dict[str, str]) -> Dict[str, str]:
     """Remplace le token Bearer par une version tronquée pour les logs."""
     masked = dict(headers)
