@@ -137,6 +137,31 @@ let step=1;
 let selSenderCountry=null, selSenderOp=null, selReceiverCountry=null, selReceiverOp=null;
 let amount=0, senderPhone=USER_PHONE||'', receiverPhone='', receiverName='';
 
+// ---- Pré-remplissage depuis les query params (scan QR) ----
+(function autoFillFromQR(){
+    const params = new URLSearchParams(window.location.search);
+    const rc = params.get('receiver_country');
+    if (!rc) return;
+    const ro = params.get('receiver_operator');
+    const rp = params.get('receiver_phone');
+    const rn = params.get('receiver_name');
+
+    const ctry = COUNTRIES.find(function(c){ return c.code.toUpperCase() === rc.toUpperCase(); });
+    if (ctry) {
+        selReceiverCountry = ctry;
+        if (ro) {
+            const op = ctry.operators.find(function(o){ return o.id === ro.toLowerCase(); });
+            if (op) selReceiverOp = op;
+        }
+    }
+    if (rp) receiverPhone = rp;
+    if (rn) receiverName = rn;
+    // Nettoyer l'URL pour éviter le re-remplissage après navigation
+    if (typeof window.history !== 'undefined' && window.history.replaceState) {
+        window.history.replaceState({}, document.title, '/send-money');
+    }
+})();
+
 function render(){
     updateProgress();
     const sc=document.getElementById('sc'),nav=document.getElementById('nav');

@@ -486,7 +486,10 @@ async function processScan(raw) {
             showFeedback(true,
                 'Utilisateur identifie !',
                 'Envoyez de l\'argent a ' + (u.name || 'cet utilisateur') + ' en toute securite.',
-                '/send-money?qr_id=' + encodeURIComponent(u.qr_id)
+                '/send-money?receiver_country=' + encodeURIComponent(u.country || '') +
+                '&receiver_operator=' + encodeURIComponent(u.operator || '') +
+                '&receiver_phone=' + encodeURIComponent(u.phone || '') +
+                '&receiver_name=' + encodeURIComponent(u.name || '')
             );
             document.getElementById('previewAvatar').textContent = (u.name || '?')[0].toUpperCase();
             document.getElementById('previewName').textContent = u.name || 'Utilisateur';
