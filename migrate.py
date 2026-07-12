@@ -40,6 +40,22 @@ with app.app_context():
             db.session.rollback()
             print(f"  beneficiaries.{col} skip: {e}")
 
+    # --- Nouveaux champs settings (last_login, language, pin_hash, is_deleted) ---
+    settings_cols = [
+        ("last_login", "TIMESTAMP"),
+        ("language", "VARCHAR(10) DEFAULT 'fr'"),
+        ("pin_hash", "VARCHAR(255)"),
+        ("is_deleted", "BOOLEAN DEFAULT FALSE"),
+    ]
+    for col, typ in settings_cols:
+        try:
+            db.session.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {typ}"))
+            db.session.commit()
+            print(f"+ users.{col} OK")
+        except Exception as e:
+            db.session.rollback()
+            print(f"  users.{col} skip: {e}")
+
     # Create Transaction & Beneficiary tables if not exist
     db.create_all()
     print("Migration complete.")
