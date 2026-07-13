@@ -56,6 +56,18 @@ with app.app_context():
             db.session.rollback()
             print(f"  users.{col} skip: {e}")
 
+    # --- Table KYC Requests ---
+    try:
+        db.create_all()  # Crée la table kyc_requests si elle n'existe pas
+        print("+ kyc_requests table OK (via create_all)")
+    except Exception as e:
+        print(f"  kyc_requests skip: {e}")
+
+    # --- Créer dossier uploads/kyc s'il n'existe pas ---
+    import os
+    kyc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'kyc')
+    os.makedirs(kyc_dir, exist_ok=True)
+    print(f"+ uploads/kyc directory OK")
+
     # Create Transaction & Beneficiary tables if not exist
-    db.create_all()
     print("Migration complete.")

@@ -339,6 +339,154 @@ class Beneficiary(db.Model):
         return f'<Beneficiary {self.name}>'
 
 
+class KycRequest(db.Model):
+    """Demande de vérification KYC (Know Your Customer) — niveau premium international."""
+    __tablename__ = 'kyc_requests'
+
+    STATUS_CHOICES = [
+        'NOT_STARTED',
+        'DRAFT',
+        'SUBMITTED',
+        'UNDER_REVIEW',
+        'APPROVED',
+        'REJECTED',
+        'EXPIRED',
+    ]
+
+    DOCUMENT_TYPES = ['national_id', 'passport', 'driving_license']
+
+    # ---- Identification ----
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True, index=True)
+    reference = db.Column(db.String(64), unique=True, nullable=False, default=lambda: 'KYC-' + uuid.uuid4().hex[:10].upper())
+
+    # ---- Étape 1 — Informations personnelles ----
+    first_name = db.Column(db.String(150), nullable=True)
+    last_name = db.Column(db.String(150), nullable=True)
+    birth_date = db.Column(db.Date, nullable=True)
+    gender = db.Column(db.String(10), nullable=True)              # male | female | other
+    nationality = db.Column(db.String(5), nullable=True)
+    profession = db.Column(db.String(150), nullable=True)
+    address = db.Column(db.String(300), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    postal_code = db.Column(db.String(20), nullable=True)
+    country = db.Column(db.String(5), nullable=True)
+    phone = db.Column(db.String(30), nullable=True)
+    email = db.Column(db.String(255), nullable=True)
+
+    # ---- Étape 2 — Document officiel ----
+    document_type = db.Column(db.String(30), nullable=True)       # national_id | passport | driving_license
+    document_front = db.Column(db.String(500), nullable=True)     # chemin fichier recto
+    document_back = db.Column(db.String(500), nullable=True)      # chemin fichier verso
+
+    # ---- Étape 3 — Selfie ----
+    selfie = db.Column(db.String(500), nullable=True)             # chemin fichier selfie
+
+    # ---- Statut & Révision ----
+    status = db.Column(db.String(20), nullable=False, default='NOT_STARTED', index=True)
+    review_note = db.Column(db.Text, nullable=True)               # commentaire du vérificateur
+    reviewed_by = db.Column(db.Integer, nullable=True)            # admin user id
+
+    # ---- Métadonnées ----
+    submitted_at = db.Column(db.DateTime, nullable=True)
+    verified_at = db.Column(db.DateTime, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    ip_address = db.Column(db.String(45), nullable=True)
+    device_info = db.Column(db.String(500), nullable=True)
+
+    # ---- Relation ----
+    user = db.relationship('User', backref=db.backref('kyc_request', uselist=False, lazy='joined'))
+
+    @property
+    def progress_percent(self):
+        """Calcule le pourcentage de progression du KYC."""
+        filled = 0
+        total = 0
+
+        # Étape 1 : informations personnelles (11 champs)
+        step1_fields = ['first_name', 'last_name', 'birth_date', 'gender', 'nationality',
+                       'profession', 'address', 'city', 'postal_code', 'country', 'phone', 'email']
+        for f in step1_fields:
+            total += 1
+            if getattr(self, f, None):
+                filled += 1
+
+        # Étape 2 : document (2 fichiers)
+        doc_fields = ['document_type', 'document_front', 'document_back']
+        for f in doc_fields:
+            total += 1
+            if getattr(self, f, None):
+                filled += 1
+
+        # Étape 3 : selfie
+        total += 1
+        if self.selfie:
+            filled += 1
+
+        if total == 0:
+            return 0
+        return min(100, round((filled / total) * 100))
+
+    @property
+    def status_label(self):
+        labels = {
+            'NOT_STARTED': 'Non commencée',
+            'DRAFT': 'Brouillon',
+            'SUBMITTED': 'Soumis',
+            'UNDER_REVIEW': 'En cours de vérification',
+            'APPROVED': 'Vérifié',
+            'REJECTED': 'Refusé',
+            'EXPIRED': 'Expiré',
+        }
+        return labels.get(self.status, self.status)
+
+    @property
+    def status_color(self):
+        colors = {
+            'NOT_STARTED': 'neutral',
+            'DRAFT': 'warning',
+            'SUBMITTED': 'info',
+            'UNDER_REVIEW': 'warning',
+            'APPROVED': 'success',
+            'REJECTED': 'danger',
+            'EXPIRED': 'neutral',
+        }
+        return colors.get(self.status, 'neutral')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'reference': self.reference,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'birth_date': str(self.birth_date) if self.birth_date else None,
+            'gender': self.gender,
+            'nationality': self.nationality,
+            'profession': self.profession,
+            'address': self.address,
+            'city': self.city,
+            'postal_code': self.postal_code,
+            'country': self.country,
+            'phone': self.phone,
+            'email': self.email,
+            'document_type': self.document_type,
+            'document_front': self.document_front,
+            'document_back': self.document_back,
+            'selfie': self.selfie,
+            'status': self.status,
+            'status_label': self.status_label,
+            'review_note': self.review_note,
+            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+            'verified_at': self.verified_at.isoformat() if self.verified_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'progress_percent': self.progress_percent,
+        }
+
+    def __repr__(self):
+        return f'<KycRequest {self.reference} {self.status}>'
+
+
 class OtpCode(db.Model):
     """Code OTP pour vérification par SMS (inscription, connexion, reset mdp)."""
 

@@ -274,6 +274,7 @@
             .bal-action-btn i{font-size:18px}
             .bal-action-btn span{font-size:10px}
         }
+        {% block extra_head %}{% endblock %}
     </style>
 </head>
 <body>
@@ -289,8 +290,8 @@
     <div class="topbar-right">
         <button class="topbar-icon-btn" title="Notifications">
             <i class="fa-solid fa-bell"></i>
-            {% if unread_notifications > 0 %}
-            <span class="badge">{{ unread_notifications }}</span>
+            {% if (unread_notifications|default(0)) > 0 %}
+            <span class="badge">{{ unread_notifications|default(0) }}</span>
             {% endif %}
         </button>
         <div style="position:relative">
@@ -306,7 +307,7 @@
             <div class="topbar-profile-avatar">{{ user.first_name|upper|truncate(1,True,'') }}{% if user.fullname.strip().split()|length > 1 %}{{ user.fullname.strip().split()[1]|upper|truncate(1,True,'') }}{% endif %}</div>
             <div>
                 <div class="topbar-profile-name">{{ user.fullname }}</div>
-                <div class="topbar-profile-role">{{ country_names.get(user.country, user.country) }}</div>
+                <div class="topbar-profile-role">{{ country_names.get(user.country, user.country) if country_names is defined else user.country }}</div>
             </div>
         </div>
     </div>
@@ -335,6 +336,7 @@
 </aside>
 
 <!-- ===== MAIN CONTENT ===== -->
+{% block content %}
 <main class="main-content">
     <div class="dashboard-grid">
         <!-- LEFT COLUMN -->
@@ -616,6 +618,7 @@
         <div>© 2026 TransAfrik · Version 1.0</div>
     </div>
 </main>
+{% endblock %}
 
 <!-- ===== MOBILE BOTTOM NAV ===== -->
 <nav class="mobile-bottom-nav">
@@ -717,5 +720,6 @@ document.querySelectorAll('.mb-nav-item').forEach(item => {
     });
 });
 </script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

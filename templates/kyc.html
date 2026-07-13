@@ -1,0 +1,1307 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Vérification d'identité – TransAfrik{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --kyc-primary: #4F46E5;
+        --kyc-primary-light: #EEF2FF;
+        --kyc-success: #10B981;
+        --kyc-warning: #F59E0B;
+        --kyc-danger: #EF4444;
+        --kyc-neutral: #6B7280;
+    }
+
+    /* ==================== LAYOUT KYC ==================== */
+    .kyc-wrapper {
+        padding: var(--space-5);
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .kyc-page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+
+    .kyc-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--kyc-primary);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .kyc-back-link:hover { opacity: 0.8; }
+
+    .kyc-title-section h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--color-text-primary);
+        margin: 0 0 6px;
+    }
+    .kyc-title-section p {
+        font-size: 14px;
+        color: var(--color-text-secondary);
+        margin: 0;
+        max-width: 600px;
+        line-height: 1.5;
+    }
+
+    /* ---- Badge statut ---- */
+    .kyc-status-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 220px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .kyc-status-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .kyc-status-dot.neutral { background: #9CA3AF; }
+    .kyc-status-dot.warning { background: var(--kyc-warning); animation: pulse-dot 2s infinite; }
+    .kyc-status-dot.success { background: var(--kyc-success); }
+    .kyc-status-dot.danger  { background: var(--kyc-danger); }
+    .kyc-status-dot.info    { background: #3B82F6; }
+
+    @keyframes pulse-dot {
+        0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(245,158,11,0); }
+        100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+    }
+    .kyc-status-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+    }
+    .kyc-status-date {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+    }
+
+    /* ==================== CARTE PROGRESSION ==================== */
+    .kyc-progress-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 20px;
+        padding: 28px 32px;
+        margin-bottom: var(--space-5);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    }
+    .kyc-progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .kyc-progress-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+    .kyc-progress-percent {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--kyc-primary);
+    }
+    .kyc-progress-bar-wrap {
+        background: #E5E7EB;
+        border-radius: 10px;
+        height: 10px;
+        overflow: hidden;
+        margin-bottom: 18px;
+    }
+    .kyc-progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--kyc-primary), #818CF8);
+        border-radius: 10px;
+        transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        position: relative;
+    }
+    .kyc-progress-bar-fill::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+        animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    .kyc-progress-meta {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+    .kyc-progress-meta-item {
+        text-align: center;
+    }
+    .kyc-progress-meta-item .val {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+    }
+    .kyc-progress-meta-item .lbl {
+        font-size: 11px;
+        color: var(--color-text-secondary);
+    }
+
+    /* ==================== AVANTAGES ==================== */
+    .kyc-benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-3);
+        margin-bottom: var(--space-5);
+    }
+    .kyc-benefit-item {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        padding: 20px 18px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        transition: all 0.25s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .kyc-benefit-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .kyc-benefit-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 18px;
+    }
+    .kyc-benefit-icon.green { background: #D1FAE5; color: var(--kyc-success); }
+    .kyc-benefit-icon.blue  { background: #DBEAFE; color: #3B82F6; }
+    .kyc-benefit-icon.purple { background: #EDE9FE; color: var(--kyc-primary); }
+    .kyc-benefit-text .btitle { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .kyc-benefit-text .bdesc { font-size: 12px; color: var(--color-text-secondary); }
+
+    /* ==================== STEPPER ==================== */
+    .kyc-stepper {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: var(--space-5);
+        position: relative;
+    }
+    .kyc-stepper::after {
+        content: '';
+        position: absolute;
+        top: 22px;
+        left: 30px; right: 30px;
+        height: 3px;
+        background: #E5E7EB;
+        z-index: 0;
+        border-radius: 2px;
+    }
+    .kyc-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .kyc-step-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #E5E7EB;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--kyc-neutral);
+        transition: all 0.3s;
+        border: 3px solid #E5E7EB;
+    }
+    .kyc-step.active .kyc-step-circle {
+        background: var(--kyc-primary);
+        border-color: var(--kyc-primary);
+        color: #fff;
+        box-shadow: 0 0 0 6px rgba(79,70,229,0.12);
+    }
+    .kyc-step.done .kyc-step-circle {
+        background: var(--kyc-success);
+        border-color: var(--kyc-success);
+        color: #fff;
+    }
+    .kyc-step-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-align: center;
+        white-space: nowrap;
+    }
+    .kyc-step.active .kyc-step-label { color: var(--kyc-primary); }
+    .kyc-step.done .kyc-step-label { color: var(--kyc-success); }
+
+    /* ==================== SECTION ÉTAPES ==================== */
+    .kyc-step-panel {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 20px;
+        padding: 32px;
+        display: none;
+        animation: fadeSlideIn 0.35s ease;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    .kyc-step-panel.active { display: block; }
+
+    @keyframes fadeSlideIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kyc-step-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0 0 20px;
+    }
+    .kyc-step-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    .kyc-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .kyc-field.full {
+        grid-column: 1 / -1;
+    }
+    .kyc-field label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+    }
+    .kyc-field input,
+    .kyc-field select,
+    .kyc-field textarea {
+        padding: 10px 14px;
+        border: 1.5px solid var(--color-border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        background: #F9FAFB;
+        transition: all 0.2s;
+        outline: none;
+    }
+    .kyc-field input:focus,
+    .kyc-field select:focus,
+    .kyc-field textarea:focus {
+        border-color: var(--kyc-primary);
+        box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+        background: #fff;
+    }
+    .kyc-field .required-dot {
+        color: var(--kyc-danger);
+    }
+    .kyc-field .field-hint {
+        font-size: 11px;
+        color: var(--color-text-secondary);
+    }
+
+    /* ==================== DOCUMENT UPLOAD ==================== */
+    .kyc-doc-options {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .kyc-doc-option {
+        padding: 12px 20px;
+        border: 2px solid var(--color-border);
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s;
+        background: #F9FAFB;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .kyc-doc-option.selected {
+        border-color: var(--kyc-primary);
+        background: var(--kyc-primary-light);
+        color: var(--kyc-primary);
+    }
+    .kyc-upload-zone {
+        border: 2px dashed #D1D5DB;
+        border-radius: 16px;
+        padding: 40px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.25s;
+        background: #F9FAFB;
+        position: relative;
+    }
+    .kyc-upload-zone:hover {
+        border-color: var(--kyc-primary);
+        background: var(--kyc-primary-light);
+    }
+    .kyc-upload-zone.has-file {
+        border-color: var(--kyc-success);
+        border-style: solid;
+        background: #F0FDF4;
+    }
+    .kyc-upload-icon {
+        font-size: 42px;
+        color: var(--kyc-neutral);
+        margin-bottom: 10px;
+    }
+    .kyc-upload-zone.has-file .kyc-upload-icon { color: var(--kyc-success); }
+    .kyc-upload-text {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+    }
+    .kyc-upload-hint {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+        margin-top: 4px;
+    }
+    .kyc-upload-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+    .kyc-upload-preview img {
+        max-width: 100%;
+        max-height: 220px;
+        border-radius: 12px;
+        object-fit: contain;
+        border: 1px solid var(--color-border);
+    }
+    .kyc-upload-remove {
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: #FEE2E2;
+        color: var(--kyc-danger);
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .kyc-upload-remove:hover { background: #FECACA; }
+
+    /* ==================== BOUTONS ==================== */
+    .kyc-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    .btn-kyc-primary {
+        padding: 12px 28px;
+        border-radius: 12px;
+        border: none;
+        background: var(--kyc-primary);
+        color: #fff;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-kyc-primary:hover { background: #4338CA; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
+    .btn-kyc-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-kyc-secondary {
+        padding: 12px 28px;
+        border-radius: 12px;
+        border: 2px solid var(--color-border);
+        background: #fff;
+        color: var(--color-text-primary);
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-kyc-secondary:hover { border-color: var(--kyc-primary); color: var(--kyc-primary); }
+
+    .btn-kyc-danger {
+        padding: 12px 28px;
+        border-radius: 12px;
+        border: 2px solid var(--kyc-danger);
+        background: #fff;
+        color: var(--kyc-danger);
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-kyc-danger:hover { background: #FEF2F2; }
+
+    /* ==================== CARTE ÉTAT & HISTORIQUE ==================== */
+    .kyc-info-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 20px;
+        padding: 24px 28px;
+        margin-bottom: var(--space-4);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .kyc-info-card h4 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .kyc-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .kyc-info-item .infol {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+    }
+    .kyc-info-item .infov {
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .kyc-timeline {
+        position: relative;
+        padding-left: 24px;
+    }
+    .kyc-timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 4px;
+        bottom: 4px;
+        width: 2px;
+        background: #E5E7EB;
+    }
+    .kyc-tl-item {
+        position: relative;
+        padding-bottom: 18px;
+    }
+    .kyc-tl-item::before {
+        content: '';
+        position: absolute;
+        left: -20px;
+        top: 4px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--kyc-primary);
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px var(--kyc-primary);
+    }
+    .kyc-tl-item .tldate {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+    }
+    .kyc-tl-item .tltitle {
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .kyc-tl-item .tldesc {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+    }
+
+    /* ==================== SÉCURITÉ ==================== */
+    .kyc-security-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+    .kyc-security-item {
+        background: #F0FDF4;
+        border-radius: 12px;
+        padding: 14px 16px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--kyc-success);
+    }
+    .kyc-security-item i { font-size: 20px; display: block; margin-bottom: 4px; }
+    .kyc-security-note {
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        text-align: center;
+        margin-top: 14px;
+        line-height: 1.6;
+    }
+
+    /* ==================== LOADER & TOAST ==================== */
+    .kyc-loader-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.75);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+    .kyc-loader-overlay.show { opacity: 1; pointer-events: all; }
+    .kyc-loader-spin {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #E5E7EB;
+        border-top-color: var(--kyc-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .kyc-toast {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 10000;
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        opacity: 0;
+        transform: translateX(120%);
+        transition: all 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        max-width: 380px;
+    }
+    .kyc-toast.show { opacity: 1; transform: translateX(0); }
+    .kyc-toast.success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+    .kyc-toast.error { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .kyc-toast.info { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+
+    /* ==================== CONFIRMATION TABLE ==================== */
+    .kyc-confirm-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .kyc-confirm-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #F3F4F6;
+        font-size: 14px;
+    }
+    .kyc-confirm-table td:first-child {
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        width: 180px;
+    }
+
+    /* ==================== IMAGES PREVIEW ==================== */
+    .kyc-img-thumb {
+        max-width: 260px;
+        max-height: 180px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid var(--color-border);
+        margin: 4px;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 900px) {
+        .kyc-benefits-grid { grid-template-columns: repeat(2, 1fr); }
+        .kyc-security-grid { grid-template-columns: repeat(2, 1fr); }
+        .kyc-progress-meta { grid-template-columns: repeat(2, 1fr); }
+        .kyc-step-grid { grid-template-columns: 1fr; }
+        .kyc-info-grid { grid-template-columns: 1fr; }
+        .kyc-step-label { font-size: 10px; }
+    }
+    @media (max-width: 600px) {
+        .kyc-benefits-grid { grid-template-columns: 1fr; }
+        .kyc-security-grid { grid-template-columns: 1fr 1fr; }
+        .kyc-progress-meta { grid-template-columns: repeat(2, 1fr); }
+        .kyc-page-header { flex-direction: column; }
+        .kyc-status-card { width: 100%; }
+        .kyc-stepper::after { left: 15px; right: 15px; }
+        .kyc-step-circle { width: 36px; height: 36px; font-size: 14px; }
+    }
+</style>
+{% endblock %}
+
+{# Override the content block from dashboard #}
+{% block content %}
+<div class="kyc-wrapper">
+    <!-- ========== LOADER ========== -->
+    <div class="kyc-loader-overlay" id="kycLoader">
+        <div class="kyc-loader-spin"></div>
+    </div>
+
+    <!-- ========== TOAST ========== -->
+    <div class="kyc-toast" id="kycToast"></div>
+
+    <!-- ========== HEADER ========== -->
+    <div class="kyc-page-header">
+        <div>
+            <a href="{{ url_for('dashboard') }}" class="kyc-back-link">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            <div class="kyc-title-section" style="margin-top:8px;">
+                <h1>Vérification d'identité</h1>
+                <p>Votre identité doit être vérifiée afin de protéger votre compte et respecter les réglementations internationales.</p>
+            </div>
+        </div>
+        <div class="kyc-status-card" id="kycStatusCard">
+            <div class="kyc-status-dot neutral" id="kycStatusDot"></div>
+            <div>
+                <div class="kyc-status-label" id="kycStatusLabel">Non commencée</div>
+                <div class="kyc-status-date" id="kycStatusDate"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CARTE DE PROGRESSION ========== -->
+    <div class="kyc-progress-card">
+        <div class="kyc-progress-header">
+            <h3><i class="fas fa-chart-line" style="color:var(--kyc-primary); margin-right:8px;"></i>Progression</h3>
+            <div class="kyc-progress-percent" id="kycProgressPercent">0%</div>
+        </div>
+        <div class="kyc-progress-bar-wrap">
+            <div class="kyc-progress-bar-fill" id="kycProgressBar" style="width:0%"></div>
+        </div>
+        <div class="kyc-progress-meta">
+            <div class="kyc-progress-meta-item">
+                <div class="val" id="kycMetaLevel">Non commencé</div>
+                <div class="lbl">Niveau actuel</div>
+            </div>
+            <div class="kyc-progress-meta-item">
+                <div class="val" id="kycMetaTime">≈ 5 min</div>
+                <div class="lbl">Temps estimé</div>
+            </div>
+            <div class="kyc-progress-meta-item">
+                <div class="val" id="kycMetaDocs">16</div>
+                <div class="lbl">Éléments restants</div>
+            </div>
+            <div class="kyc-progress-meta-item">
+                <div class="val" id="kycMetaState">—</div>
+                <div class="lbl">État général</div>
+            </div>
+        </div>
+    </div>
+
+    {% if not kyc or kyc.status not in ('APPROVED',) %}
+    <!-- ========== AVANTAGES ========== -->
+    <div class="kyc-benefits-grid">
+        <div class="kyc-benefit-item">
+            <div class="kyc-benefit-icon green"><i class="fas fa-arrow-up"></i></div>
+            <div class="kyc-benefit-text"><div class="btitle">Limites de transfert augmentées</div><div class="bdesc">Envoyez jusqu'à 5 000 000 FCFA par mois</div></div>
+        </div>
+        <div class="kyc-benefit-item">
+            <div class="kyc-benefit-icon blue"><i class="fas fa-wallet"></i></div>
+            <div class="kyc-benefit-text"><div class="btitle">Dépôts plus élevés</div><div class="bdesc">Alimentez votre compte jusqu'à 10 000 000 FCFA</div></div>
+        </div>
+        <div class="kyc-benefit-item">
+            <div class="kyc-benefit-icon purple"><i class="fas fa-download"></i></div>
+            <div class="kyc-benefit-text"><div class="btitle">Retraits plus élevés</div><div class="bdesc">Retirez sans limite quotidienne</div></div>
+        </div>
+        <div class="kyc-benefit-item">
+            <div class="kyc-benefit-icon green"><i class="fas fa-shield-alt"></i></div>
+            <div class="kyc-benefit-text"><div class="btitle">Sécurité maximale</div><div class="bdesc">Protection renforcée de votre compte</div></div>
+        </div>
+        <div class="kyc-benefit-item">
+            <div class="kyc-benefit-icon blue"><i class="fas fa-ban"></i></div>
+            <div class="kyc-benefit-text"><div class="btitle">Protection contre la fraude</div><div class="bdesc">Détection avancée des activités suspectes</div></div>
+        </div>
+        <div class="kyc-benefit-item">
+            <div class="kyc-benefit-icon purple"><i class="fas fa-unlock-alt"></i></div>
+            <div class="kyc-benefit-text"><div class="btitle">Toutes les fonctionnalités</div><div class="bdesc">Accès complet à la plateforme TransAfrik</div></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========== STEPPER ========== -->
+    {% if not kyc or kyc.status not in ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED') %}
+    <div class="kyc-stepper" id="kycStepper">
+        <div class="kyc-step active" data-step="1">
+            <div class="kyc-step-circle">1</div>
+            <div class="kyc-step-label">Informations<br>personnelles</div>
+        </div>
+        <div class="kyc-step" data-step="2">
+            <div class="kyc-step-circle">2</div>
+            <div class="kyc-step-label">Document<br>officiel</div>
+        </div>
+        <div class="kyc-step" data-step="3">
+            <div class="kyc-step-circle">3</div>
+            <div class="kyc-step-label">Selfie</div>
+        </div>
+        <div class="kyc-step" data-step="4">
+            <div class="kyc-step-circle">4</div>
+            <div class="kyc-step-label">Confirmation</div>
+        </div>
+    </div>
+
+    <!-- ========== ÉTAPE 1 : INFOS PERSO ========== -->
+    <div class="kyc-step-panel active" id="kycPanelStep1">
+        <h3 class="kyc-step-title"><i class="fas fa-user-circle" style="color:var(--kyc-primary); margin-right:8px;"></i>Informations personnelles</h3>
+        <div class="kyc-step-grid">
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Prénom</label>
+                <input type="text" id="kycFirstName" placeholder="Votre prénom" value="{{ kyc.first_name or '' }}">
+            </div>
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Nom</label>
+                <input type="text" id="kycLastName" placeholder="Votre nom" value="{{ kyc.last_name or '' }}">
+            </div>
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Date de naissance</label>
+                <input type="date" id="kycBirthDate" value="{{ kyc.birth_date.strftime('%Y-%m-%d') if kyc and kyc.birth_date else '' }}">
+            </div>
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Sexe</label>
+                <select id="kycGender">
+                    <option value="">Sélectionnez</option>
+                    <option value="male" {% if kyc and kyc.gender == 'male' %}selected{% endif %}>Homme</option>
+                    <option value="female" {% if kyc and kyc.gender == 'female' %}selected{% endif %}>Femme</option>
+                    <option value="other" {% if kyc and kyc.gender == 'other' %}selected{% endif %}>Autre</option>
+                </select>
+            </div>
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Nationalité</label>
+                <select id="kycNationality">
+                    <option value="">Sélectionnez</option>
+                    <option value="TG" {% if kyc and kyc.nationality == 'TG' %}selected{% endif %}>Togo</option>
+                    <option value="BJ" {% if kyc and kyc.nationality == 'BJ' %}selected{% endif %}>Bénin</option>
+                    <option value="CM" {% if kyc and kyc.nationality == 'CM' %}selected{% endif %}>Cameroun</option>
+                    <option value="CI" {% if kyc and kyc.nationality == 'CI' %}selected{% endif %}>Côte d'Ivoire</option>
+                    <option value="BF" {% if kyc and kyc.nationality == 'BF' %}selected{% endif %}>Burkina Faso</option>
+                    <option value="CG" {% if kyc and kyc.nationality == 'CG' %}selected{% endif %}>Congo</option>
+                    <option value="CD" {% if kyc and kyc.nationality == 'CD' %}selected{% endif %}>RD Congo</option>
+                    <option value="GA" {% if kyc and kyc.nationality == 'GA' %}selected{% endif %}>Gabon</option>
+                    <option value="UG" {% if kyc and kyc.nationality == 'UG' %}selected{% endif %}>Ouganda</option>
+                    <option value="ZM" {% if kyc and kyc.nationality == 'ZM' %}selected{% endif %}>Zambie</option>
+                    <option value="SN" {% if kyc and kyc.nationality == 'SN' %}selected{% endif %}>Sénégal</option>
+                </select>
+            </div>
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Profession</label>
+                <input type="text" id="kycProfession" placeholder="Ex: Entrepreneur" value="{{ kyc.profession or '' }}">
+            </div>
+            <div class="kyc-field full">
+                <label><span class="required-dot">*</span> Adresse</label>
+                <input type="text" id="kycAddress" placeholder="Votre adresse complète" value="{{ kyc.address or '' }}">
+            </div>
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Ville</label>
+                <input type="text" id="kycCity" placeholder="Ville" value="{{ kyc.city or '' }}">
+            </div>
+            <div class="kyc-field">
+                <label>Code postal</label>
+                <input type="text" id="kycPostalCode" placeholder="Code postal" value="{{ kyc.postal_code or '' }}">
+            </div>
+            <div class="kyc-field">
+                <label><span class="required-dot">*</span> Pays de résidence</label>
+                <select id="kycCountry">
+                    <option value="">Sélectionnez</option>
+                    <option value="TG" {% if kyc and kyc.country == 'TG' %}selected{% endif %}>Togo</option>
+                    <option value="BJ" {% if kyc and kyc.country == 'BJ' %}selected{% endif %}>Bénin</option>
+                    <option value="CM" {% if kyc and kyc.country == 'CM' %}selected{% endif %}>Cameroun</option>
+                    <option value="CI" {% if kyc and kyc.country == 'CI' %}selected{% endif %}>Côte d'Ivoire</option>
+                    <option value="BF" {% if kyc and kyc.country == 'BF' %}selected{% endif %}>Burkina Faso</option>
+                    <option value="CG" {% if kyc and kyc.country == 'CG' %}selected{% endif %}>Congo</option>
+                    <option value="CD" {% if kyc and kyc.country == 'CD' %}selected{% endif %}>RD Congo</option>
+                    <option value="GA" {% if kyc and kyc.country == 'GA' %}selected{% endif %}>Gabon</option>
+                    <option value="UG" {% if kyc and kyc.country == 'UG' %}selected{% endif %}>Ouganda</option>
+                    <option value="ZM" {% if kyc and kyc.country == 'ZM' %}selected{% endif %}>Zambie</option>
+                    <option value="SN" {% if kyc and kyc.country == 'SN' %}selected{% endif %}>Sénégal</option>
+                </select>
+            </div>
+            <div class="kyc-field">
+                <label>Téléphone</label>
+                <input type="text" id="kycPhone" placeholder="+228 90 00 00 00" value="{{ kyc.phone or user.phone or '' }}">
+            </div>
+            <div class="kyc-field">
+                <label>Email</label>
+                <input type="email" id="kycEmailInput" placeholder="email@exemple.com" value="{{ kyc.email or user.email or '' }}">
+            </div>
+        </div>
+        <div class="kyc-buttons">
+            <div></div>
+            <button class="btn-kyc-primary" onclick="kycNextStep(2)">
+                <span>Continuer</span> <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== ÉTAPE 2 : DOCUMENT OFFICIEL ========== -->
+    <div class="kyc-step-panel" id="kycPanelStep2">
+        <h3 class="kyc-step-title"><i class="fas fa-id-card" style="color:var(--kyc-primary); margin-right:8px;"></i>Document officiel</h3>
+        <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:16px;">Sélectionnez le type de document que vous souhaitez utiliser.</p>
+        <div class="kyc-doc-options" id="kycDocOptions">
+            <div class="kyc-doc-option {% if kyc and kyc.document_type == 'national_id' %}selected{% endif %}" data-type="national_id" onclick="kycSelectDocType('national_id')">
+                <i class="fas fa-id-card"></i> Carte nationale
+            </div>
+            <div class="kyc-doc-option {% if kyc and kyc.document_type == 'passport' %}selected{% endif %}" data-type="passport" onclick="kycSelectDocType('passport')">
+                <i class="fas fa-passport"></i> Passeport
+            </div>
+            <div class="kyc-doc-option {% if kyc and kyc.document_type == 'driving_license' %}selected{% endif %}" data-type="driving_license" onclick="kycSelectDocType('driving_license')">
+                <i class="fas fa-car"></i> Permis de conduire
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+                <label style="font-weight:600;font-size:13px;margin-bottom:6px;display:block;"><span class="required-dot">*</span> Recto</label>
+                <div class="kyc-upload-zone {% if kyc and kyc.document_front %}has-file{% endif %}" onclick="document.getElementById('kycFileFront').click()" id="kycUploadFrontZone">
+                    <div class="kyc-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="kyc-upload-text">Cliquez pour télécharger</div>
+                    <div class="kyc-upload-hint">JPG, PNG, JPEG, PDF — 10 Mo max</div>
+                    <input type="file" id="kycFileFront" accept="image/jpeg,image/png,image/jpg,application/pdf" style="display:none" onchange="kycUploadFile('front')">
+                </div>
+                <div class="kyc-upload-preview" id="kycPreviewFront">
+                    {% if kyc and kyc.document_front %}
+                    <img src="{{ url_for('static', filename='../../uploads/kyc/' + kyc.document_front) if kyc.document_front else '' }}" class="kyc-img-thumb">
+                    <button class="kyc-upload-remove" onclick="kycRemoveFile('front')"><i class="fas fa-trash"></i> Remplacer</button>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <label style="font-weight:600;font-size:13px;margin-bottom:6px;display:block;">Verso</label>
+                <div class="kyc-upload-zone {% if kyc and kyc.document_back %}has-file{% endif %}" onclick="document.getElementById('kycFileBack').click()" id="kycUploadBackZone">
+                    <div class="kyc-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="kyc-upload-text">Cliquez pour télécharger</div>
+                    <div class="kyc-upload-hint">JPG, PNG, JPEG, PDF — 10 Mo max</div>
+                    <input type="file" id="kycFileBack" accept="image/jpeg,image/png,image/jpg,application/pdf" style="display:none" onchange="kycUploadFile('back')">
+                </div>
+                <div class="kyc-upload-preview" id="kycPreviewBack">
+                    {% if kyc and kyc.document_back %}
+                    <img src="{{ url_for('static', filename='../../uploads/kyc/' + kyc.document_back) if kyc.document_back else '' }}" class="kyc-img-thumb">
+                    <button class="kyc-upload-remove" onclick="kycRemoveFile('back')"><i class="fas fa-trash"></i> Remplacer</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="kyc-buttons">
+            <button class="btn-kyc-secondary" onclick="kycPrevStep(1)"><i class="fas fa-arrow-left"></i> Retour</button>
+            <button class="btn-kyc-primary" onclick="kycNextStep(3)"><span>Continuer</span> <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- ========== ÉTAPE 3 : SELFIE ========== -->
+    <div class="kyc-step-panel" id="kycPanelStep3">
+        <h3 class="kyc-step-title"><i class="fas fa-camera" style="color:var(--kyc-primary); margin-right:8px;"></i>Selfie</h3>
+        <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:16px;">Prenez ou importez un selfie récent pour confirmer votre identité.</p>
+        <div class="kyc-upload-zone {% if kyc and kyc.selfie %}has-file{% endif %}" onclick="document.getElementById('kycFileSelfie').click()" id="kycUploadSelfieZone">
+            <div class="kyc-upload-icon"><i class="fas fa-camera-retro"></i></div>
+            <div class="kyc-upload-text">Prendre une photo ou importer</div>
+            <div class="kyc-upload-hint">JPG, PNG — 10 Mo max</div>
+            <input type="file" id="kycFileSelfie" accept="image/jpeg,image/png,image/jpg" capture="user" style="display:none" onchange="kycUploadFile('selfie')">
+        </div>
+        <div class="kyc-upload-preview" id="kycPreviewSelfie">
+            {% if kyc and kyc.selfie %}
+            <img src="{{ url_for('static', filename='../../uploads/kyc/' + kyc.selfie) if kyc.selfie else '' }}" class="kyc-img-thumb">
+            <button class="kyc-upload-remove" onclick="kycRemoveFile('selfie')"><i class="fas fa-trash"></i> Remplacer</button>
+            {% endif %}
+        </div>
+        <div class="kyc-buttons">
+            <button class="btn-kyc-secondary" onclick="kycPrevStep(2)"><i class="fas fa-arrow-left"></i> Retour</button>
+            <button class="btn-kyc-primary" onclick="kycNextStep(4)"><span>Continuer</span> <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- ========== ÉTAPE 4 : CONFIRMATION ========== -->
+    <div class="kyc-step-panel" id="kycPanelStep4">
+        <h3 class="kyc-step-title"><i class="fas fa-check-circle" style="color:var(--kyc-success); margin-right:8px;"></i>Confirmation</h3>
+        <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:20px;">Vérifiez toutes vos informations avant de soumettre votre dossier.</p>
+        <table class="kyc-confirm-table" id="kycConfirmTable">
+            <tr><td><strong>Prénom</strong></td><td id="cfFirst">—</td></tr>
+            <tr><td><strong>Nom</strong></td><td id="cfLast">—</td></tr>
+            <tr><td><strong>Date de naissance</strong></td><td id="cfBirth">—</td></tr>
+            <tr><td><strong>Sexe</strong></td><td id="cfGender">—</td></tr>
+            <tr><td><strong>Nationalité</strong></td><td id="cfNation">—</td></tr>
+            <tr><td><strong>Profession</strong></td><td id="cfProf">—</td></tr>
+            <tr><td><strong>Adresse</strong></td><td id="cfAddr">—</td></tr>
+            <tr><td><strong>Ville</strong></td><td id="cfCity">—</td></tr>
+            <tr><td><strong>Pays</strong></td><td id="cfLand">—</td></tr>
+            <tr><td><strong>Document</strong></td><td id="cfDoc">—</td></tr>
+            <tr><td><strong>Selfie</strong></td><td id="cfSelfie">—</td></tr>
+        </table>
+        <div class="kyc-buttons">
+            <button class="btn-kyc-secondary" onclick="kycPrevStep(3)"><i class="fas fa-arrow-left"></i> Retour</button>
+            <div style="display:flex;gap:12px;">
+                <button class="btn-kyc-secondary" onclick="kycGoToStep(1)"><i class="fas fa-edit"></i> Modifier</button>
+                <button class="btn-kyc-primary" id="kycSubmitBtn" onclick="kycSubmit()">
+                    <i class="fas fa-paper-plane"></i> Envoyer la vérification
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========== ÉTAT DE LA DEMANDE ========== -->
+    {% if kyc and kyc.status in ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED') %}
+    <div class="kyc-info-card" style="margin-top:var(--space-5);">
+        <h4><i class="fas fa-info-circle" style="color:var(--kyc-primary);"></i> État de la demande</h4>
+        <div class="kyc-info-grid">
+            <div class="kyc-info-item">
+                <div class="infol">Référence</div>
+                <div class="infov" style="font-family:monospace;">{{ kyc.reference }}</div>
+            </div>
+            <div class="kyc-info-item">
+                <div class="infol">Date d'envoi</div>
+                <div class="infov">{{ kyc.submitted_at.strftime('%d/%m/%Y à %H:%M') if kyc.submitted_at else '—' }}</div>
+            </div>
+            <div class="kyc-info-item">
+                <div class="infol">Dernière modification</div>
+                <div class="infov">{{ kyc.updated_at.strftime('%d/%m/%Y à %H:%M') if kyc.updated_at else '—' }}</div>
+            </div>
+            <div class="kyc-info-item">
+                <div class="infol">Statut actuel</div>
+                <div class="infov">{{ kyc.status_label }}</div>
+            </div>
+            {% if kyc.reviewed_by %}
+            <div class="kyc-info-item">
+                <div class="infol">Agent de vérification</div>
+                <div class="infov">ID #{{ kyc.reviewed_by }}</div>
+            </div>
+            {% endif %}
+            {% if kyc.review_note %}
+            <div class="kyc-info-item" style="grid-column:1/-1;">
+                <div class="infol">Commentaire</div>
+                <div class="infov">{{ kyc.review_note }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========== SÉCURITÉ ========== -->
+    <div class="kyc-info-card">
+        <h4><i class="fas fa-shield-alt" style="color:var(--kyc-success);"></i> Sécurité</h4>
+        <div class="kyc-security-grid">
+            <div class="kyc-security-item"><i class="fas fa-lock"></i> AES-256</div>
+            <div class="kyc-security-item"><i class="fas fa-shield-alt"></i> SSL</div>
+            <div class="kyc-security-item"><i class="fas fa-key"></i> Données chiffrées</div>
+            <div class="kyc-security-item"><i class="fas fa-globe"></i> Conforme RGPD</div>
+        </div>
+        <p class="kyc-security-note">Vos documents sont entièrement chiffrés et protégés. Ils ne sont jamais partagés avec des tiers.</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ==================== ÉTAT GLOBAL ====================
+let kycData = null;
+{% if kyc %}
+kycData = {{ kyc.to_dict() | tojson | safe }};
+{% endif %}
+let currentStep = 1;
+let selectedDocType = kycData ? kycData.document_type || '' : '';
+
+function showLoader() { document.getElementById('kycLoader').classList.add('show'); }
+function hideLoader() { document.getElementById('kycLoader').classList.remove('show'); }
+
+function showToast(msg, type) {
+    const toast = document.getElementById('kycToast');
+    toast.textContent = msg;
+    toast.className = 'kyc-toast ' + type + ' show';
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => { toast.classList.remove('show'); }, 4000);
+}
+
+// ==================== STEPPER NAVIGATION ====================
+function kycGoToStep(step) {
+    currentStep = step;
+    document.querySelectorAll('.kyc-step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('kycPanelStep' + step).classList.add('active');
+
+    document.querySelectorAll('.kyc-step').forEach(s => s.classList.remove('active', 'done'));
+    for (let i = 1; i <= 4; i++) {
+        const el = document.querySelector('[data-step="' + i + '"]');
+        if (i < step) el.classList.add('done');
+        if (i === step) el.classList.add('active');
+    }
+
+    if (step === 4) kycBuildConfirm();
+    window.scrollTo({ top: 200, behavior: 'smooth' });
+}
+
+function kycNextStep(step) {
+    // Auto-save avant de passer à l'étape suivante
+    if (currentStep === 1) kycSaveStep1();
+    if (currentStep === 2) kycSaveStep2();
+    kycGoToStep(step);
+}
+
+function kycPrevStep(step) {
+    kycGoToStep(step);
+}
+
+// ==================== SAVE STEP 1 (autosave) ====================
+async function kycSaveStep1() {
+    const payload = {
+        first_name: document.getElementById('kycFirstName').value.trim(),
+        last_name: document.getElementById('kycLastName').value.trim(),
+        birth_date: document.getElementById('kycBirthDate').value,
+        gender: document.getElementById('kycGender').value,
+        nationality: document.getElementById('kycNationality').value,
+        profession: document.getElementById('kycProfession').value.trim(),
+        address: document.getElementById('kycAddress').value.trim(),
+        city: document.getElementById('kycCity').value.trim(),
+        postal_code: document.getElementById('kycPostalCode').value.trim(),
+        country: document.getElementById('kycCountry').value,
+        phone: document.getElementById('kycPhone').value.trim(),
+        email: document.getElementById('kycEmailInput').value.trim(),
+    };
+
+    try {
+        const res = await fetch('/api/kyc/save-step1', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.success) {
+            kycData = data.kyc;
+            kycUpdateUI();
+            showToast('Informations sauvegardées', 'success');
+        } else {
+            showToast(data.message || 'Erreur lors de la sauvegarde', 'error');
+        }
+    } catch (e) {
+        showToast('Erreur réseau', 'error');
+    }
+}
+
+// ==================== SAVE STEP 2 (doc type) ====================
+async function kycSaveStep2() {
+    if (!selectedDocType) return;
+
+    try {
+        const res = await fetch('/api/kyc/save-step2', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ document_type: selectedDocType }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            kycData = data.kyc;
+            kycUpdateUI();
+            showToast('Type de document enregistré', 'success');
+        } else {
+            showToast(data.message || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showToast('Erreur réseau', 'error');
+    }
+}
+
+// ==================== DOCUMENT SELECTION ====================
+function kycSelectDocType(type) {
+    selectedDocType = type;
+    document.querySelectorAll('.kyc-doc-option').forEach(o => o.classList.remove('selected'));
+    document.querySelector('[data-type="' + type + '"]').classList.add('selected');
+    kycSaveStep2();
+}
+
+// ==================== FILE UPLOAD ====================
+async function kycUploadFile(type) {
+    const fileInput = document.getElementById('kycFile' + (type === 'front' ? 'Front' : type === 'back' ? 'Back' : 'Selfie'));
+    if (!fileInput.files.length) return;
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+
+    showLoader();
+    try {
+        const res = await fetch('/api/kyc/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+            kycData = data.kyc;
+            kycUpdateUI();
+            showToast('Fichier téléchargé avec succès', 'success');
+
+            // Aperçu
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewId = 'kycPreview' + (type === 'front' ? 'Front' : type === 'back' ? 'Back' : 'Selfie');
+                const zoneId = 'kycUpload' + (type === 'front' ? 'Front' : type === 'back' ? 'Back' : 'Selfie') + 'Zone';
+                document.getElementById(zoneId).classList.add('has-file');
+                document.getElementById(previewId).innerHTML = `
+                    <img src="${e.target.result}" class="kyc-img-thumb">
+                    <button class="kyc-upload-remove" onclick="kycRemoveFile('${type}')"><i class="fas fa-trash"></i> Remplacer</button>
+                `;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            showToast(data.message || 'Échec du téléchargement', 'error');
+        }
+    } catch (e) {
+        showToast('Erreur réseau', 'error');
+    }
+    hideLoader();
+}
+
+function kycRemoveFile(type) {
+    const previewId = 'kycPreview' + (type === 'front' ? 'Front' : type === 'back' ? 'Back' : 'Selfie');
+    const zoneId = 'kycUpload' + (type === 'front' ? 'Front' : type === 'back' ? 'Back' : 'Selfie') + 'Zone';
+    document.getElementById(zoneId).classList.remove('has-file');
+    document.getElementById(previewId).innerHTML = '';
+    const fileInput = document.getElementById('kycFile' + (type === 'front' ? 'Front' : type === 'back' ? 'Back' : 'Selfie'));
+    if (fileInput) fileInput.value = '';
+}
+
+// ==================== CONFIRMATION TABLE ====================
+function kycBuildConfirm() {
+    const fn = document.getElementById('kycFirstName').value.trim();
+    const ln = document.getElementById('kycLastName').value.trim();
+    const bd = document.getElementById('kycBirthDate').value;
+    const gender = document.getElementById('kycGender').value;
+    const nation = document.getElementById('kycNationality').value;
+    const prof = document.getElementById('kycProfession').value.trim();
+    const addr = document.getElementById('kycAddress').value.trim();
+    const city = document.getElementById('kycCity').value.trim();
+    const country = document.getElementById('kycCountry').value;
+    const docType = selectedDocType || (kycData ? kycData.document_type : '');
+    const hasSelfie = kycData && kycData.selfie;
+
+    document.getElementById('cfFirst').textContent = fn || '—';
+    document.getElementById('cfLast').textContent = ln || '—';
+    document.getElementById('cfBirth').textContent = bd || '—';
+    document.getElementById('cfGender').textContent = gender === 'male' ? 'Homme' : gender === 'female' ? 'Femme' : gender === 'other' ? 'Autre' : '—';
+    document.getElementById('cfNation').textContent = nation || '—';
+    document.getElementById('cfProf').textContent = prof || '—';
+    document.getElementById('cfAddr').textContent = (addr ? addr + ', ' + city : '—');
+    document.getElementById('cfCity').textContent = city || '—';
+    document.getElementById('cfLand').textContent = country || '—';
+    document.getElementById('cfDoc').textContent = docType === 'national_id' ? 'Carte nationale' : docType === 'passport' ? 'Passeport' : docType === 'driving_license' ? 'Permis de conduire' : '—';
+    document.getElementById('cfSelfie').textContent = hasSelfie ? '✓ Selfie fourni' : '✗ Non fourni';
+}
+
+// ==================== SOUMISSION ====================
+async function kycSubmit() {
+    const btn = document.getElementById('kycSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+    showLoader();
+
+    try {
+        const res = await fetch('/api/kyc/submit', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            kycData = data.kyc;
+            kycUpdateUI();
+            showToast('Dossier soumis avec succès ! Nous vous tiendrons informé.', 'success');
+
+            // Rediriger après 2s
+            setTimeout(() => { window.location.reload(); }, 2000);
+        } else {
+            showToast(data.message || 'Erreur lors de la soumission', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la vérification';
+        }
+    } catch (e) {
+        showToast('Erreur réseau', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la vérification';
+    }
+    hideLoader();
+}
+
+// ==================== MISE À JOUR UI ====================
+function kycUpdateUI() {
+    if (!kycData) return;
+
+    // Progress bar
+    const pct = kycData.progress_percent || 0;
+    document.getElementById('kycProgressPercent').textContent = pct + '%';
+    document.getElementById('kycProgressBar').style.width = pct + '%';
+
+    // Meta
+    const remaining = Math.max(0, 16 - Math.round((pct / 100) * 16));
+    document.getElementById('kycMetaDocs').textContent = remaining;
+    document.getElementById('kycMetaState').textContent = kycData.status_label || '—';
+    if (pct === 0) document.getElementById('kycMetaLevel').textContent = 'Non commencé';
+    else if (pct < 50) document.getElementById('kycMetaLevel').textContent = 'Brouillon';
+    else if (pct < 100) document.getElementById('kycMetaLevel').textContent = 'En cours';
+    else document.getElementById('kycMetaLevel').textContent = 'Complété';
+
+    if (pct > 0 && pct < 50) document.getElementById('kycMetaTime').textContent = '≈ 5 min';
+    else if (pct < 100) document.getElementById('kycMetaTime').textContent = '≈ 2 min';
+    else document.getElementById('kycMetaTime').textContent = '—';
+
+    // Status card
+    const dot = document.getElementById('kycStatusDot');
+    const label = document.getElementById('kycStatusLabel');
+    const date = document.getElementById('kycStatusDate');
+    const colors = {
+        'NOT_STARTED': 'neutral',
+        'DRAFT': 'warning',
+        'SUBMITTED': 'info',
+        'UNDER_REVIEW': 'warning',
+        'APPROVED': 'success',
+        'REJECTED': 'danger',
+        'EXPIRED': 'neutral',
+    };
+    dot.className = 'kyc-status-dot ' + (colors[kycData.status] || 'neutral');
+    label.textContent = kycData.status_label || 'Non commencée';
+
+    if (kycData.submitted_at) {
+        date.textContent = 'Soumis le ' + new Date(kycData.submitted_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+    } else if (kycData.updated_at) {
+        date.textContent = 'Modifié le ' + new Date(kycData.updated_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+    } else {
+        date.textContent = '';
+    }
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', function() {
+    kycUpdateUI();
+
+    // Si KYC déjà soumis, cacher le stepper et afficher les infos
+    {% if kyc and kyc.status in ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED') %}
+    const stepper = document.getElementById('kycStepper');
+    if (stepper) stepper.style.display = 'none';
+    {% endif %}
+
+    // Restaurer le step actif si draft
+    {% if kyc and kyc.status in ('NOT_STARTED', 'DRAFT') %}
+    // Restaurer à l'étape 1 par défaut
+    kycGoToStep(1);
+    {% endif %}
+});
+</script>
+{% endblock %}

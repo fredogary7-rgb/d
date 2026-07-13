@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest
 from services.sms_service import send_sms, format_phone as format_sms_phone
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
@@ -1922,6 +1922,265 @@ def api_session_info():
     })
 
 
+# ==================== KYC ====================
+@app.route('/kyc')
+@login_required
+def kyc_page():
+    kyc = KycRequest.query.filter_by(user_id=current_user.id).first()
+
+    return render_template(
+        "kyc.html",
+        user=current_user,
+        kyc=kyc,
+
+        # Variables attendues par dashboard.html
+        unread_notifications=0,
+        tx_count=0,
+        beneficiary_count=0,
+        total_sent=0,
+        total_received=0,
+        recent_txs=[],
+        country_flags=country_flags,
+        country_names=country_names,
+    )
+
+@app.route('/api/kyc/save-step1', methods=['POST'])
+@login_required
+def api_kyc_save_step1():
+    """Sauvegarde automatique étape 1 — Informations personnelles."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données requises.'}), 400
+
+    kyc = KycRequest.query.filter_by(user_id=current_user.id).first()
+    if not kyc:
+        kyc = KycRequest(user_id=current_user.id)
+        db.session.add(kyc)
+
+    kyc.first_name = data.get('first_name', '').strip() or kyc.first_name
+    kyc.last_name = data.get('last_name', '').strip() or kyc.last_name
+    try:
+        bd = data.get('birth_date')
+        if bd:
+            kyc.birth_date = datetime.strptime(bd, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        pass
+    kyc.gender = data.get('gender') or kyc.gender
+    kyc.nationality = data.get('nationality', '').strip().upper() or kyc.nationality
+    kyc.profession = data.get('profession', '').strip() or kyc.profession
+    kyc.address = data.get('address', '').strip() or kyc.address
+    kyc.city = data.get('city', '').strip() or kyc.city
+    kyc.postal_code = data.get('postal_code', '').strip() or kyc.postal_code
+    kyc.country = data.get('country', '').strip().upper() or kyc.country
+    kyc.phone = data.get('phone', '').strip() or kyc.phone or current_user.phone
+    kyc.email = data.get('email', '').strip().lower() or kyc.email or current_user.email
+
+    if kyc.status == 'NOT_STARTED':
+        kyc.status = 'DRAFT'
+
+    kyc.updated_at = datetime.utcnow()
+    kyc.ip_address = request.remote_addr
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Informations sauvegardées.',
+        'kyc': kyc.to_dict(),
+    })
+
+
+@app.route('/api/kyc/save-step2', methods=['POST'])
+@login_required
+def api_kyc_save_step2():
+    """Sauvegarde étape 2 — Type de document."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données requises.'}), 400
+
+    kyc = KycRequest.query.filter_by(user_id=current_user.id).first()
+    if not kyc:
+        kyc = KycRequest(user_id=current_user.id)
+        db.session.add(kyc)
+
+    doc_type = data.get('document_type', '').strip()
+    if doc_type not in KycRequest.DOCUMENT_TYPES:
+        return jsonify({'success': False, 'message': 'Type de document invalide.'}), 400
+
+    kyc.document_type = doc_type
+    if kyc.status == 'NOT_STARTED':
+        kyc.status = 'DRAFT'
+    kyc.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Type de document sauvegardé.',
+        'kyc': kyc.to_dict(),
+    })
+
+
+def _allowed_kyc_file(filename):
+    """Vérifie l'extension du fichier uploadé."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ('jpg', 'jpeg', 'png', 'pdf')
+
+
+def _sanitize_kyc_filename(filename, prefix='kyc'):
+    """Génère un nom de fichier sécurisé."""
+    ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'jpg'
+    ts = datetime.utcnow().strftime('%Y%m%d%H%M%S%f')
+    return f'{prefix}_{ts}.{ext}'
+
+
+@app.route('/api/kyc/upload', methods=['POST'])
+@login_required
+def api_kyc_upload():
+    """Upload de fichier pour document recto, verso ou selfie."""
+    file_type = request.form.get('type', 'front')  # front | back | selfie
+
+    if file_type not in ('front', 'back', 'selfie'):
+        return jsonify({'success': False, 'message': 'Type de fichier invalide.'}), 400
+
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'Aucun fichier.'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'Fichier vide.'}), 400
+
+    if not _allowed_kyc_file(file.filename):
+        return jsonify({'success': False, 'message': 'Format non autorisé. Utilisez JPG, JPEG, PNG ou PDF.'}), 400
+
+    # Vérifier taille max 10 Mo
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    if size > 10 * 1024 * 1024:
+        return jsonify({'success': False, 'message': 'Fichier trop volumineux (max 10 Mo).'}), 400
+
+    kyc = KycRequest.query.filter_by(user_id=current_user.id).first()
+    if not kyc:
+        kyc = KycRequest(user_id=current_user.id)
+        db.session.add(kyc)
+        db.session.flush()
+
+    kyc_dir = os.path.join(app.root_path, 'uploads', 'kyc')
+    os.makedirs(kyc_dir, exist_ok=True)
+
+    filename = _sanitize_kyc_filename(file.filename, prefix=f'kyc_{current_user.id}_{file_type}')
+    filepath = os.path.join(kyc_dir, filename)
+    file.save(filepath)
+
+    # Supprimer l'ancien fichier si existe
+    old_file = getattr(kyc, f'document_{file_type}' if file_type != 'selfie' else 'selfie', None)
+    if old_file:
+        old_path = os.path.join(kyc_dir, old_file)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    if file_type == 'front':
+        kyc.document_front = filename
+    elif file_type == 'back':
+        kyc.document_back = filename
+    elif file_type == 'selfie':
+        kyc.selfie = filename
+
+    if kyc.status == 'NOT_STARTED':
+        kyc.status = 'DRAFT'
+    kyc.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Fichier téléchargé avec succès.',
+        'kyc': kyc.to_dict(),
+    })
+
+
+@app.route('/api/kyc/submit', methods=['POST'])
+@login_required
+def api_kyc_submit():
+    """Soumettre le dossier KYC pour vérification."""
+    kyc = KycRequest.query.filter_by(user_id=current_user.id).first()
+
+    if not kyc:
+        return jsonify({'success': False, 'message': 'Aucun dossier KYC. Commencez par remplir vos informations.'}), 400
+
+    if kyc.status in ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED'):
+        return jsonify({'success': False, 'message': 'Votre dossier a déjà été soumis ou est en cours de vérification.'}), 400
+
+    # Vérifications minimales
+    missing = []
+    if not kyc.first_name:
+        missing.append('Prénom')
+    if not kyc.last_name:
+        missing.append('Nom')
+    if not kyc.birth_date:
+        missing.append('Date de naissance')
+    if not kyc.document_type:
+        missing.append('Type de document')
+    if not kyc.document_front:
+        missing.append('Document (recto)')
+
+    if missing:
+        return jsonify({
+            'success': False,
+            'message': f'Informations manquantes : {", ".join(missing)}.',
+        }), 400
+
+    kyc.status = 'SUBMITTED'
+    kyc.submitted_at = datetime.utcnow()
+    kyc.updated_at = datetime.utcnow()
+    kyc.ip_address = request.remote_addr
+    kyc.device_info = request.headers.get('User-Agent', '')[:500]
+
+    # Mise à jour du statut KYC de l'utilisateur
+    current_user.kyc_status = 'pending'
+
+    db.session.commit()
+    app.logger.info(f'[KYC] Dossier soumis : {kyc.reference} par {current_user.email}')
+
+    return jsonify({
+        'success': True,
+        'message': 'Votre dossier KYC a été soumis avec succès. Nous vous tiendrons informé.',
+        'kyc': kyc.to_dict(),
+    })
+
+
+@app.route('/api/kyc/status')
+@login_required
+def api_kyc_status():
+    """Obtenir le statut KYC actuel."""
+    kyc = KycRequest.query.filter_by(user_id=current_user.id).first()
+    if not kyc:
+        return jsonify({
+            'success': True,
+            'kyc_exists': False,
+            'status': 'NOT_STARTED',
+            'progress_percent': 0,
+        })
+
+    return jsonify({
+        'success': True,
+        'kyc_exists': True,
+        'kyc': kyc.to_dict(),
+    })
+
+@app.context_processor
+def inject_dashboard_globals():
+    if current_user.is_authenticated:
+        unread_notifications = 0
+
+        return dict(
+            unread_notifications=unread_notifications,
+            country_flags=country_flags,
+            country_names=country_names,
+        )
+
+    return dict(
+        unread_notifications=0,
+        country_flags=country_flags,
+        country_names=country_names,
+    )
 # ==================== PAGE 404 ====================
 
 @app.errorhandler(404)
