@@ -31,6 +31,8 @@ from services.payment_workflow import (
     is_payment_failed,
 )
 from services.fees import calculate_fee as calculate_fee_service
+from admin import admin_bp
+from admin.models import AdminUser, AdminLog, SystemConfig
 
 load_dotenv()
 
@@ -58,6 +60,18 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 db.init_app(app)
+
+# Register admin blueprint
+app.register_blueprint(admin_bp)
+
+# Context processors
+@app.context_processor
+def inject_now():
+    return {"now": datetime.utcnow()}
+
+@app.context_processor
+def inject_config():
+    return {"config_value": lambda key, default=None: SystemConfig.get(key, default)}
 
 # Flask-Login
 login_manager = LoginManager()

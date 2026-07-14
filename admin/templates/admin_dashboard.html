@@ -1,0 +1,309 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Tableau de bord</h1>
+        <p>Vue d'ensemble de la plateforme TransAfrik</p>
+    </div>
+    <div class="page-header-actions">
+        <span class="badge badge-green"><i class="fa-solid fa-circle" style="font-size:6px;color:var(--green)"></i> En ligne</span>
+        <span class="page-header-breadcrumb">{{ now.strftime('%d/%m/%Y %H:%M') if now is defined else '' }}</span>
+    </div>
+</div>
+
+<!-- STATS ROW 1 -->
+<div class="stat-grid">
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-blue"><i class="fa-solid fa-users"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.total_users) }}</div>
+        <div class="stat-card-label">Utilisateurs</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-green"><i class="fa-solid fa-user-check"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.verified_users) }}</div>
+        <div class="stat-card-label">Vérifiés</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-yellow"><i class="fa-solid fa-clock"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.pending_kyc) }}</div>
+        <div class="stat-card-label">En attente KYC</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-red"><i class="fa-solid fa-user-slash"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.suspended_users) }}</div>
+        <div class="stat-card-label">Suspendus</div>
+    </div>
+</div>
+
+<!-- STATS ROW 2 -->
+<div class="stat-grid">
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-blue"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.today_tx) }}</div>
+        <div class="stat-card-label">Transactions aujourd'hui</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.today_amount) }} XOF</div>
+        <div class="stat-card-label">Montant transféré aujourd'hui</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-purple"><i class="fa-solid fa-globe"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.total_sent) }} XOF</div>
+        <div class="stat-card-label">Total transféré</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-orange"><i class="fa-solid fa-coins"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.platform_revenue) }} XOF</div>
+        <div class="stat-card-label">Revenus plateforme</div>
+    </div>
+</div>
+
+<!-- STATS ROW 3 -->
+<div class="stat-grid">
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-blue"><i class="fa-solid fa-wallet"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.total_deposits) }}</div>
+        <div class="stat-card-label">Dépôts totaux</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-red"><i class="fa-solid fa-building-columns"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.total_withdrawals) }}</div>
+        <div class="stat-card-label">Retraits totaux</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-green"><i class="fa-solid fa-qrcode"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.qr_count) }}</div>
+        <div class="stat-card-label">QR générés</div>
+    </div>
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-yellow"><i class="fa-solid fa-headset"></i></div>
+        </div>
+        <div class="stat-card-value">{{ "{:,.0f}".format(stats.open_tickets) }}</div>
+        <div class="stat-card-label">Tickets ouverts</div>
+    </div>
+</div>
+
+<!-- CHARTS -->
+<div class="chart-grid" style="margin-bottom:28px">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-chart-line" style="color:var(--blue)"></i> Revenus (30 jours)</h3>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Inscriptions (30 jours)</h3>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="signupChart"></canvas>
+        </div>
+    </div>
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-paper-plane" style="color:var(--yellow)"></i> Transferts (30 jours)</h3>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="transferChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- GRID 2 COL -->
+<div class="grid-2">
+    <!-- RECENT TRANSACTIONS -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Transactions récentes</h3>
+            <a href="/admin/transactions">Voir tout <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div class="table-wrap">
+            {% if stats.recent_tx %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bénéficiaire</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in stats.recent_tx %}
+                    <tr>
+                        <td data-label="Bénéficiaire">
+                            <div class="tx-user">
+                                <div class="tx-user-avatar">{{ tx.recipient_name|default('?')|truncate(2,True,'')|upper }}</div>
+                                {{ tx.recipient_name or '—' }}
+                            </div>
+                        </td>
+                        <td data-label="Montant">
+                            <strong style="color:{% if tx.type in ['send','withdraw'] %}var(--blue){% else %}var(--green){% endif %}">
+                                {{ '+' if tx.type in ['receive','deposit'] else '-' }}{{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
+                            </strong>
+                        </td>
+                        <td data-label="Statut">
+                            {% set status_class = {'pending':'bs-pending','processing':'bs-processing','success':'bs-success','failed':'bs-failed'} %}
+                            {% set status_label = {'pending':'En attente','processing':'En cours','success':'Réussi','failed':'Échec'} %}
+                            <span class="badge-status {{ status_class.get(tx.status,'bs-pending') }}">{{ status_label.get(tx.status,tx.status) }}</span>
+                        </td>
+                        <td data-label="Date">{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state"><i class="fa-solid fa-inbox"></i>Aucune transaction récente.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RECENT SIGN-UPS & LOGINS -->
+    <div style="display:flex;flex-direction:column;gap:24px">
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Dernières inscriptions</h3>
+            </div>
+            {% if stats.recent_users %}
+            <div class="timeline">
+                {% for u in stats.recent_users %}
+                <div class="tl-item">
+                    <div class="tl-dot green"></div>
+                    <div class="tl-content">
+                        <div class="tl-title">{{ u.fullname }}</div>
+                        <div class="tl-sub">{{ u.email }}</div>
+                    </div>
+                    <div class="tl-sub">{{ u.created_at.strftime('%d/%m/%Y') }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding:24px"><i class="fa-solid fa-user-plus" style="font-size:40px"></i>Aucune inscription.</div>
+            {% endif %}
+        </div>
+
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-sign-in-alt" style="color:var(--blue)"></i> Dernières connexions</h3>
+            </div>
+            {% if stats.recent_logins %}
+            <div class="timeline">
+                {% for u in stats.recent_logins %}
+                <div class="tl-item">
+                    <div class="tl-dot blue"></div>
+                    <div class="tl-content">
+                        <div class="tl-title">{{ u.fullname }}</div>
+                        <div class="tl-sub">{{ u.email }}</div>
+                    </div>
+                    <div class="tl-sub">{{ u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—' }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding:24px"><i class="fa-solid fa-sign-in-alt" style="font-size:40px"></i>Aucune connexion récente.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    // Chart.js defaults
+    Chart.defaults.color = '#94A3B8';
+    Chart.defaults.borderColor = '#1E293B';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 11;
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: '#1E293B' }, ticks: { maxTicksLimit: 8 } },
+            y: { grid: { color: '#1E293B' }, ticks: { callback: function(v){ return v.toLocaleString(); } } }
+        }
+    };
+
+    // Revenue Chart
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: {{ stats.revenue_labels|safe }},
+            datasets: [{
+                data: {{ stats.revenue_values|safe }},
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16,185,129,.1)',
+                fill: true,
+                tension: .4,
+                pointRadius: 2,
+                pointBackgroundColor: '#10B981'
+            }]
+        },
+        options: {...chartOptions, plugins: { tooltip: { callbacks: { label: function(ctx){ return ctx.raw.toLocaleString() + ' XOF'; } } } } }
+    });
+
+    // Signup Chart
+    new Chart(document.getElementById('signupChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ stats.signup_labels|safe }},
+            datasets: [{
+                data: {{ stats.signup_values|safe }},
+                backgroundColor: '#2563EB',
+                borderRadius: 6,
+                barThickness: 8
+            }]
+        },
+        options: {...chartOptions, plugins: { tooltip: { callbacks: { label: function(ctx){ return ctx.raw + ' utilisateur(s)'; } } } } }
+    });
+
+    // Transfer Chart
+    new Chart(document.getElementById('transferChart'), {
+        type: 'line',
+        data: {
+            labels: {{ stats.transfer_labels|safe }},
+            datasets: [{
+                data: {{ stats.transfer_values|safe }},
+                borderColor: '#F59E0B',
+                backgroundColor: 'rgba(245,158,11,.1)',
+                fill: true,
+                tension: .4,
+                pointRadius: 2,
+                pointBackgroundColor: '#F59E0B'
+            }]
+        },
+        options: {...chartOptions, plugins: { tooltip: { callbacks: { label: function(ctx){ return ctx.raw + ' transfert(s)'; } } } } }
+    });
+});
+</script>
+{% endblock %}
