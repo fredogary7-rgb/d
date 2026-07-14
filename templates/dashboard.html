@@ -393,24 +393,24 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-card-top"><div class="stat-card-icon si-sent"><i class="fa-solid fa-paper-plane"></i></div></div>
-                        <div class="stat-card-value">{{ "{:,.0f}".format(total_sent) }}</div>
+                        <div class="stat-card-value">{{ "{:,.0f}".format(total_sent|default(0)) }}</div>
                         <div class="stat-card-label">Total envoyé ({{ user.currency or 'XOF' }})</div>
                         <div class="stat-card-change stat-change-neutral">&mdash;</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-top"><div class="stat-card-icon si-received"><i class="fa-solid fa-arrow-down-wide-short"></i></div></div>
-                        <div class="stat-card-value">{{ "{:,.0f}".format(total_received) }}</div>
+                        <div class="stat-card-value">{{ "{:,.0f}".format(total_received|default(0)) }}</div>
                         <div class="stat-card-label">Total reçu ({{ user.currency or 'XOF' }})</div>
                         <div class="stat-card-change stat-change-neutral">&mdash;</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-top"><div class="stat-card-icon si-tx"><i class="fa-solid fa-arrow-right-arrow-left"></i></div></div>
-                        <div class="stat-card-value">{{ tx_count }}</div>
+                        <div class="stat-card-value">{{ tx_count|default(0) }}</div>
                         <div class="stat-card-label">Transactions</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-top"><div class="stat-card-icon si-benef"><i class="fa-solid fa-users"></i></div></div>
-                        <div class="stat-card-value">{{ beneficiary_count }}</div>
+                        <div class="stat-card-value">{{ beneficiary_count|default(0) }}</div>
                         <div class="stat-card-label">Bénéficiaires</div>
                     </div>
                 </div>
@@ -444,7 +444,7 @@
                                         {{ tx.recipient_name or '—' }}
                                     </div>
                                 </td>
-                                <td data-label="Pays">{{ country_flags.get(tx.recipient_country, '🌍') }} {{ country_names.get(tx.recipient_country, tx.recipient_country or '—') }}</td>
+                                <td data-label="Pays">{{ (country_flags|default({})).get(tx.recipient_country, '🌍') }} {{ (country_names|default({})).get(tx.recipient_country, tx.recipient_country or '—') }}</td>
                                 <td data-label="Opérateur">{{ tx.recipient_operator or '—' }}</td>
                                 <td data-label="Montant">
                                     <strong style="color:{% if tx.type in ['send','withdraw'] %}var(--blue){% else %}var(--green){% endif %}">
@@ -565,7 +565,7 @@
                         <div class="tl-dot {% if tx.type == 'send' %}send{% elif tx.type == 'receive' %}receive{% elif tx.type == 'withdraw' %}withdraw{% else %}send{% endif %}"></div>
                         <div class="tl-content">
                             <div class="tl-title">
-                                {% if tx.type == 'send' %}Vous avez envoyé {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }} vers {{ country_names.get(tx.recipient_country, tx.recipient_country or '—') }}
+                                {% if tx.type == 'send' %}Vous avez envoyé {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }} vers {{ (country_names|default({})).get(tx.recipient_country, tx.recipient_country or '—') }}
                                 {% elif tx.type == 'receive' %}Vous avez reçu {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
                                 {% elif tx.type == 'withdraw' %}Retrait de {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
                                 {% elif tx.type == 'deposit' %}Dépôt de {{ "{:,.0f}".format(tx.amount) }} {{ tx.currency or 'XOF' }}
