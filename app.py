@@ -34,6 +34,19 @@ from services.fees import calculate_fee as calculate_fee_service
 
 load_dotenv()
 
+# ==================== GLOBAL CONSTANTS ====================
+COUNTRY_FLAGS = {
+    'TG': '\U0001f1f9\U0001f1ec', 'BJ': '\U0001f1e7\U0001f1ef', 'CM': '\U0001f1e8\U0001f1f2',
+    'CI': '\U0001f1e8\U0001f1ee', 'BF': '\U0001f1e7\U0001f1eb', 'CG': '\U0001f1e8\U0001f1ec',
+    'CD': '\U0001f1e8\U0001f1e9', 'GA': '\U0001f1ec\U0001f1e6', 'UG': '\U0001f1fa\U0001f1ec',
+    'ZM': '\U0001f1ff\U0001f1f2', 'SN': '\U0001f1f8\U0001f1f3',
+}
+COUNTRY_NAMES = {
+    'TG': 'Togo', 'BJ': 'B\u00e9nin', 'CM': 'Cameroun', 'CI': 'C\u00f4te d\'Ivoire',
+    'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+    'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'S\u00e9n\u00e9gal',
+}
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -515,18 +528,6 @@ def dashboard():
     unread_notifications = user.unread_notifications
     recent_txs = user.recent_transactions(limit=5)
 
-    country_flags = {
-        'TG': '\U0001f1f9\U0001f1ec', 'BJ': '\U0001f1e7\U0001f1ef', 'CM': '\U0001f1e8\U0001f1f2',
-        'CI': '\U0001f1e8\U0001f1ee', 'BF': '\U0001f1e7\U0001f1eb', 'CG': '\U0001f1e8\U0001f1ec',
-        'CD': '\U0001f1e8\U0001f1e9', 'GA': '\U0001f1ec\U0001f1e6', 'UG': '\U0001f1fa\U0001f1ec',
-        'ZM': '\U0001f1ff\U0001f1f2', 'SN': '\U0001f1f8\U0001f1f3',
-    }
-    country_names = {
-        'TG': 'Togo', 'BJ': 'B\u00e9nin', 'CM': 'Cameroun', 'CI': 'C\u00f4te d\'Ivoire',
-        'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
-        'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'S\u00e9n\u00e9gal',
-    }
-
     return render_template(
         'dashboard.html',
         user=user,
@@ -536,8 +537,8 @@ def dashboard():
         total_received=total_received,
         unread_notifications=unread_notifications,
         recent_txs=recent_txs,
-        country_flags=country_flags,
-        country_names=country_names,
+        country_flags=COUNTRY_FLAGS,
+        country_names=COUNTRY_NAMES,
     )
 
 # --- API: Calculate fees ---
@@ -1931,19 +1932,7 @@ def kyc_page():
     return render_template(
         "kyc.html",
         user=current_user,
-        kyc=kyc,
-
-        # Variables attendues par dashboard.html
-        unread_notifications=0,
-        tx_count=0,
-        beneficiary_count=0,
-        total_sent=0,
-        total_received=0,
-        recent_txs=[],
-        country_flags=country_flags,
-        country_names=country_names,
-    )
-
+        kyc=kyc  )
 @app.route('/api/kyc/save-step1', methods=['POST'])
 @login_required
 def api_kyc_save_step1():
@@ -2172,14 +2161,14 @@ def inject_dashboard_globals():
 
         return dict(
             unread_notifications=unread_notifications,
-            country_flags=country_flags,
-            country_names=country_names,
+            country_flags=COUNTRY_FLAGS,
+            country_names=COUNTRY_NAMES,
         )
 
     return dict(
         unread_notifications=0,
-        country_flags=country_flags,
-        country_names=country_names,
+        country_flags=COUNTRY_FLAGS,
+        country_names=COUNTRY_NAMES,
     )
 # ==================== PAGE 404 ====================
 
