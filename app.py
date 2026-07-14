@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage
 from services.sms_service import send_sms, format_phone as format_sms_phone
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
@@ -2170,6 +2170,170 @@ def inject_dashboard_globals():
         country_flags=COUNTRY_FLAGS,
         country_names=COUNTRY_NAMES,
     )
+# ==================== SUPPORT ====================
+
+@app.route('/support')
+@login_required
+def support_page():
+    """Page du centre d'assistance."""
+    tickets = SupportTicket.query.filter_by(user_id=current_user.id).order_by(
+        SupportTicket.created_at.desc()
+    ).all()
+    return render_template('support.html', user=current_user, tickets=tickets)
+
+
+@app.route('/support/ticket/create', methods=['POST'])
+@login_required
+def support_create_ticket():
+    """Créer un nouveau ticket de support."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données requises.'}), 400
+
+    subject = data.get('subject', '').strip()
+    category = data.get('category', 'Other').strip()
+    priority = data.get('priority', 'NORMAL').strip()
+    message = data.get('message', '').strip()
+    attachment = data.get('attachment', '').strip() or None
+
+    if not subject or not message:
+        return jsonify({'success': False, 'message': 'Sujet et message requis.'}), 400
+
+    if category not in SupportTicket.CATEGORY_CHOICES:
+        category = 'Other'
+    if priority not in SupportTicket.PRIORITY_CHOICES:
+        priority = 'NORMAL'
+
+    ticket = SupportTicket(
+        user_id=current_user.id,
+        subject=subject,
+        category=category,
+        priority=priority,
+        message=message,
+        attachment=attachment,
+    )
+    db.session.add(ticket)
+    db.session.commit()
+
+    app.logger.info(f'[SUPPORT] Ticket créé: {ticket.ticket_number} par {current_user.email}')
+
+    return jsonify({
+        'success': True,
+        'message': 'Ticket créé avec succès.',
+        'ticket': ticket.to_dict(),
+    })
+
+
+@app.route('/support/tickets')
+@login_required
+def support_get_tickets():
+    """Récupérer tous les tickets de l'utilisateur."""
+    tickets = SupportTicket.query.filter_by(user_id=current_user.id).order_by(
+        SupportTicket.created_at.desc()
+    ).all()
+    return jsonify({
+        'success': True,
+        'tickets': [t.to_dict() for t in tickets],
+    })
+
+
+@app.route('/support/ticket/<int:ticket_id>')
+@login_required
+def support_get_ticket(ticket_id):
+    """Récupérer un ticket et ses messages."""
+    ticket = SupportTicket.query.filter_by(id=ticket_id, user_id=current_user.id).first()
+    if not ticket:
+        return jsonify({'success': False, 'message': 'Ticket introuvable.'}), 404
+
+    msgs = ticket.messages.order_by(SupportMessage.created_at.asc()).all()
+    return jsonify({
+        'success': True,
+        'ticket': ticket.to_dict(),
+        'messages': [m.to_dict() for m in msgs],
+    })
+
+
+@app.route('/support/message/send', methods=['POST'])
+@login_required
+def support_send_message():
+    """Envoyer un message dans un ticket."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données requises.'}), 400
+
+    ticket_id = data.get('ticket_id')
+    message = data.get('message', '').strip()
+    attachment = data.get('attachment', '').strip() or None
+
+    if not ticket_id or not message:
+        return jsonify({'success': False, 'message': 'Ticket et message requis.'}), 400
+
+    ticket = SupportTicket.query.filter_by(id=ticket_id, user_id=current_user.id).first()
+    if not ticket:
+        return jsonify({'success': False, 'message': 'Ticket introuvable.'}), 404
+
+    if ticket.status in ('CLOSED', 'RESOLVED'):
+        return jsonify({'success': False, 'message': 'Ce ticket est fermé. Créez un nouveau ticket si nécessaire.'}), 400
+
+    msg = SupportMessage(
+        ticket_id=ticket.id,
+        sender_type='user',
+        sender_id=current_user.id,
+        message=message,
+        attachment=attachment,
+    )
+    db.session.add(msg)
+    ticket.status = 'WAITING_USER'
+    ticket.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    app.logger.info(f'[SUPPORT] Message envoyé sur ticket {ticket.ticket_number}')
+
+    return jsonify({
+        'success': True,
+        'message': 'Message envoyé.',
+        'chat_message': msg.to_dict(),
+        'ticket': ticket.to_dict(),
+    })
+
+
+@app.route('/support/upload', methods=['POST'])
+@login_required
+def support_upload():
+    """Upload de pièce jointe pour le support."""
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'Aucun fichier.'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'Fichier vide.'}), 400
+
+    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else 'jpg'
+    if ext not in ('jpg', 'jpeg', 'png', 'pdf'):
+        return jsonify({'success': False, 'message': 'Format non autorisé (JPG, PNG, PDF).'}), 400
+
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    if size > 10 * 1024 * 1024:
+        return jsonify({'success': False, 'message': 'Fichier trop volumineux (max 10 Mo).'}), 400
+
+    upload_dir = os.path.join(app.root_path, 'uploads', 'support')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ts = datetime.utcnow().strftime('%Y%m%d%H%M%S%f')
+    filename = f'support_{current_user.id}_{ts}.{ext}'
+    filepath = os.path.join(upload_dir, filename)
+    file.save(filepath)
+
+    return jsonify({
+        'success': True,
+        'message': 'Fichier téléchargé.',
+        'filename': filename,
+        'path': f'/uploads/support/{filename}',
+    })
+
+
 # ==================== PAGE 404 ====================
 
 @app.errorhandler(404)

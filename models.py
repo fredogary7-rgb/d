@@ -514,3 +514,136 @@ class OtpCode(db.Model):
 
     def __repr__(self):
         return f'<OtpCode {self.id} phone={self.phone} purpose={self.purpose} verified={self.is_verified}>'
+
+
+def generate_ticket_number():
+    """Génère un numéro de ticket unique (format: TK-20260714-A83F)."""
+    now = datetime.utcnow()
+    date_part = now.strftime('%Y%m%d')
+    random_part = uuid.uuid4().hex[:4].upper()
+    return f'TK-{date_part}-{random_part}'
+
+
+class SupportTicket(db.Model):
+    """Ticket de support client TransAfrik."""
+
+    __tablename__ = 'support_tickets'
+
+    STATUS_CHOICES = ['OPEN', 'IN_PROGRESS', 'WAITING_USER', 'RESOLVED', 'CLOSED']
+    PRIORITY_CHOICES = ['LOW', 'NORMAL', 'HIGH', 'URGENT']
+    CATEGORY_CHOICES = ['Transfer', 'Payment', 'Account', 'KYC', 'Card', 'Technical', 'Other']
+
+    # ---- Identification ----
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_number = db.Column(db.String(30), unique=True, nullable=False, index=True,
+                              default=generate_ticket_number)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+
+    # ---- Détails ----
+    subject = db.Column(db.String(300), nullable=False)
+    category = db.Column(db.String(30), nullable=False, default='Other')
+    priority = db.Column(db.String(10), nullable=False, default='NORMAL')
+    status = db.Column(db.String(20), nullable=False, default='OPEN', index=True)
+    message = db.Column(db.Text, nullable=False)
+    attachment = db.Column(db.String(500), nullable=True)
+
+    # ---- Métadonnées ----
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    closed_at = db.Column(db.DateTime, nullable=True)
+    assigned_to = db.Column(db.Integer, nullable=True)           # admin/agent user id
+
+    # ---- Relation ----
+    user = db.relationship('User', backref=db.backref('support_tickets', lazy='dynamic'))
+    messages = db.relationship('SupportMessage', backref='ticket', lazy='dynamic',
+                               order_by='SupportMessage.created_at')
+
+    @property
+    def status_label(self):
+        labels = {
+            'OPEN': 'Ouvert',
+            'IN_PROGRESS': 'En cours',
+            'WAITING_USER': 'En attente',
+            'RESOLVED': 'Résolu',
+            'CLOSED': 'Fermé',
+        }
+        return labels.get(self.status, self.status)
+
+    @property
+    def priority_label(self):
+        labels = {
+            'LOW': 'Faible',
+            'NORMAL': 'Normale',
+            'HIGH': 'Élevée',
+            'URGENT': 'Urgente',
+        }
+        return labels.get(self.priority, self.priority)
+
+    @property
+    def category_label(self):
+        labels = {
+            'Transfer': 'Transfert',
+            'Payment': 'Paiement',
+            'Account': 'Compte',
+            'KYC': 'KYC',
+            'Card': 'Carte',
+            'Technical': 'Technique',
+            'Other': 'Autre',
+        }
+        return labels.get(self.category, self.category)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'ticket_number': self.ticket_number,
+            'user_id': self.user_id,
+            'subject': self.subject,
+            'category': self.category,
+            'category_label': self.category_label,
+            'priority': self.priority,
+            'priority_label': self.priority_label,
+            'status': self.status,
+            'status_label': self.status_label,
+            'message': self.message,
+            'attachment': self.attachment,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'closed_at': self.closed_at.isoformat() if self.closed_at else None,
+            'assigned_to': self.assigned_to,
+            'messages_count': self.messages.count() if self.messages else 0,
+        }
+
+    def __repr__(self):
+        return f'<SupportTicket {self.ticket_number} {self.status}>'
+
+
+class SupportMessage(db.Model):
+    """Message dans un ticket de support."""
+
+    __tablename__ = 'support_messages'
+
+    # ---- Identification ----
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('support_tickets.id'), nullable=False,
+                          index=True)
+    sender_type = db.Column(db.String(10), nullable=False, default='user')  # user | admin
+    sender_id = db.Column(db.Integer, nullable=True)
+    message = db.Column(db.Text, nullable=True)
+    attachment = db.Column(db.String(500), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'ticket_id': self.ticket_id,
+            'sender_type': self.sender_type,
+            'sender_id': self.sender_id,
+            'message': self.message,
+            'attachment': self.attachment,
+            'is_read': self.is_read,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+    def __repr__(self):
+        return f'<SupportMessage {self.id} ticket={self.ticket_id} sender={self.sender_type}>'

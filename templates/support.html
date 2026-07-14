@@ -1,0 +1,1815 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Support — TransAfrik{% endblock %}
+
+{% block dashboard_content %}
+<div class="support-page" id="supportApp">
+
+  <!-- HEADER -->
+  <div class="support-header">
+    <div class="support-header-left">
+      <a href="{{ url_for('dashboard') }}" class="support-back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>Retour</span>
+      </a>
+      <div class="support-header-text">
+        <h2 class="support-title">Centre d'assistance</h2>
+        <p class="support-subtitle">Besoin d'aide ? Notre équipe est disponible pour vous accompagner.</p>
+      </div>
+    </div>
+    <div class="support-header-right">
+      <div class="support-status-badge online" id="supportStatusBadge">
+        <span class="support-status-dot"></span>
+        <span class="support-status-text">Support en ligne</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 — Recherche -->
+  <div class="support-section">
+    <div class="support-search-wrap">
+      <i class="fas fa-search support-search-icon"></i>
+      <input type="text" id="supportSearchInput" class="support-search-input"
+             placeholder="Rechercher une question, un problème ou un mot-clé..."
+             autocomplete="off">
+    </div>
+  </div>
+
+  <!-- SECTION 2 — Accès rapide -->
+  <div class="support-section">
+    <h3 class="support-section-title"><i class="fas fa-bolt"></i> Accès rapide</h3>
+    <div class="support-quick-grid">
+      <div class="support-quick-card" data-faq="faq-transfer" onclick="scrollToFaq('faq-transfer')">
+        <div class="support-quick-icon">💸</div>
+        <span>Transfert d'argent</span>
+      </div>
+      <div class="support-quick-card" data-faq="faq-deposit" onclick="scrollToFaq('faq-deposit')">
+        <div class="support-quick-icon">💳</div>
+        <span>Dépôt</span>
+      </div>
+      <div class="support-quick-card" data-faq="faq-withdraw" onclick="scrollToFaq('faq-withdraw')">
+        <div class="support-quick-icon">🏦</div>
+        <span>Retrait</span>
+      </div>
+      <div class="support-quick-card" data-faq="faq-kyc" onclick="scrollToFaq('faq-kyc')">
+        <div class="support-quick-icon">🪪</div>
+        <span>Vérification KYC</span>
+      </div>
+      <div class="support-quick-card" data-faq="faq-security" onclick="scrollToFaq('faq-security')">
+        <div class="support-quick-icon">🔐</div>
+        <span>Sécurité</span>
+      </div>
+      <div class="support-quick-card" data-faq="faq-settings" onclick="scrollToFaq('faq-settings')">
+        <div class="support-quick-icon">⚙</div>
+        <span>Paramètres</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — FAQ -->
+  <div class="support-section" id="faqSection">
+    <h3 class="support-section-title"><i class="fas fa-question-circle"></i> Questions fréquentes</h3>
+    <div class="support-faq-list">
+      <div class="support-faq-item" data-faq="faq-transfer">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment envoyer de l'argent ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Pour envoyer de l'argent, rendez-vous dans la section "Envoyer de l'argent" depuis votre tableau de bord. Sélectionnez votre opérateur, entrez le montant, ajoutez les informations du destinataire, puis validez. Le destinataire recevra les fonds instantanément sur son compte mobile money.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-transfer">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment ajouter un bénéficiaire ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Dans la rubrique "Bénéficiaires", cliquez sur "Ajouter". Renseignez le nom, le numéro de téléphone et le pays. Vous pouvez aussi importer vos contacts depuis votre téléphone ou scanner un QR code TransAfrik.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-deposit">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment déposer de l'argent ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Allez dans la section "Dépôt". Sélectionnez votre pays et opérateur, entrez le montant à déposer, puis validez le paiement via votre mobile money. Une fois le paiement confirmé, votre portefeuille TransAfrik sera crédité automatiquement.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-transfer">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Pourquoi mon transfert est en attente ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Un transfert peut être en attente pour plusieurs raisons : vérification de sécurité, problème de réseau mobile money, ou validation en cours. Si votre transfert reste bloqué plus de 10 minutes, contactez notre support. Les statuts sont visibles dans votre historique.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-security">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment récupérer mon compte ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Si vous avez perdu l'accès à votre compte, utilisez la fonction "Mot de passe oublié" sur la page de connexion. Un code de vérification vous sera envoyé par SMS. Si vous ne recevez pas le SMS, contactez notre support avec une preuve d'identité.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-settings">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment modifier mon numéro ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Allez dans "Paramètres" > "Changer de numéro". Saisissez votre nouveau numéro et confirmez. Un code de vérification sera envoyé sur votre nouveau numéro pour valider la modification.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-kyc">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment fonctionne la vérification KYC ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>La vérification KYC (Know Your Customer) est obligatoire pour débloquer toutes les fonctionnalités. Rendez-vous dans "Vérification KYC", remplissez vos informations personnelles, téléchargez une pièce d'identité valide (recto/verso) et un selfie. Notre équipe vérifie votre dossier sous 24-48h.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-chat">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment contacter un conseiller ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Utilisez le chat en direct ci-dessous pour parler à un conseiller. Vous pouvez aussi créer un ticket ou nous contacter par email à support@transafrik.com. Le support est disponible 24h/24, 7j/7.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-settings">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment supprimer mon compte ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Allez dans "Paramètres" > "Sécurité" > "Supprimer mon compte". Vous devrez confirmer avec votre mot de passe. La suppression est réversible pendant 30 jours. Passé ce délai, toutes vos données seront définitivement effacées.</p>
+        </div>
+      </div>
+      <div class="support-faq-item" data-faq="faq-security">
+        <div class="support-faq-header" onclick="toggleFaq(this)">
+          <span>Comment modifier mon mot de passe ?</span>
+          <i class="fas fa-chevron-down support-faq-arrow"></i>
+        </div>
+        <div class="support-faq-body">
+          <p>Dans "Paramètres" > "Changer le mot de passe", saisissez votre mot de passe actuel, puis le nouveau. Choisissez un mot de passe robuste d'au moins 8 caractères avec lettres, chiffres et caractères spéciaux.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 — Chat avec un conseiller -->
+  <div class="support-section" id="chatSection">
+    <h3 class="support-section-title"><i class="fas fa-comments"></i> Discussion avec un conseiller</h3>
+    <div class="support-chat-container">
+      <div class="support-chat-messages" id="supportChatMessages">
+        <div class="support-chat-msg admin">
+          <div class="support-chat-bubble">
+            <div class="support-chat-sender">Support TransAfrik</div>
+            <div class="support-chat-text">Bonjour 👋<br>Comment pouvons-nous vous aider aujourd'hui ?</div>
+            <div class="support-chat-time">{{ now().strftime('%H:%M') if now else '' }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="support-chat-input-wrap">
+        <input type="text" id="supportChatInput" class="support-chat-input"
+               placeholder="Écrire un message..." autocomplete="off"
+               onkeydown="if(event.key==='Enter')sendChatMessage()">
+        <button class="support-chat-send-btn" onclick="sendChatMessage()">
+          <i class="fas fa-paper-plane"></i>
+          <span>Envoyer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 — Ouvrir un ticket -->
+  <div class="support-section" id="ticketFormSection">
+    <h3 class="support-section-title"><i class="fas fa-ticket-alt"></i> Ouvrir un ticket</h3>
+    <form id="supportTicketForm" class="support-ticket-form" onsubmit="return createTicket(event)">
+      <div class="support-form-row">
+        <div class="support-form-group">
+          <label for="ticketSubject">Sujet <span class="required">*</span></label>
+          <input type="text" id="ticketSubject" class="support-form-input" placeholder="Ex: Problème de transfert vers le Bénin" required>
+        </div>
+      </div>
+      <div class="support-form-row">
+        <div class="support-form-group">
+          <label for="ticketCategory">Catégorie</label>
+          <select id="ticketCategory" class="support-form-select">
+            <option value="Transfer">Transfert</option>
+            <option value="Payment">Paiement</option>
+            <option value="Account">Compte</option>
+            <option value="KYC">KYC</option>
+            <option value="Card">Carte</option>
+            <option value="Technical">Technique</option>
+            <option value="Other">Autre</option>
+          </select>
+        </div>
+        <div class="support-form-group">
+          <label for="ticketPriority">Priorité</label>
+          <select id="ticketPriority" class="support-form-select">
+            <option value="LOW">Faible</option>
+            <option value="NORMAL" selected>Normale</option>
+            <option value="HIGH">Élevée</option>
+          </select>
+        </div>
+      </div>
+      <div class="support-form-row">
+        <div class="support-form-group full-width">
+          <label for="ticketMessage">Description <span class="required">*</span></label>
+          <textarea id="ticketMessage" class="support-form-textarea" rows="5"
+                    placeholder="Décrivez votre problème en détail..." required></textarea>
+        </div>
+      </div>
+      <div class="support-form-row">
+        <div class="support-form-group">
+          <label for="ticketAttachment">Pièce jointe</label>
+          <div class="support-file-upload">
+            <input type="file" id="ticketAttachment" class="support-file-input"
+                   accept="image/*,.pdf" onchange="handleFileSelect(event)">
+            <label for="ticketAttachment" class="support-file-label">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span id="supportFileText">Image, PDF ou capture d'écran</span>
+            </label>
+            <small class="support-file-hint">Maximum 10 Mo</small>
+          </div>
+          <div id="supportFilePreview" class="support-file-preview" style="display:none;"></div>
+        </div>
+      </div>
+      <button type="submit" class="support-submit-btn" id="supportTicketSubmitBtn">
+        <i class="fas fa-paper-plane"></i>
+        Créer le ticket
+      </button>
+    </form>
+  </div>
+
+  <!-- SECTION 6 — Mes tickets -->
+  <div class="support-section">
+    <h3 class="support-section-title"><i class="fas fa-list-alt"></i> Mes tickets</h3>
+    <div class="support-tickets-table-wrap" id="myTicketsSection">
+      {% if tickets and tickets|length > 0 %}
+      <table class="support-tickets-table">
+        <thead>
+          <tr>
+            <th>Numéro</th>
+            <th>Sujet</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Priorité</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ticket in tickets %}
+          <tr class="support-ticket-row" data-ticket-id="{{ ticket.id }}">
+            <td class="support-ticket-number">{{ ticket.ticket_number }}</td>
+            <td class="support-ticket-subject">{{ ticket.subject }}</td>
+            <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') if ticket.created_at else '' }}</td>
+            <td>
+              <span class="support-ticket-status status-{{ ticket.status|lower }}">{{ ticket.status_label }}</span>
+            </td>
+            <td>
+              <span class="support-ticket-priority priority-{{ ticket.priority|lower }}">{{ ticket.priority_label }}</span>
+            </td>
+            <td>
+              <button class="support-view-ticket-btn" onclick="viewTicket({{ ticket.id }})">
+                <i class="fas fa-eye"></i> Voir
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="support-empty-state">
+        <div class="support-empty-icon">🎫</div>
+        <p>Aucun ticket pour le moment.</p>
+        <p>Créez un ticket ci-dessus si vous avez besoin d'aide.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- SECTION 7 — Nous contacter -->
+  <div class="support-section">
+    <h3 class="support-section-title"><i class="fas fa-address-book"></i> Nous contacter</h3>
+    <div class="support-contact-grid">
+      <div class="support-contact-card">
+        <div class="support-contact-icon">📧</div>
+        <div class="support-contact-label">Email</div>
+        <a href="mailto:support@transafrik.com" class="support-contact-value">support@transafrik.com</a>
+      </div>
+      <div class="support-contact-card">
+        <div class="support-contact-icon">☎</div>
+        <div class="support-contact-label">Téléphone</div>
+        <span class="support-contact-value">(+228)</span>
+      </div>
+      <div class="support-contact-card">
+        <div class="support-contact-icon">💬</div>
+        <div class="support-contact-label">WhatsApp</div>
+        <a href="https://wa.me/228" target="_blank" rel="noopener noreferrer" class="support-contact-value">Chat WhatsApp</a>
+      </div>
+      <div class="support-contact-card">
+        <div class="support-contact-icon">🌐</div>
+        <div class="support-contact-label">Site web</div>
+        <a href="/" class="support-contact-value">TransAfrik</a>
+      </div>
+      <div class="support-contact-card">
+        <div class="support-contact-icon">📍</div>
+        <div class="support-contact-label">Adresse</div>
+        <span class="support-contact-value">Siège social</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8 — Disponibilité -->
+  <div class="support-section">
+    <div class="support-availability-card">
+      <div class="support-availability-header">
+        <i class="fas fa-clock"></i>
+        <span>Support disponible</span>
+      </div>
+      <div class="support-availability-info">
+        <div class="support-availability-row">
+          <span class="support-availability-label">Horaires</span>
+          <span class="support-availability-value">Lundi — Dimanche</span>
+        </div>
+        <div class="support-availability-row">
+          <span class="support-availability-label">Disponibilité</span>
+          <span class="support-availability-value highlight">24h/24</span>
+        </div>
+        <div class="support-availability-row">
+          <span class="support-availability-label">Temps moyen de réponse</span>
+          <span class="support-availability-value highlight">moins de 5 minutes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 9 — Sécurité -->
+  <div class="support-section">
+    <div class="support-security-card">
+      <div class="support-security-text">Vos conversations sont chiffrées.</div>
+      <div class="support-security-icons">
+        <div class="support-security-badge">
+          <i class="fas fa-lock"></i>
+          <span>SSL</span>
+        </div>
+        <div class="support-security-badge">
+          <i class="fas fa-shield-alt"></i>
+          <span>AES-256</span>
+        </div>
+        <div class="support-security-badge">
+          <i class="fas fa-shield-haltered"></i>
+          <span>Données protégées</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Detail Modal -->
+  <div class="support-modal-overlay" id="ticketDetailModal" style="display:none;">
+    <div class="support-modal">
+      <div class="support-modal-header">
+        <h4 id="ticketDetailTitle">Ticket #</h4>
+        <button class="support-modal-close" onclick="closeTicketModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="support-modal-body" id="ticketDetailBody">
+        <!-- Rempli dynamiquement -->
+      </div>
+      <div class="support-modal-chat" id="ticketDetailChat">
+        <!-- Messages -->
+      </div>
+      <div class="support-modal-input" id="ticketDetailInput" style="display:none;">
+        <input type="text" id="ticketReplyInput" placeholder="Écrire un message..."
+               onkeydown="if(event.key==='Enter')sendTicketReply()">
+        <button onclick="sendTicketReply()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ===== SUPPORT PAGE CSS ===== */
+:root {
+  --sup-primary: #4F46E5;
+  --sup-primary-glow: rgba(79,70,229,0.3);
+  --sup-success: #10B981;
+  --sup-warning: #F59E0B;
+  --sup-danger: #EF4444;
+  --sup-info: #3B82F6;
+  --sup-bg: rgba(255,255,255,0.06);
+  --sup-card-bg: rgba(255,255,255,0.08);
+  --sup-card-hover: rgba(255,255,255,0.14);
+  --sup-border: rgba(255,255,255,0.1);
+  --sup-text: #E2E8F0;
+  --sup-text-dim: #94A3B8;
+  --sup-radius: 20px;
+  --sup-radius-sm: 12px;
+  --sup-shadow: 0 4px 30px rgba(0,0,0,0.2);
+  --sup-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.support-page {
+  padding: 8px 0 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* HEADER */
+.support-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 24px 28px;
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  margin-bottom: 24px;
+}
+
+.support-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.support-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sup-text-dim);
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--sup-bg);
+  transition: var(--sup-transition);
+  border: 1px solid transparent;
+}
+
+.support-back-btn:hover {
+  color: #fff;
+  background: var(--sup-card-hover);
+  border-color: var(--sup-border);
+}
+
+.support-header-text h2 {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.support-header-text p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--sup-text-dim);
+}
+
+.support-header-right {
+  flex-shrink: 0;
+}
+
+.support-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(16,185,129,0.15);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: #6EE7B7;
+  transition: var(--sup-transition);
+}
+
+.support-status-badge.online .support-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: supportPulse 2s infinite;
+  box-shadow: 0 0 10px rgba(16,185,129,0.6);
+}
+
+.support-status-badge.medium {
+  background: rgba(245,158,11,0.15);
+  border-color: rgba(245,158,11,0.3);
+  color: #FCD34D;
+}
+
+.support-status-badge.medium .support-status-dot {
+  background: #F59E0B;
+  box-shadow: 0 0 10px rgba(245,158,11,0.6);
+}
+
+@keyframes supportPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* SECTIONS */
+.support-section {
+  margin-bottom: 28px;
+}
+
+.support-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.support-section-title i {
+  color: var(--sup-primary);
+  font-size: 1.15rem;
+}
+
+/* SEARCH */
+.support-search-wrap {
+  position: relative;
+}
+
+.support-search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sup-text-dim);
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.support-search-input {
+  width: 100%;
+  padding: 16px 20px 16px 52px;
+  border-radius: var(--sup-radius);
+  border: 1px solid var(--sup-border);
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: var(--sup-transition);
+  box-sizing: border-box;
+}
+
+.support-search-input::placeholder {
+  color: var(--sup-text-dim);
+}
+
+.support-search-input:focus {
+  border-color: var(--sup-primary);
+  box-shadow: 0 0 0 4px var(--sup-primary-glow);
+}
+
+/* QUICK ACCESS */
+.support-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 12px;
+}
+
+.support-quick-card {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--sup-transition);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.support-quick-card:hover {
+  background: var(--sup-card-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--sup-shadow);
+  border-color: var(--sup-primary);
+}
+
+.support-quick-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* FAQ */
+.support-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.support-faq-item {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius-sm);
+  overflow: hidden;
+  transition: var(--sup-transition);
+}
+
+.support-faq-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  transition: var(--sup-transition);
+}
+
+.support-faq-header:hover {
+  background: var(--sup-card-hover);
+}
+
+.support-faq-arrow {
+  transition: var(--sup-transition);
+  color: var(--sup-text-dim);
+  font-size: 0.85rem;
+}
+
+.support-faq-item.open .support-faq-arrow {
+  transform: rotate(180deg);
+  color: var(--sup-primary);
+}
+
+.support-faq-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+  padding: 0 20px;
+  color: var(--sup-text-dim);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.support-faq-item.open .support-faq-body {
+  max-height: 300px;
+  padding: 0 20px 16px 20px;
+}
+
+/* CHAT */
+.support-chat-container {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  overflow: hidden;
+}
+
+.support-chat-messages {
+  padding: 20px;
+  max-height: 350px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+.support-chat-msg {
+  display: flex;
+}
+
+.support-chat-msg.user {
+  justify-content: flex-end;
+}
+
+.support-chat-msg.user .support-chat-bubble {
+  background: var(--sup-primary);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.support-chat-msg.admin .support-chat-bubble {
+  background: rgba(255,255,255,0.08);
+  color: var(--sup-text);
+  border-bottom-left-radius: 4px;
+}
+
+.support-chat-bubble {
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+}
+
+.support-chat-sender {
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+  color: var(--sup-primary);
+}
+
+.support-chat-msg.user .support-chat-sender {
+  color: rgba(255,255,255,0.7);
+}
+
+.support-chat-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.support-chat-time {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+  text-align: right;
+}
+
+.support-chat-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--sup-border);
+  background: rgba(0,0,0,0.15);
+}
+
+.support-chat-input {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 50px;
+  border: 1px solid var(--sup-border);
+  background: var(--sup-bg);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--sup-transition);
+}
+
+.support-chat-input::placeholder {
+  color: var(--sup-text-dim);
+}
+
+.support-chat-input:focus {
+  border-color: var(--sup-primary);
+}
+
+.support-chat-send-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 22px;
+  border-radius: 50px;
+  border: none;
+  background: var(--sup-primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--sup-transition);
+  font-size: 0.9rem;
+}
+
+.support-chat-send-btn:hover {
+  background: #4338CA;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px var(--sup-primary-glow);
+}
+
+/* TICKET FORM */
+.support-ticket-form {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  padding: 24px;
+}
+
+.support-form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.support-form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.support-form-group.full-width {
+  flex: 1 1 100%;
+  min-width: 100%;
+}
+
+.support-form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sup-text);
+}
+
+.required {
+  color: var(--sup-danger);
+}
+
+.support-form-input,
+.support-form-select,
+.support-form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--sup-radius-sm);
+  border: 1px solid var(--sup-border);
+  background: var(--sup-bg);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--sup-transition);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.support-form-select option {
+  background: #1E293B;
+  color: #fff;
+}
+
+.support-form-input:focus,
+.support-form-select:focus,
+.support-form-textarea:focus {
+  border-color: var(--sup-primary);
+  box-shadow: 0 0 0 3px var(--sup-primary-glow);
+}
+
+.support-form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* FILE UPLOAD */
+.support-file-upload {
+  position: relative;
+}
+
+.support-file-input {
+  display: none;
+}
+
+.support-file-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: var(--sup-radius-sm);
+  border: 2px dashed var(--sup-border);
+  cursor: pointer;
+  transition: var(--sup-transition);
+  color: var(--sup-text-dim);
+  font-size: 0.9rem;
+}
+
+.support-file-label:hover {
+  border-color: var(--sup-primary);
+  color: #fff;
+}
+
+.support-file-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--sup-text-dim);
+  font-size: 0.75rem;
+}
+
+.support-file-preview {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--sup-success);
+}
+
+.support-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, var(--sup-primary), #7C3AED);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--sup-transition);
+  box-shadow: 0 4px 20px rgba(79,70,229,0.3);
+}
+
+.support-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(79,70,229,0.45);
+}
+
+/* TICKETS TABLE */
+.support-tickets-table-wrap {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  overflow-x: auto;
+}
+
+.support-tickets-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.support-tickets-table th,
+.support-tickets-table td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--sup-text);
+  border-bottom: 1px solid var(--sup-border);
+}
+
+.support-tickets-table th {
+  font-weight: 600;
+  color: var(--sup-text-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.support-tickets-table tbody tr:hover {
+  background: var(--sup-card-hover);
+}
+
+.support-ticket-number {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--sup-primary);
+}
+
+.support-ticket-subject {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.support-ticket-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.support-ticket-status.status-open {
+  background: rgba(59,130,246,0.15);
+  color: #93C5FD;
+}
+
+.support-ticket-status.status-waiting_user {
+  background: rgba(245,158,11,0.15);
+  color: #FCD34D;
+}
+
+.support-ticket-status.status-resolved {
+  background: rgba(16,185,129,0.15);
+  color: #6EE7B7;
+}
+
+.support-ticket-status.status-closed {
+  background: rgba(148,163,184,0.15);
+  color: #94A3B8;
+}
+
+.support-ticket-status.status-in_progress {
+  background: rgba(139,92,246,0.15);
+  color: #C4B5FD;
+}
+
+.support-ticket-priority {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.support-ticket-priority.priority-high {
+  background: rgba(239,68,68,0.15);
+  color: #FCA5A5;
+}
+
+.support-ticket-priority.priority-low {
+  background: rgba(148,163,184,0.15);
+  color: #94A3B8;
+}
+
+.support-ticket-priority.priority-normal {
+  background: rgba(59,130,246,0.15);
+  color: #93C5FD;
+}
+
+.support-ticket-priority.priority-urgent {
+  background: rgba(239,68,68,0.25);
+  color: #FECACA;
+  font-weight: 700;
+}
+
+.support-view-ticket-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--sup-border);
+  background: var(--sup-bg);
+  color: var(--sup-text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: var(--sup-transition);
+  white-space: nowrap;
+}
+
+.support-view-ticket-btn:hover {
+  background: var(--sup-primary);
+  border-color: var(--sup-primary);
+  color: #fff;
+}
+
+/* CONTACT GRID */
+.support-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.support-contact-card {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  padding: 20px 18px;
+  text-align: center;
+  transition: var(--sup-transition);
+}
+
+.support-contact-card:hover {
+  background: var(--sup-card-hover);
+  transform: translateY(-2px);
+}
+
+.support-contact-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.support-contact-label {
+  font-size: 0.8rem;
+  color: var(--sup-text-dim);
+  margin-bottom: 4px;
+}
+
+.support-contact-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+}
+
+a.support-contact-value:hover {
+  color: var(--sup-primary);
+  text-decoration: underline;
+}
+
+/* AVAILABILITY */
+.support-availability-card {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  padding: 24px;
+}
+
+.support-availability-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.support-availability-header i {
+  color: var(--sup-success);
+}
+
+.support-availability-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.support-availability-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--sup-border);
+  font-size: 0.9rem;
+}
+
+.support-availability-label {
+  color: var(--sup-text-dim);
+}
+
+.support-availability-value {
+  color: #fff;
+  font-weight: 600;
+}
+
+.support-availability-value.highlight {
+  color: var(--sup-success);
+}
+
+/* SECURITY */
+.support-security-card {
+  background: var(--sup-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.support-security-text {
+  font-size: 0.95rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.support-security-icons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.support-security-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(79,70,229,0.1);
+  border: 1px solid rgba(79,70,229,0.2);
+  color: #A5B4FC;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* MODAL */
+.support-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: supportFadeIn 0.2s ease;
+}
+
+@keyframes supportFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.support-modal {
+  background: #1E293B;
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: supportSlideUp 0.3s ease;
+}
+
+@keyframes supportSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.support-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--sup-border);
+}
+
+.support-modal-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.support-modal-close {
+  background: none;
+  border: none;
+  color: var(--sup-text-dim);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 4px;
+  transition: var(--sup-transition);
+}
+
+.support-modal-close:hover {
+  color: #fff;
+}
+
+.support-modal-body {
+  padding: 20px 24px;
+  font-size: 0.9rem;
+  color: var(--sup-text);
+  line-height: 1.7;
+}
+
+.support-modal-chat {
+  padding: 0 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.support-modal-input {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--sup-border);
+}
+
+.support-modal-input input {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 50px;
+  border: 1px solid var(--sup-border);
+  background: var(--sup-bg);
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.support-modal-input input:focus {
+  border-color: var(--sup-primary);
+}
+
+.support-modal-input button {
+  background: var(--sup-primary);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  cursor: pointer;
+  transition: var(--sup-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.support-modal-input button:hover {
+  background: #4338CA;
+}
+
+/* EMPTY STATE */
+.support-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--sup-text-dim);
+}
+
+.support-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+/* TOAST */
+.support-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #1E293B;
+  border: 1px solid var(--sup-border);
+  border-radius: 12px;
+  padding: 14px 24px;
+  color: #fff;
+  font-size: 0.9rem;
+  z-index: 99999;
+  animation: supportSlideUp 0.3s ease, supportFadeOut 0.3s 2.7s ease forwards;
+  box-shadow: var(--sup-shadow);
+  max-width: 400px;
+}
+
+.support-toast.success {
+  border-left: 4px solid var(--sup-success);
+}
+
+.support-toast.error {
+  border-left: 4px solid var(--sup-danger);
+}
+
+@keyframes supportFadeOut {
+  to { opacity: 0; transform: translateY(10px); }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .support-page {
+    padding: 4px 0 40px;
+  }
+
+  .support-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .support-header-left {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .support-header-text h2 {
+    font-size: 1.3rem;
+  }
+
+  .support-quick-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .support-quick-card {
+    padding: 16px 12px;
+    font-size: 0.8rem;
+  }
+
+  .support-quick-icon {
+    font-size: 1.5rem;
+  }
+
+  .support-contact-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .support-security-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .support-tickets-table-wrap {
+    border-radius: var(--sup-radius-sm);
+  }
+
+  .support-form-row {
+    flex-direction: column;
+  }
+
+  .support-modal {
+    max-width: 95vw;
+  }
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ==================== SUPPORT JS ====================
+
+let currentTicketId = null;
+
+// ---- TOAST ----
+function showSupportToast(message, type='success') {
+  const toast = document.createElement('div');
+  toast.className = 'support-toast ' + type;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3100);
+}
+
+// ---- FAQ Toggle ----
+function toggleFaq(header) {
+  const item = header.parentElement;
+  const wasOpen = item.classList.contains('open');
+
+  // Fermer tous les items sauf celui cliqué
+  document.querySelectorAll('.support-faq-item.open').forEach(el => {
+    if (el !== item) el.classList.remove('open');
+  });
+
+  if (wasOpen) {
+    item.classList.remove('open');
+  } else {
+    item.classList.add('open');
+  }
+}
+
+// ---- Scroll to FAQ ----
+function scrollToFaq(faqId) {
+  const section = document.getElementById('faqSection');
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  // Ouvrir le premier item correspondant
+  const items = document.querySelectorAll(`.support-faq-item[data-faq="${faqId}"]`);
+  items.forEach(item => {
+    document.querySelectorAll('.support-faq-item.open').forEach(el => el.classList.remove('open'));
+    item.classList.add('open');
+  });
+  // Scroll to first matching item
+  if (items.length > 0) {
+    setTimeout(() => {
+      items[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+  }
+}
+
+// ---- Recherche en temps réel ----
+let searchTimeout = null;
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('supportSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      const query = this.value.trim().toLowerCase();
+      searchTimeout = setTimeout(() => filterFaq(query), 250);
+    });
+  }
+
+  // Simuler disponibilité
+  updateAvailabilityBadge();
+  // Rafraîchir toutes les 5 min
+  setInterval(updateAvailabilityBadge, 300000);
+});
+
+function filterFaq(query) {
+  const items = document.querySelectorAll('.support-faq-item');
+  if (!query) {
+    items.forEach(item => item.style.display = '');
+    // Fermer tous
+    items.forEach(item => item.classList.remove('open'));
+    return;
+  }
+
+  let firstMatch = null;
+  items.forEach(item => {
+    const header = item.querySelector('.support-faq-header span');
+    const body = item.querySelector('.support-faq-body');
+    const text = (header?.textContent || '') + ' ' + (body?.textContent || '');
+    if (text.toLowerCase().includes(query)) {
+      item.style.display = '';
+      if (!firstMatch) firstMatch = item;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+
+  if (firstMatch) {
+    document.querySelectorAll('.support-faq-item.open').forEach(el => el.classList.remove('open'));
+    firstMatch.classList.add('open');
+    setTimeout(() => firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+}
+
+// ---- Availability Badge ----
+function updateAvailabilityBadge() {
+  const badge = document.getElementById('supportStatusBadge');
+  if (!badge) return;
+
+  const now = new Date();
+  const hour = now.getHours();
+
+  if (hour >= 6 && hour < 22) {
+    badge.className = 'support-status-badge online';
+    badge.querySelector('.support-status-text').textContent = 'Support en ligne';
+  } else {
+    badge.className = 'support-status-badge medium';
+    badge.querySelector('.support-status-text').textContent = 'Temps de réponse moyen : moins de 5 minutes';
+  }
+}
+
+// ---- Chat ----
+function getNowTimeString() {
+  const now = new Date();
+  return now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+}
+
+function addChatMessage(senderType, senderName, text, time) {
+  const container = document.getElementById('supportChatMessages');
+  const div = document.createElement('div');
+  div.className = 'support-chat-msg ' + senderType;
+
+  const timeStr = time || getNowTimeString();
+  const senderHtml = senderName ? `<div class="support-chat-sender">${senderName}</div>` : '';
+
+  div.innerHTML = `
+    <div class="support-chat-bubble">
+      ${senderHtml}
+      <div class="support-chat-text">${text}</div>
+      <div class="support-chat-time">${timeStr}</div>
+    </div>
+  `;
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('supportChatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  addChatMessage('user', 'Vous', text);
+  input.value = '';
+
+  // Réponse automatique
+  setTimeout(() => {
+    addChatMessage('admin', 'Support TransAfrik',
+      'Merci pour votre message. Un conseiller va vous répondre dans quelques instants. En attendant, vous pouvez consulter notre FAQ ou créer un ticket.');
+  }, 800);
+}
+
+// ---- Ticket Creation ----
+function createTicket(event) {
+  event.preventDefault();
+
+  const subject = document.getElementById('ticketSubject').value.trim();
+  const category = document.getElementById('ticketCategory').value;
+  const priority = document.getElementById('ticketPriority').value;
+  const message = document.getElementById('ticketMessage').value.trim();
+  const attachmentInput = document.getElementById('ticketAttachment');
+  let attachmentPath = '';
+
+  if (!subject || !message) {
+    showSupportToast('Veuillez remplir le sujet et la description.', 'error');
+    return false;
+  }
+
+  const btn = document.getElementById('supportTicketSubmitBtn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
+  btn.disabled = true;
+
+  // Si fichier sélectionné, uploader d'abord
+  function submitTicket(attachment) {
+    fetch('/support/ticket/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject: subject,
+        category: category,
+        priority: priority,
+        message: message,
+        attachment: attachment || ''
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+
+      if (data.success) {
+        showSupportToast('Ticket créé avec succès !');
+        // Reset form
+        document.getElementById('ticketSubject').value = '';
+        document.getElementById('ticketMessage').value = '';
+        document.getElementById('supportFilePreview').style.display = 'none';
+        document.getElementById('supportFileText').textContent = 'Image, PDF ou capture d\'écran';
+        document.getElementById('ticketAttachment').value = '';
+
+        // Recharger la page après un délai
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showSupportToast(data.message || 'Erreur lors de la création du ticket.', 'error');
+      }
+    })
+    .catch(err => {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      showSupportToast('Erreur réseau. Veuillez réessayer.', 'error');
+      console.error(err);
+    });
+  }
+
+  if (attachmentInput.files && attachmentInput.files.length > 0) {
+    const formData = new FormData();
+    formData.append('file', attachmentInput.files[0]);
+
+    fetch('/support/upload', {
+      method: 'POST',
+      body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+      submitTicket(data.path || '');
+    })
+    .catch(() => {
+      submitTicket('');
+    });
+  } else {
+    submitTicket('');
+  }
+
+  return false;
+}
+
+// ---- File Select ----
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('supportFilePreview');
+  const text = document.getElementById('supportFileText');
+
+  if (file) {
+    if (file.size > 10 * 1024 * 1024) {
+      showSupportToast('Fichier trop volumineux (max 10 Mo).', 'error');
+      event.target.value = '';
+      preview.style.display = 'none';
+      text.textContent = 'Image, PDF ou capture d\'écran';
+      return;
+    }
+    text.textContent = file.name;
+    preview.style.display = 'block';
+    preview.innerHTML = `<i class="fas fa-paperclip"></i> ${file.name} (${(file.size / 1024).toFixed(1)} Ko)`;
+  }
+}
+
+// ---- Ticket Detail Modal ----
+function viewTicket(ticketId) {
+  currentTicketId = ticketId;
+  const modal = document.getElementById('ticketDetailModal');
+  const title = document.getElementById('ticketDetailTitle');
+  const body = document.getElementById('ticketDetailBody');
+  const chat = document.getElementById('ticketDetailChat');
+  const inputWrap = document.getElementById('ticketDetailInput');
+
+  title.textContent = 'Chargement...';
+  body.innerHTML = '';
+  chat.innerHTML = '';
+  inputWrap.style.display = 'none';
+  modal.style.display = 'flex';
+
+  fetch('/support/ticket/' + ticketId)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) {
+        body.innerHTML = '<p style="color:#FCA5A5;">Ticket introuvable.</p>';
+        return;
+      }
+
+      const t = data.ticket;
+      title.textContent = 'Ticket ' + t.ticket_number;
+      body.innerHTML = `
+        <p><strong>Sujet :</strong> ${escapeHtml(t.subject)}</p>
+        <p><strong>Catégorie :</strong> ${escapeHtml(t.category_label)}</p>
+        <p><strong>Priorité :</strong> ${escapeHtml(t.priority_label)}</p>
+        <p><strong>Statut :</strong> <span class="support-ticket-status status-${t.status.toLowerCase()}">${escapeHtml(t.status_label)}</span></p>
+        <p><strong>Date :</strong> ${t.created_at ? new Date(t.created_at).toLocaleString('fr-FR') : ''}</p>
+        <p><strong>Description :</strong></p>
+        <p style="white-space:pre-wrap;background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">${escapeHtml(t.message)}</p>
+      `;
+
+      const messages = data.messages || [];
+      messages.forEach(m => {
+        const senderName = m.sender_type === 'user' ? 'Vous' : 'Support TransAfrik';
+        const msgClass = m.sender_type === 'user' ? 'user' : 'admin';
+        const div = document.createElement('div');
+        div.className = 'support-chat-msg ' + msgClass;
+        div.innerHTML = `
+          <div class="support-chat-bubble">
+            <div class="support-chat-sender">${senderName}</div>
+            <div class="support-chat-text">${escapeHtml(m.message || '')}</div>
+            <div class="support-chat-time">${m.created_at ? new Date(m.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : ''}</div>
+          </div>
+        `;
+        chat.appendChild(div);
+      });
+
+      // Afficher le champ de réponse si le ticket n'est pas fermé
+      if (t.status !== 'CLOSED' && t.status !== 'RESOLVED') {
+        inputWrap.style.display = 'flex';
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      body.innerHTML = '<p style="color:#FCA5A5;">Erreur lors du chargement du ticket.</p>';
+    });
+}
+
+function closeTicketModal() {
+  document.getElementById('ticketDetailModal').style.display = 'none';
+  currentTicketId = null;
+}
+
+// Fermer le modal en cliquant sur l'overlay
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'ticketDetailModal') {
+    closeTicketModal();
+  }
+});
+
+// ---- Ticket Reply ----
+function sendTicketReply() {
+  if (!currentTicketId) return;
+
+  const input = document.getElementById('ticketReplyInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  fetch('/support/message/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ticket_id: currentTicketId,
+      message: text
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      input.value = '';
+      // Ajouter le message dans le chat du modal
+      const chat = document.getElementById('ticketDetailChat');
+      const div = document.createElement('div');
+      div.className = 'support-chat-msg user';
+      div.innerHTML = `
+        <div class="support-chat-bubble">
+          <div class="support-chat-sender">Vous</div>
+          <div class="support-chat-text">${escapeHtml(text)}</div>
+          <div class="support-chat-time">${getNowTimeString()}</div>
+        </div>
+      `;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    } else {
+      showSupportToast(data.message || 'Erreur.', 'error');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    showSupportToast('Erreur réseau.', 'error');
+  });
+}
+
+// ---- Utils ----
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+{% endblock %}
