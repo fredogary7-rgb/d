@@ -1,0 +1,82 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Notifications</h1>
+        <p>Envoyer des notifications aux utilisateurs</p>
+    </div>
+</div>
+
+<!-- SEND FORM -->
+<div class="card">
+    <h3 style="margin-bottom:16px">Nouvelle notification</h3>
+    <form method="POST" action="/admin/notifications/send">
+        <div class="form-group">
+            <label>Titre</label>
+            <input type="text" name="title" class="form-input" placeholder="Titre de la notification" required>
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea name="message" class="form-textarea" placeholder="Contenu du message..." required></textarea>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Audience</label>
+                <select name="target_type" class="form-select">
+                    <option value="all">Tous les utilisateurs</option>
+                    <option value="country">Par pays</option>
+                    <option value="user">Utilisateur spécifique</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Valeur (pays ou ID)</label>
+                <input type="text" name="target_value" class="form-input" placeholder="Optionnel">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
+    </form>
+</div>
+
+<!-- HISTORY -->
+<div class="card">
+    <h3 style="margin-bottom:16px">Historique</h3>
+    <div class="table-wrap">
+        {% if notifs.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>Audience</th>
+                    <th>Envoyé par</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in notifs.items %}
+                <tr>
+                    <td><strong>{{ n.title }}</strong></td>
+                    <td><span class="badge badge-blue">{{ n.target_type }}</span></td>
+                    <td>{{ n.admin.user.fullname if n.admin and n.admin.user else 'N/A' }}</td>
+                    <td>{{ n.sent_at.strftime('%d/%m/%Y %H:%M') if n.sent_at else n.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-bell-slash"></i>Aucune notification envoyée.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% if notifs.pages > 1 %}
+<div class="pagination">
+    {% if notifs.has_prev %}<a href="?page={{ notifs.prev_num }}">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+    {% for p in notifs.iter_pages() %}
+    {% if p %}<a href="?page={{ p }}" class="{% if p == notifs.page %}current{% endif %}">{{ p }}</a>{% else %}<span>…</span>{% endif %}
+    {% endfor %}
+    {% if notifs.has_next %}<a href="?page={{ notifs.next_num }}">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

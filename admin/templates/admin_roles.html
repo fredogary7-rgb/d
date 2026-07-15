@@ -1,0 +1,116 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Rôles & Permissions</h1>
+        <p>Gestion des administrateurs</p>
+    </div>
+</div>
+
+<!-- ADD ADMIN FORM -->
+<div class="card">
+    <h3 style="margin-bottom:16px">Ajouter un administrateur</h3>
+    <form method="POST" action="/admin/roles/add" class="form-row">
+        <div class="form-group">
+            <label>Utilisateur</label>
+            <select name="user_id" class="form-select" required>
+                <option value="">— Sélectionner —</option>
+                {% for u in users %}
+                <option value="{{ u.id }}">{{ u.fullname }} ({{ u.email }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Rôle</label>
+            <select name="role" class="form-select" required>
+                <option value="super_admin">Super Admin</option>
+                <option value="admin">Admin</option>
+                <option value="support">Support</option>
+                <option value="finance">Finance</option>
+                <option value="compliance">Compliance</option>
+            </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Ajouter</button>
+        </div>
+    </form>
+</div>
+
+<!-- ADMIN LIST -->
+<div class="card">
+    <h3 style="margin-bottom:16px">Administrateurs</h3>
+    <div class="table-wrap">
+        {% if admins %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in admins %}
+                <tr>
+                    <td>
+                        <div class="tx-user">
+                            <div class="tx-user-avatar">{{ (a.user.fullname|default('?'))|truncate(2,True,'')|upper }}</div>
+                            {{ a.user.fullname if a.user else 'N/A' }}
+                        </div>
+                    </td>
+                    <td>{{ a.user.email if a.user else 'N/A' }}</td>
+                    <td>
+                        {% if a.role == 'super_admin' %}<span class="role-tag rt-super">Super Admin</span>
+                        {% elif a.role == 'admin' %}<span class="role-tag rt-admin">Admin</span>
+                        {% elif a.role == 'support' %}<span class="role-tag rt-support">Support</span>
+                        {% elif a.role == 'finance' %}<span class="role-tag rt-finance">Finance</span>
+                        {% elif a.role == 'compliance' %}<span class="role-tag rt-compliance">Compliance</span>
+                        {% else %}{{ a.role }}{% endif %}
+                    </td>
+                    <td>
+                        {% if a.is_active %}<span class="badge badge-green">Actif</span>
+                        {% else %}<span class="badge badge-red">Inactif</span>{% endif %}
+                    </td>
+                    <td>{{ a.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openModal('editRole{{ a.id }}')"><i class="fa-solid fa-pen"></i></button>
+                        <form method="POST" action="/admin/roles/{{ a.id }}/toggle" style="display:inline">
+                            <button class="btn btn-warning btn-sm"><i class="fa-solid fa-{% if a.is_active %}ban{% else %}check{% endif %}"></i></button>
+                        </form>
+
+                        <!-- Edit Role Modal -->
+                        <div class="modal-overlay" id="editRole{{ a.id }}">
+                            <div class="modal">
+                                <h3>Modifier le rôle</h3>
+                                <p>{{ a.user.email if a.user else 'N/A' }}</p>
+                                <form method="POST" action="/admin/roles/{{ a.id }}/update">
+                                    <select name="role" class="form-select">
+                                        <option value="super_admin" {% if a.role == 'super_admin' %}selected{% endif %}>Super Admin</option>
+                                        <option value="admin" {% if a.role == 'admin' %}selected{% endif %}>Admin</option>
+                                        <option value="support" {% if a.role == 'support' %}selected{% endif %}>Support</option>
+                                        <option value="finance" {% if a.role == 'finance' %}selected{% endif %}>Finance</option>
+                                        <option value="compliance" {% if a.role == 'compliance' %}selected{% endif %}>Compliance</option>
+                                    </select>
+                                    <div class="modal-actions" style="margin-top:16px">
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('editRole{{ a.id }}')">Annuler</button>
+                                        <button type="submit" class="btn btn-primary btn-sm">Mettre à jour</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-user-shield"></i>Aucun administrateur.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

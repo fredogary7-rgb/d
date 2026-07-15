@@ -1,0 +1,89 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Statistiques</h1>
+        <p>Analyse des données de la plateforme</p>
+    </div>
+</div>
+
+<!-- CHARTS -->
+<div class="chart-grid">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-globe" style="color:var(--blue)"></i> Utilisateurs par pays</h3>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="countryUsersChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--green)"></i> Transactions par type</h3>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="txTypeChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-money-bill-trend-up" style="color:var(--yellow)"></i> Montants par pays (Top 10)</h3>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="amountByCountryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    Chart.defaults.color = '#94A3B8';
+    Chart.defaults.borderColor = '#1E293B';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 11;
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: '#1E293B' } },
+            y: { grid: { color: '#1E293B' }, ticks: { callback: function(v){ return v.toLocaleString(); } } }
+        }
+    };
+
+    // Country users
+    new Chart(document.getElementById('countryUsersChart'), {
+        type: 'bar',
+        data: { labels: {{ country_labels|safe }}, datasets: [{ data: {{ country_values|safe }}, backgroundColor: '#2563EB', borderRadius: 6 }] },
+        options: {...chartOptions}
+    });
+
+    // TX by type
+    new Chart(document.getElementById('txTypeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ tx_type_labels|safe }},
+            datasets: [{ data: {{ tx_type_values|safe }}, backgroundColor: ['#2563EB','#10B981','#EF4444','#F59E0B','#8B5CF6'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8' } } } }
+    });
+
+    // Amount by country
+    new Chart(document.getElementById('amountByCountryChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ amount_labels|safe }},
+            datasets: [{ data: {{ amount_values|safe }}, backgroundColor: '#F59E0B', borderRadius: 6 }]
+        },
+        options: {...chartOptions}
+    });
+});
+</script>
+{% endblock %}

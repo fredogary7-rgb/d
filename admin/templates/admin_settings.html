@@ -1,0 +1,32 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Paramètres</h1>
+        <p>Configuration de la plateforme</p>
+    </div>
+</div>
+
+<form method="POST" action="/admin/settings/update">
+    {% for group_name, configs in grouped.items() %}
+    {% if configs %}
+    <div class="card">
+        <h3 style="margin-bottom:16px">{{ group_name }}</h3>
+        <div class="form-row">
+            {% for cfg in configs %}
+            <div class="form-group">
+                <label>{{ cfg.key }}</label>
+                <input type="text" name="config_{{ cfg.key }}" value="{{ cfg.value or '' }}" class="form-input" style="font-family:'JetBrains Mono',monospace;font-size:12px">
+                {% if cfg.description %}<small style="color:var(--text-4);font-size:10px">{{ cfg.description }}</small>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary" style="margin-top:16px"><i class="fa-solid fa-save"></i> Enregistrer</button>
+</form>
+
+{% endblock %}

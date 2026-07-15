@@ -1,0 +1,51 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Ticket #{{ ticket.id }}</h1>
+        <p>{{ ticket.subject }}</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="/admin/support" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Retour</a>
+        {% if ticket.status == 'open' %}
+        <form method="POST" action="/admin/support/{{ ticket.id }}/close" style="display:inline">
+            <button class="btn btn-warning btn-sm">Fermer le ticket</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="detail-grid">
+        <div class="detail-item"><div class="dilabel">Statut</div><div class="divalue">{{ ticket.status }}</div></div>
+        <div class="detail-item"><div class="dilabel">Créé par</div><div class="divalue">{{ ticket.user.fullname if ticket.user else 'N/A' }}</div></div>
+        <div class="detail-item"><div class="dilabel">Date</div><div class="divalue">{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</div></div>
+    </div>
+</div>
+
+<!-- MESSAGES -->
+<div style="margin-bottom:24px">
+    {% for msg in messages %}
+    <div class="card" style="margin-bottom:12px; border-color: {% if msg.sender_type == 'admin' %}var(--blue){% else %}var(--border){% endif %}">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <strong style="color:{% if msg.sender_type == 'admin' %}var(--blue){% endif %}">{{ msg.sender_name }}</strong>
+            <small>{{ msg.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+        </div>
+        <p>{{ msg.content }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- REPLY FORM -->
+{% if ticket.status == 'open' %}
+<div class="card">
+    <h3 style="margin-bottom:12px">Répondre</h3>
+    <form method="POST" action="/admin/support/{{ ticket.id }}/reply">
+        <textarea name="content" class="form-textarea" placeholder="Votre réponse..." required></textarea>
+        <button type="submit" class="btn btn-primary" style="margin-top:12px"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
+    </form>
+</div>
+{% endif %}
+
+{% endblock %}

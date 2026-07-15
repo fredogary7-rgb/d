@@ -1,0 +1,108 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+{% set u = target_user %}
+
+<div class="page-header">
+    <div>
+        <h1><i class="fa-solid fa-user"></i> {{ u.fullname }}</h1>
+        <p>ID: {{ u.id }} · Inscrit le {{ u.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="/admin/users" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Retour</a>
+    </div>
+</div>
+
+<!-- DETAIL CARDS -->
+<div class="detail-grid">
+    <div class="detail-item"><div class="dilabel">Email</div><div class="divalue">{{ u.email }}</div></div>
+    <div class="detail-item"><div class="dilabel">Téléphone</div><div class="divalue">{{ u.phone or '—' }}</div></div>
+    <div class="detail-item"><div class="dilabel">Pays</div><div class="divalue">{{ u.country or '—' }}</div></div>
+    <div class="detail-item"><div class="dilabel">Devise</div><div class="divalue">{{ u.currency or 'XOF' }}</div></div>
+    <div class="detail-item"><div class="dilabel">Solde</div><div class="divalue">{{ u.balance|default(0)|int }} {{ u.currency or 'XOF' }}</div></div>
+    <div class="detail-item"><div class="dilabel">KYC</div><div class="divalue">{{ u.kyc_status or 'Non défini' }}</div></div>
+    <div class="detail-item"><div class="dilabel">Statut</div><div class="divalue">{{ 'Actif' if u.is_active else 'Suspendu' }}</div></div>
+    <div class="detail-item"><div class="dilabel">QR Identifiant</div><div class="divalue mono">{{ u.qr_identifier or '—' }}</div></div>
+</div>
+
+<!-- ACTIONS -->
+<div class="card" style="margin-bottom:24px">
+    <h3 style="margin-bottom:16px">Actions</h3>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+
+        <!-- Crédit -->
+        <form method="POST" action="/admin/users/{{ u.id }}/credit" style="display:flex;gap:8px;align-items:flex-end" onsubmit="return confirm('Créditer de ce montant ?')">
+            <div class="form-group" style="margin:0"><label>Créditer (XOF)</label><input type="number" name="amount" class="form-input" placeholder="Montant" required style="width:120px"></div>
+            <div class="form-group" style="margin:0"><label>Motif</label><input type="text" name="reason" class="form-input" placeholder="Motif" style="width:150px"></div>
+            <button class="btn btn-success btn-sm">Créditer</button>
+        </form>
+
+        <!-- Débit -->
+        <form method="POST" action="/admin/users/{{ u.id }}/debit" style="display:flex;gap:8px;align-items:flex-end" onsubmit="return confirm('Débiter de ce montant ?')">
+            <div class="form-group" style="margin:0"><label>Débiter (XOF)</label><input type="number" name="amount" class="form-input" placeholder="Montant" required style="width:120px"></div>
+            <div class="form-group" style="margin:0"><label>Motif</label><input type="text" name="reason" class="form-input" placeholder="Motif" style="width:150px"></div>
+            <button class="btn btn-danger btn-sm">Débiter</button>
+        </form>
+
+        <!-- Toggle status -->
+        <form method="POST" action="/admin/users/{{ u.id }}/toggle" style="display:flex;align-items:flex-end" onsubmit="return confirmAction()">
+            {% if u.is_active %}
+            <button class="btn btn-warning btn-sm"><i class="fa-solid fa-ban"></i> Suspendre</button>
+            {% else %}
+            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Activer</button>
+            {% endif %}
+        </form>
+
+        <!-- Reset password -->
+        <form method="POST" action="/admin/users/{{ u.id }}/reset-password" style="display:flex;gap:8px;align-items:flex-end" onsubmit="return confirm('Réinitialiser le mot de passe ?')">
+            <div class="form-group" style="margin:0"><label>Nouveau MDP</label><input type="text" name="new_password" class="form-input" placeholder="6+ caractères" required style="width:150px"></div>
+            <button class="btn btn-outline btn-sm">Réinitialiser</button>
+        </form>
+
+        <!-- Soft delete -->
+        <form method="POST" action="/admin/users/{{ u.id }}/delete" onsubmit="return confirm('Supprimer cet utilisateur ?')" style="display:flex;align-items:flex-end">
+            <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"><i class="fa-solid fa-trash"></i> Supprimer</button>
+        </form>
+    </div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="card">
+    <div class="card-header"><h3>Transactions récentes</h3></div>
+    <div class="table-wrap">
+        {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Bénéficiaire</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td class="mono">#{{ tx.id }}</td>
+                    <td><span class="badge {% if tx.type == 'send' %}badge-blue{% elif tx.type == 'deposit' %}badge-green{% else %}badge-yellow{% endif %}">{{ tx.type }}</span></td>
+                    <td>{{ tx.recipient_name or '—' }}</td>
+                    <td><strong>{{ tx.amount|int }} {{ tx.currency or 'XOF' }}</strong></td>
+                    <td>
+                        {% if tx.status == 'success' %}<span class="badge-status bs-success">Réussi</span>
+                        {% elif tx.status == 'pending' %}<span class="badge-status bs-pending">En attente</span>
+                        {% elif tx.status == 'failed' %}<span class="badge-status bs-failed">Échoué</span>
+                        {% else %}{{ tx.status }}{% endif %}
+                    </td>
+                    <td>{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-inbox"></i>Aucune transaction.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

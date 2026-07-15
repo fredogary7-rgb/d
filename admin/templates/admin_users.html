@@ -1,0 +1,115 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Utilisateurs</h1>
+        <p>Gestion des utilisateurs de la plateforme</p>
+    </div>
+    <div class="page-header-actions">
+        <span class="badge badge-blue">Total : {{ users.total }}</span>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card">
+    <form method="GET" class="filter-bar">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="search" value="{{ search }}" placeholder="Rechercher...">
+        </div>
+        <select name="country" class="form-select">
+            <option value="">Tous les pays</option>
+            {% for c in countries %}
+            <option value="{{ c[0] }}" {% if country == c[0] %}selected{% endif %}>{{ c[0] }} ({{ c[1] }})</option>
+            {% endfor %}
+        </select>
+        <select name="status" class="form-select">
+            <option value="">Tous les statuts</option>
+            <option value="active" {% if status == 'active' %}selected{% endif %}>Actifs</option>
+            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Suspendus</option>
+        </select>
+        <select name="kyc" class="form-select">
+            <option value="">Tous KYC</option>
+            <option value="verified" {% if kyc == 'verified' %}selected{% endif %}>Vérifiés</option>
+            <option value="pending" {% if kyc == 'pending' %}selected{% endif %}>En attente</option>
+            <option value="rejected" {% if kyc == 'rejected' %}selected{% endif %}>Refusés</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Filtrer</button>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="table-wrap">
+        {% if users.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Pays</th>
+                    <th>Solde</th>
+                    <th>KYC</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users.items %}
+                <tr>
+                    <td>
+                        <div class="tx-user">
+                            <div class="tx-user-avatar">{{ u.fullname|default('?')|truncate(2,True,'')|upper }}</div>
+                            <a href="/admin/users/{{ u.id }}">{{ u.fullname or '—' }}</a>
+                        </div>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.phone or '—' }}</td>
+                    <td>{{ u.country or '—' }}</td>
+                    <td><strong>{{ u.balance|default(0)|int }} {{ u.currency or 'XOF' }}</strong></td>
+                    <td>
+                        {% if u.kyc_status == 'verified' %}<span class="badge-status bs-verified">Vérifié</span>
+                        {% elif u.kyc_status == 'pending' %}<span class="badge-status bs-pending">En attente</span>
+                        {% elif u.kyc_status == 'rejected' %}<span class="badge-status bs-rejected">Refusé</span>
+                        {% else %}<span class="badge-status bs-closed">Aucun</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}<span class="badge badge-green">Actif</span>
+                        {% else %}<span class="badge badge-red">Suspendu</span>{% endif %}
+                    </td>
+                    <td>{{ u.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <a href="/admin/users/{{ u.id }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i></a>
+                        <form method="POST" action="/admin/users/{{ u.id }}/toggle" style="display:inline" onsubmit="return confirmAction()">
+                            {% if u.is_active %}
+                            <button class="btn btn-warning btn-sm"><i class="fa-solid fa-ban"></i></button>
+                            {% else %}
+                            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i></button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-users-slash"></i>Aucun utilisateur trouvé.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- PAGINATION -->
+{% if users.pages > 1 %}
+<div class="pagination">
+    {% if users.has_prev %}<a href="?page={{ users.prev_num }}&search={{ search }}&country={{ country }}&status={{ status }}&kyc={{ kyc }}">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+    {% for p in users.iter_pages() %}
+    {% if p %}<a href="?page={{ p }}&search={{ search }}&country={{ country }}&status={{ status }}&kyc={{ kyc }}" class="{% if p == users.page %}current{% endif %}">{{ p }}</a>{% else %}<span>…</span>{% endif %}
+    {% endfor %}
+    {% if users.has_next %}<a href="?page={{ users.next_num }}&search={{ search }}&country={{ country }}&status={{ status }}&kyc={{ kyc }}">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>KYC — Vérification d'identité</h1>
+        <p>Validation des dossiers KYC</p>
+    </div>
+    <div>
+        <span class="badge badge-yellow">En attente : {{ counts.pending }}</span>
+        <span class="badge badge-green">Vérifiés : {{ counts.verified }}</span>
+        <span class="badge badge-red">Refusés : {{ counts.rejected }}</span>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card">
+    <div class="filter-bar">
+        <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline{% endif %} btn-sm">En attente</a>
+        <a href="?status=verified" class="btn {% if status_filter == 'verified' %}btn-success{% else %}btn-outline{% endif %} btn-sm">Vérifiés</a>
+        <a href="?status=rejected" class="btn {% if status_filter == 'rejected' %}btn-danger{% else %}btn-outline{% endif %} btn-sm">Refusés</a>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="table-wrap">
+        {% if users.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Pays</th>
+                    <th>Statut KYC</th>
+                    <th>Date inscription</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users.items %}
+                <tr>
+                    <td>
+                        <div class="tx-user">
+                            <div class="tx-user-avatar">{{ u.fullname|default('?')|truncate(2,True,'')|upper }}</div>
+                            {{ u.fullname or '—' }}
+                        </div>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.country or '—' }}</td>
+                    <td>
+                        {% if u.kyc_status == 'pending' %}<span class="badge-status bs-pending">En attente</span>
+                        {% elif u.kyc_status == 'verified' %}<span class="badge-status bs-verified">Vérifié</span>
+                        {% elif u.kyc_status == 'rejected' %}<span class="badge-status bs-rejected">Refusé</span>
+                        {% else %}{{ u.kyc_status }}{% endif %}
+                    </td>
+                    <td>{{ u.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if u.kyc_status == 'pending' %}
+                        <form method="POST" action="/admin/kyc/{{ u.id }}/approve" style="display:inline">
+                            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Approuver</button>
+                        </form>
+                        <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal{{ u.id }}')"><i class="fa-solid fa-xmark"></i> Refuser</button>
+                        <!-- Modal reject -->
+                        <div class="modal-overlay" id="rejectModal{{ u.id }}">
+                            <div class="modal">
+                                <h3>Refuser le KYC</h3>
+                                <p>Motif du refus pour {{ u.fullname }}</p>
+                                <form method="POST" action="/admin/kyc/{{ u.id }}/reject">
+                                    <textarea name="note" class="form-textarea" placeholder="Motif du refus..."></textarea>
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectModal{{ u.id }}')">Annuler</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">Confirmer le refus</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <a href="/admin/users/{{ u.id }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-id-card"></i>Aucun dossier KYC.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% if users.pages > 1 %}
+<div class="pagination">
+    {% if users.has_prev %}<a href="?page={{ users.prev_num }}&status={{ status_filter }}">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+    {% for p in users.iter_pages() %}
+    {% if p %}<a href="?page={{ p }}&status={{ status_filter }}" class="{% if p == users.page %}current{% endif %}">{{ p }}</a>{% else %}<span>…</span>{% endif %}
+    {% endfor %}
+    {% if users.has_next %}<a href="?page={{ users.next_num }}&status={{ status_filter }}">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Transactions</h1>
+        <p>Historique des transferts et opérations</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="/admin/transactions/export" class="btn btn-primary btn-sm"><i class="fa-solid fa-download"></i> Exporter CSV</a>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card">
+    <form method="GET" class="filter-bar">
+        <input type="text" name="search" class="form-input" placeholder="Recherche..." value="{{ search }}" style="width:180px">
+        <select name="type" class="form-select">
+            <option value="">Tous types</option>
+            <option value="send" {% if tx_type == 'send' %}selected{% endif %}>Envoi</option>
+            <option value="deposit" {% if tx_type == 'deposit' %}selected{% endif %}>Dépôt</option>
+            <option value="withdraw" {% if tx_type == 'withdraw' %}selected{% endif %}>Retrait</option>
+        </select>
+        <select name="status" class="form-select">
+            <option value="">Tous statuts</option>
+            <option value="success" {% if status == 'success' %}selected{% endif %}>Réussi</option>
+            <option value="pending" {% if status == 'pending' %}selected{% endif %}>En attente</option>
+            <option value="failed" {% if status == 'failed' %}selected{% endif %}>Échoué</option>
+        </select>
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-input" style="width:150px">
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-input" style="width:150px">
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Filtrer</button>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="table-wrap">
+        {% if txs.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Expéditeur</th>
+                    <th>Bénéficiaire</th>
+                    <th>Pays</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in txs.items %}
+                <tr>
+                    <td class="mono">#{{ tx.id }}</td>
+                    <td>
+                        {% if tx.type == 'send' %}<span class="badge badge-blue">Envoi</span>
+                        {% elif tx.type == 'deposit' %}<span class="badge badge-green">Dépôt</span>
+                        {% else %}<span class="badge badge-yellow">Retrait</span>{% endif %}
+                    </td>
+                    <td>{{ tx.user.email if tx.user else 'N/A' }}</td>
+                    <td>{{ tx.recipient_name or '—' }}</td>
+                    <td>{{ tx.recipient_country or '—' }}</td>
+                    <td><strong>{{ tx.amount|int }} {{ tx.currency or 'XOF' }}</strong></td>
+                    <td>
+                        {% if tx.status == 'success' %}<span class="badge-status bs-success">Réussi</span>
+                        {% elif tx.status == 'pending' %}<span class="badge-status bs-pending">En attente</span>
+                        {% elif tx.status == 'processing' %}<span class="badge-status bs-processing">En cours</span>
+                        {% elif tx.status == 'failed' %}<span class="badge-status bs-failed">Échoué</span>
+                        {% else %}{{ tx.status }}{% endif %}
+                    </td>
+                    <td>{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-arrow-right-arrow-left"></i>Aucune transaction.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% if txs.pages > 1 %}
+<div class="pagination">
+    {% if txs.has_prev %}<a href="?page={{ txs.prev_num }}&type={{ tx_type }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+    {% for p in txs.iter_pages() %}
+    {% if p %}<a href="?page={{ p }}&type={{ tx_type }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}" class="{% if p == txs.page %}current{% endif %}">{{ p }}</a>{% else %}<span>…</span>{% endif %}
+    {% endfor %}
+    {% if txs.has_next %}<a href="?page={{ txs.next_num }}&type={{ tx_type }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

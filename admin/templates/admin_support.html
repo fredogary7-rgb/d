@@ -1,0 +1,78 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Support</h1>
+        <p>Gestion des tickets support</p>
+    </div>
+    <div>
+        <span class="badge badge-blue">Ouverts : {{ open_count }}</span>
+        <span class="badge badge-green">Fermés : {{ closed_count }}</span>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card">
+    <div class="filter-bar">
+        <a href="?status=open" class="btn {% if status_filter == 'open' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Ouverts</a>
+        <a href="?status=closed" class="btn {% if status_filter == 'closed' %}btn-outline{% endif %} btn-sm">Fermés</a>
+        <a href="?" class="btn {% if not status_filter %}btn-outline{% endif %} btn-sm">Tous</a>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="table-wrap">
+        {% if tickets.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Sujet</th>
+                    <th>Utilisateur</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets.items %}
+                <tr>
+                    <td>#{{ ticket.id }}</td>
+                    <td><a href="/admin/support/{{ ticket.id }}"><strong>{{ ticket.subject }}</strong></a></td>
+                    <td>{{ ticket.user.fullname if ticket.user else 'N/A' }}</td>
+                    <td>
+                        {% if ticket.status == 'open' %}<span class="badge-status bs-open">Ouvert</span>
+                        {% else %}<span class="badge-status bs-closed">Fermé</span>{% endif %}
+                    </td>
+                    <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        <a href="/admin/support/{{ ticket.id }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i></a>
+                        {% if ticket.status == 'open' %}
+                        <form method="POST" action="/admin/support/{{ ticket.id }}/close" style="display:inline">
+                            <button class="btn btn-warning btn-sm"><i class="fa-solid fa-check"></i></button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-headset"></i>Aucun ticket.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% if tickets.pages > 1 %}
+<div class="pagination">
+    {% if tickets.has_prev %}<a href="?page={{ tickets.prev_num }}&status={{ status_filter }}">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+    {% for p in tickets.iter_pages() %}
+    {% if p %}<a href="?page={{ p }}&status={{ status_filter }}" class="{% if p == tickets.page %}current{% endif %}">{{ p }}</a>{% else %}<span>…</span>{% endif %}
+    {% endfor %}
+    {% if tickets.has_next %}<a href="?page={{ tickets.next_num }}&status={{ status_filter }}">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Retraits</h1>
+        <p>Gestion des demandes de retrait</p>
+    </div>
+    <div>
+        <span class="badge badge-yellow">En attente : {{ pending_count }}</span>
+        <span class="badge badge-green">Confirmés : {{ success_count }}</span>
+        <span class="badge badge-red">Refusés : {{ failed_count }}</span>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card">
+    <form method="GET" class="filter-bar">
+        <select name="status" class="form-select">
+            <option value="">Tous statuts</option>
+            <option value="pending" {% if status == 'pending' %}selected{% endif %}>En attente</option>
+            <option value="success" {% if status == 'success' %}selected{% endif %}>Réussis</option>
+            <option value="failed" {% if status == 'failed' %}selected{% endif %}>Refusés</option>
+        </select>
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-input" style="width:150px">
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-input" style="width:150px">
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Filtrer</button>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="table-wrap">
+        {% if withdrawals.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Utilisateur</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in withdrawals.items %}
+                <tr>
+                    <td class="mono">#{{ tx.id }}</td>
+                    <td>{{ tx.user.email if tx.user else 'N/A' }}</td>
+                    <td><strong>{{ tx.amount|int }} {{ tx.currency or 'XOF' }}</strong></td>
+                    <td>
+                        {% if tx.status == 'pending' %}<span class="badge-status bs-pending">En attente</span>
+                        {% elif tx.status == 'success' %}<span class="badge-status bs-success">Réussi</span>
+                        {% elif tx.status == 'failed' %}<span class="badge-status bs-failed">Refusé</span>
+                        {% else %}{{ tx.status }}{% endif %}
+                    </td>
+                    <td>{{ tx.description or '—' }}</td>
+                    <td>{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        {% if tx.status == 'pending' %}
+                        <form method="POST" action="/admin/withdrawals/{{ tx.id }}/validate" style="display:inline">
+                            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i></button>
+                        </form>
+                        <form method="POST" action="/admin/withdrawals/{{ tx.id }}/reject" style="display:inline" onsubmit="return confirmAction()">
+                            <button class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i></button>
+                        </form>
+                        {% else %}{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-building-columns"></i>Aucun retrait.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% if withdrawals.pages > 1 %}
+<div class="pagination">
+    {% if withdrawals.has_prev %}<a href="?page={{ withdrawals.prev_num }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+    {% for p in withdrawals.iter_pages() %}
+    {% if p %}<a href="?page={{ p }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}" class="{% if p == withdrawals.page %}current{% endif %}">{{ p }}</a>{% else %}<span>…</span>{% endif %}
+    {% endfor %}
+    {% if withdrawals.has_next %}<a href="?page={{ withdrawals.next_num }}&status={{ status }}&date_from={{ date_from }}&date_to={{ date_to }}">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

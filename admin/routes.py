@@ -190,7 +190,7 @@ def dashboard():
         'transfer_values': json.dumps(transfer_values),
     }
 
-    return render_template('admin_layout.html', page='dashboard', stats=stats)
+    return render_template('admin_dashboard.html', page='dashboard', stats=stats)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -233,7 +233,7 @@ def users():
     countries = db.session.query(User.country, func.count(User.id)).filter(
         User.is_deleted == False).group_by(User.country).order_by(User.country).all()
 
-    return render_template('admin_layout.html', page='users',
+    return render_template('admin_users.html', page='users',
                            users=users_paginated, countries=countries,
                            search=search, country=country, status=status, kyc=kyc)
 
@@ -245,7 +245,7 @@ def user_detail(user_id):
     user = User.query.get_or_404(user_id)
     transactions = Transaction.query.filter_by(user_id=user.id)\
         .order_by(Transaction.created_at.desc()).limit(50).all()
-    return render_template('admin_layout.html', page='user_detail',
+    return render_template('admin_users_view.html', page='user_detail',
                            target_user=user, transactions=transactions)
 
 
@@ -395,7 +395,7 @@ def kyc():
         'rejected': User.query.filter_by(is_deleted=False, kyc_status='rejected').count(),
     }
 
-    return render_template('admin_layout.html', page='kyc',
+    return render_template('admin_kyc.html', page='kyc',
                            users=users, status_filter=status_filter, counts=counts)
 
 
@@ -472,7 +472,7 @@ def transactions():
     countries = db.session.query(Transaction.recipient_country, func.count(Transaction.id))\
         .group_by(Transaction.recipient_country).order_by(Transaction.recipient_country).all()
 
-    return render_template('admin_layout.html', page='transactions',
+    return render_template('admin_transactions.html', page='transactions',
                            txs=txs, countries=countries,
                            tx_type=tx_type, status=status, country=country,
                            search=search, date_from=date_from, date_to=date_to)
@@ -537,7 +537,7 @@ def deposits():
     success_count = Transaction.query.filter_by(type='deposit', status='success').count()
     failed_count = Transaction.query.filter_by(type='deposit', status='failed').count()
 
-    return render_template('admin_layout.html', page='deposits',
+    return render_template('admin_deposits.html', page='deposits',
                            deposits=deposits_paginated,
                            pending_count=pending_count, success_count=success_count,
                            failed_count=failed_count,
@@ -614,7 +614,7 @@ def withdrawals():
     success_count = Transaction.query.filter_by(type='withdraw', status='success').count()
     failed_count = Transaction.query.filter_by(type='withdraw', status='failed').count()
 
-    return render_template('admin_layout.html', page='withdrawals',
+    return render_template('admin_withdrawals.html', page='withdrawals',
                            withdrawals=withdrawals_paginated,
                            pending_count=pending_count, success_count=success_count,
                            failed_count=failed_count,
@@ -686,7 +686,7 @@ def support():
     open_count = SupportTicket.query.filter_by(status='open').count()
     closed_count = SupportTicket.query.filter_by(status='closed').count()
 
-    return render_template('admin_layout.html', page='support',
+    return render_template('admin_support.html', page='support',
                            tickets=tickets, open_count=open_count,
                            closed_count=closed_count, status_filter=status_filter)
 
@@ -698,7 +698,7 @@ def support_detail(ticket_id):
     ticket = SupportTicket.query.get_or_404(ticket_id)
     messages = SupportMessage.query.filter_by(ticket_id=ticket.id)\
         .order_by(SupportMessage.created_at.asc()).all()
-    return render_template('admin_layout.html', page='support_detail',
+    return render_template('admin_support_detail.html', page='support_detail',
                            ticket=ticket, messages=messages)
 
 
@@ -769,7 +769,7 @@ def notifications():
     countries = db.session.query(User.country, func.count(User.id)).filter(
         User.is_deleted == False).group_by(User.country).all()
 
-    return render_template('admin_layout.html', page='notifications',
+    return render_template('admin_notifications.html', page='notifications',
                            notifs=notifs, countries=countries)
 
 
@@ -851,7 +851,7 @@ def logs():
     # Get distinct actions for filter
     actions = db.session.query(AdminLog.action).distinct().order_by(AdminLog.action).all()
 
-    return render_template('admin_layout.html', page='logs',
+    return render_template('admin_logs.html', page='logs',
                            log_entries=log_entries, actions=actions,
                            action=action, date_from=date_from, date_to=date_to)
 
@@ -887,7 +887,7 @@ def settings():
         assigned.update(keys)
     grouped['Autre'] = [c for c in configs if c.key not in assigned]
 
-    return render_template('admin_layout.html', page='settings', grouped=grouped)
+    return render_template('admin_settings.html', page='settings', grouped=grouped)
 
 
 @admin_bp.route('/settings/update', methods=['POST'])
@@ -915,7 +915,7 @@ def roles():
     admin = get_admin()
     admins = AdminUser.query.order_by(AdminUser.created_at.desc()).all()
     users = User.query.filter_by(is_deleted=False).order_by(User.fullname).all()
-    return render_template('admin_layout.html', page='roles',
+    return render_template('admin_roles.html', page='roles',
                            admins=admins, users=users)
 
 
@@ -1031,7 +1031,7 @@ def statistics():
     amount_labels = json.dumps([a[0] for a in amount_by_country])
     amount_values = json.dumps([int(a[1]) for a in amount_by_country])
 
-    return render_template('admin_layout.html', page='statistics',
+    return render_template('admin_statistics.html', page='statistics',
                            country_labels=country_labels, country_values=country_values,
                            tx_type_labels=tx_type_labels, tx_type_values=tx_type_values,
                            amount_labels=amount_labels, amount_values=amount_values)

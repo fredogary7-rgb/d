@@ -1,0 +1,70 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Logs & Audit</h1>
+        <p>Traçabilité des actions administrateurs</p>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card">
+    <form method="GET" class="filter-bar">
+        <select name="action" class="form-select">
+            <option value="">Toutes actions</option>
+            {% for a in actions %}
+            <option value="{{ a[0] }}" {% if action == a[0] %}selected{% endif %}>{{ a[0] }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-input" style="width:150px">
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-input" style="width:150px">
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Filtrer</button>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="table-wrap">
+        {% if log_entries.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Admin</th>
+                    <th>Action</th>
+                    <th>Cible</th>
+                    <th>Détail</th>
+                    <th>IP</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in log_entries.items %}
+                <tr>
+                    <td>{{ log.admin_email or 'Système' }}</td>
+                    <td><span class="badge badge-blue">{{ log.action }}</span></td>
+                    <td>{{ log.target_type }} #{{ log.target_id }}</td>
+                    <td><small>{{ log.detail|truncate(60) if log.detail else '' }}</small></td>
+                    <td class="mono" style="font-size:11px">{{ log.ip_address or '—' }}</td>
+                    <td>{{ log.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-scroll"></i>Aucun log.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% if log_entries.pages > 1 %}
+<div class="pagination">
+    {% if log_entries.has_prev %}<a href="?page={{ log_entries.prev_num }}&action={{ action }}&date_from={{ date_from }}&date_to={{ date_to }}">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+    {% for p in log_entries.iter_pages() %}
+    {% if p %}<a href="?page={{ p }}&action={{ action }}&date_from={{ date_from }}&date_to={{ date_to }}" class="{% if p == log_entries.page %}current{% endif %}">{{ p }}</a>{% else %}<span>…</span>{% endif %}
+    {% endfor %}
+    {% if log_entries.has_next %}<a href="?page={{ log_entries.next_num }}&action={{ action }}&date_from={{ date_from }}&date_to={{ date_to }}">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
