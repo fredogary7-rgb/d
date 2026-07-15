@@ -56,6 +56,38 @@ with app.app_context():
             db.session.rollback()
             print(f"  users.{col} skip: {e}")
 
+    # --- Nouveaux champs profil ---
+    profile_cols = [
+        ("birth_date", "DATE"),
+        ("gender", "VARCHAR(10)"),
+        ("profession", "VARCHAR(150)"),
+        ("address", "VARCHAR(300)"),
+        ("city", "VARCHAR(100)"),
+        ("postal_code", "VARCHAR(20)"),
+        ("theme", "VARCHAR(10) DEFAULT 'light'"),
+        ("two_factor_enabled", "BOOLEAN DEFAULT FALSE"),
+        ("two_factor_method", "VARCHAR(20)"),
+        ("last_ip", "VARCHAR(45)"),
+        ("updated_at", "TIMESTAMP"),
+        ("daily_limit", "INTEGER DEFAULT 500000"),
+        ("monthly_limit", "INTEGER DEFAULT 5000000"),
+        ("used_daily", "INTEGER DEFAULT 0"),
+        ("used_monthly", "INTEGER DEFAULT 0"),
+        ("notification_email", "BOOLEAN DEFAULT TRUE"),
+        ("notification_sms", "BOOLEAN DEFAULT TRUE"),
+        ("notification_push", "BOOLEAN DEFAULT TRUE"),
+        ("vibrations", "BOOLEAN DEFAULT TRUE"),
+        ("referred_by", "INTEGER"),
+    ]
+    for col, typ in profile_cols:
+        try:
+            db.session.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {typ}"))
+            db.session.commit()
+            print(f"+ users.{col} OK")
+        except Exception as e:
+            db.session.rollback()
+            print(f"  users.{col} skip: {e}")
+
     # --- Table KYC Requests ---
     try:
         db.create_all()  # Crée la table kyc_requests si elle n'existe pas

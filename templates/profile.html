@@ -314,39 +314,39 @@
             <a href="{{ url_for('send_money') }}" class="sidebar-link">
                 <i class="fa-solid fa-paper-plane"></i> Envoyer de l'argent
             </a>
-            <a href="{{ url_for('deposit') }}" class="sidebar-link">
+            <a href="{{ url_for('deposit_page') }}" class="sidebar-link">
                 <i class="fa-solid fa-wallet"></i> Dépôt
             </a>
             <a href="{{ url_for('history') }}" class="sidebar-link">
                 <i class="fa-solid fa-clock-rotate-left"></i> Historique
             </a>
             <div class="sidebar-section-title">Outils</div>
-            <a href="{{ url_for('beneficiaries') }}" class="sidebar-link">
+            <a href="{{ url_for('beneficiaries_page') }}" class="sidebar-link">
                 <i class="fa-solid fa-users"></i> Bénéficiaires
             </a>
-            <a href="{{ url_for('converter') }}" class="sidebar-link">
+            <a href="{{ url_for('api_converter') }}" class="sidebar-link">
                 <i class="fa-solid fa-calculator"></i> Convertisseur
             </a>
             <a href="{{ url_for('fees_calculator') }}" class="sidebar-link">
                 <i class="fa-solid fa-coins"></i> Frais
             </a>
-            <a href="{{ url_for('scan_qr') }}" class="sidebar-link">
+            <a href="{{ url_for('scan_page') }}" class="sidebar-link">
                 <i class="fa-solid fa-qrcode"></i> Scanner QR
             </a>
-            <a href="{{ url_for('my_qrcode') }}" class="sidebar-link">
+            <a href="{{ url_for('my_qrcode_page') }}" class="sidebar-link">
                 <i class="fa-solid fa-qrcode"></i> Mon QR Code
             </a>
             <div class="sidebar-section-title">Compte</div>
             <a href="{{ url_for('profile') }}" class="sidebar-link active">
                 <i class="fa-solid fa-user-circle"></i> Mon profil
             </a>
-            <a href="{{ url_for('settings') }}" class="sidebar-link">
+            <a href="{{ url_for('settings_page') }}" class="sidebar-link">
                 <i class="fa-solid fa-gear"></i> Paramètres
             </a>
-            <a href="{{ url_for('kyc') }}" class="sidebar-link">
+            <a href="{{ url_for('kyc_page') }}" class="sidebar-link">
                 <i class="fa-solid fa-shield-halved"></i> Vérification KYC
             </a>
-            <a href="{{ url_for('support') }}" class="sidebar-link">
+            <a href="{{ url_for('support_page') }}" class="sidebar-link">
                 <i class="fa-solid fa-headset"></i> Support
             </a>
         </nav>
@@ -619,7 +619,7 @@
                         <span style="font-size:11px;color:var(--text-4)">{{ kyc_progress }}% complété</span>
                     </div>
                     <div style="margin-top:16px">
-                        <a href="{{ url_for('kyc') }}" class="btn btn-outline btn-sm">
+                        <a href="{{ url_for('kyc_page') }}" class="btn btn-outline btn-sm">
                             <i class="fa-solid fa-arrow-right"></i> Voir ma vérification
                         </a>
                     </div>
@@ -720,12 +720,15 @@
                         </div>
                     </div>
                     <!-- Daily -->
+                    {% set daily_div = user.daily_limit if user.daily_limit and user.daily_limit > 0 else 1 %}
+                    {% set monthly_div = user.monthly_limit if user.monthly_limit and user.monthly_limit > 0 else 1 %}
                     <div class="limit-label">
                         Limite quotidienne
                         <span>{{ '{:,.0f}'.format(user.daily_limit) }} {{ user.currency }}</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill {% if user.used_daily / max(user.daily_limit,1) > 0.8 %}danger{% elif user.used_daily / max(user.daily_limit,1) > 0.5 %}warning{% endif %}" style="width:{{ (user.used_daily / max(user.daily_limit,1) * 100) | round(1) }}%" id="dailyBar"></div>
+                        {% set daily_pct = (user.used_daily / daily_div * 100) | round(1) %}
+                        <div class="progress-fill {% if daily_pct > 80 %}danger{% elif daily_pct > 50 %}warning{% endif %}" style="width:{{ daily_pct }}%" id="dailyBar"></div>
                     </div>
                     <div class="limit-label" style="font-size:11px;color:var(--text-4)">
                         Utilisé : {{ '{:,.0f}'.format(user.used_daily) }} {{ user.currency }}
@@ -736,7 +739,8 @@
                         <span>{{ '{:,.0f}'.format(user.monthly_limit) }} {{ user.currency }}</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill {% if user.used_monthly / max(user.monthly_limit,1) > 0.8 %}danger{% elif user.used_monthly / max(user.monthly_limit,1) > 0.5 %}warning{% endif %}" style="width:{{ (user.used_monthly / max(user.monthly_limit,1) * 100) | round(1) }}%" id="monthlyBar"></div>
+                        {% set monthly_pct = (user.used_monthly / monthly_div * 100) | round(1) %}
+                        <div class="progress-fill {% if monthly_pct > 80 %}danger{% elif monthly_pct > 50 %}warning{% endif %}" style="width:{{ monthly_pct }}%" id="monthlyBar"></div>
                     </div>
                     <div class="limit-label" style="font-size:11px;color:var(--text-4)">
                         Utilisé : {{ '{:,.0f}'.format(user.used_monthly) }} {{ user.currency }}
@@ -843,16 +847,16 @@
                         <button class="action-card" onclick="openModal('passwordModal')">
                             <i class="fa-solid fa-lock green"></i> Changer le mot de passe
                         </button>
-                        <a href="{{ url_for('settings') }}" class="action-card">
+                        <a href="{{ url_for('settings_page') }}" class="action-card">
                             <i class="fa-solid fa-gear yellow"></i> Paramètres
                         </a>
-                        <a href="{{ url_for('beneficiaries') }}" class="action-card">
+                        <a href="{{ url_for('beneficiaries_page') }}" class="action-card">
                             <i class="fa-solid fa-users"></i> Mes bénéficiaires
                         </a>
                         <a href="{{ url_for('history') }}" class="action-card">
                             <i class="fa-solid fa-clock-rotate-left green"></i> Historique
                         </a>
-                        <a href="{{ url_for('support') }}" class="action-card">
+                        <a href="{{ url_for('support_page') }}" class="action-card">
                             <i class="fa-solid fa-headset yellow"></i> Support
                         </a>
                         <button class="action-card" onclick="downloadMyData()">

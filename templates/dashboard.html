@@ -316,21 +316,23 @@
 <!-- ===== SIDEBAR ===== -->
 <aside class="sidebar">
     <nav class="sidebar-nav">
-        <a href="/dashboard" class="sidebar-link active"><i class="fa-solid fa-house"></i> Tableau de bord</a>
-        <a href="/send-money" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer</a>
-        <a href="/deposit" class="sidebar-link"><i class="fa-solid fa-wallet"></i> Dépôt</a>
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link active"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+        <a href="{{ url_for('send_money') }}" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer</a>
+        <a href="{{ url_for('deposit_page') }}" class="sidebar-link"><i class="fa-solid fa-wallet"></i> Dépôt</a>
         <a href="#" class="sidebar-link"><i class="fa-solid fa-arrow-down-wide-short"></i> Recevoir</a>
-        <a href="/history" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <a href="{{ url_for('history') }}" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
         <div class="sidebar-section-title">Services</div>
-        <a href="/beneficiaries" class="sidebar-link"><i class="fa-solid fa-user-group"></i> Mes bénéficiaires</a>
-        <a href="/fees-calculator" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
-        <a href="/converter" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
-        <a href="/scan" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> Scanner QR Code</a>
+        <a href="{{ url_for('beneficiaries_page') }}" class="sidebar-link"><i class="fa-solid fa-user-group"></i> Mes bénéficiaires</a>
+        <a href="{{ url_for('fees_calculator') }}" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
+        <a href="{{ url_for('api_converter') }}" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
+        <a href="{{ url_for('scan_page') }}" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> Scanner QR Code</a>
+        <div class="sidebar-section-title">Compte</div>
+        <a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fa-solid fa-user-circle"></i> Mon profil</a>
         <div class="sidebar-section-title">Paramètres</div>
-        <a href="#" class="sidebar-link"><i class="fa-solid fa-user-check"></i> Vérification KYC</a>
-        <a href="/settings" class="sidebar-link"><i class="fa-solid fa-gear"></i> Paramètres</a>
-        <a href="/support" class="sidebar-link"><i class="fa-solid fa-headset"></i> Support</a>
-        <a href="/logout" class="sidebar-link"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+        <a href="{{ url_for('kyc_page') }}" class="sidebar-link"><i class="fa-solid fa-user-check"></i> Vérification KYC</a>
+        <a href="{{ url_for('settings_page') }}" class="sidebar-link"><i class="fa-solid fa-gear"></i> Paramètres</a>
+        <a href="{{ url_for('support_page') }}" class="sidebar-link"><i class="fa-solid fa-headset"></i> Support</a>
+        <a href="{{ url_for('logout') }}" class="sidebar-link"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
     </nav>
     <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
 </aside>
@@ -626,7 +628,7 @@
     <a href="/send-money" class="mb-nav-item"><i class="fa-solid fa-paper-plane"></i><span>Envoyer</span></a>
 <a href="/history" class="mb-nav-item"><i class="fa-solid fa-clock-rotate-left"></i><span>Historique</span></a>
     <div class="mb-nav-item"><i class="fa-solid fa-bell"></i><span>Notifications</span></div>
-    <div class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Profil</span></div>
+    <a href="/profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Profil</span></a>
 </nav>
 
 <script>
