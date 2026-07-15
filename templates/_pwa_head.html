@@ -1,0 +1,69 @@
+{# ============================================================
+   TransAfrik PWA — Partial Head (à inclure dans chaque page)
+   Fournit : Meta tags, manifest, icons, theme-color, SW
+   ============================================================ #}
+
+{# --- Manifest PWA --- #}
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+{# --- Theme color (couleur officielle TransAfrik) --- #}
+<meta name="theme-color" content="#2563EB">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="msapplication-TileColor" content="#2563EB">
+<meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
+
+{# --- Apple Meta Tags --- #}
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TransAfrik">
+<meta name="apple-touch-fullscreen" content="yes">
+
+{# --- Apple Touch Icons --- #}
+<link rel="apple-touch-icon" sizes="72x72" href="{{ url_for('static', filename='img/icons/icon-72x72.png') }}">
+<link rel="apple-touch-icon" sizes="96x96" href="{{ url_for('static', filename='img/icons/icon-96x96.png') }}">
+<link rel="apple-touch-icon" sizes="128x128" href="{{ url_for('static', filename='img/icons/icon-128x128.png') }}">
+<link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='img/icons/icon-144x144.png') }}">
+<link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='img/icons/icon-152x152.png') }}">
+<link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='img/icons/icon-192x192.png') }}">
+<link rel="apple-touch-icon" sizes="384x384" href="{{ url_for('static', filename='img/icons/icon-384x384.png') }}">
+<link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='img/icons/icon-512x512.png') }}">
+
+{# --- Splash Screen iOS (fond bleu TransAfrik) --- #}
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1290-2796.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1179-2556.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1284-2778.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1170-2532.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1125-2436.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1242-2688.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-828-1792.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1242-2208.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-750-1334.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-2048-2732.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1668-2388.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1668-2224.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1620-2160.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='img/splash/apple-splash-1536-2048.png') }}">
+
+{# --- Favicon --- #}
+<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/icons/icon-32x32.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/icons/icon-16x16.png') }}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+{# --- Préchargement des polices pour performance --- #}
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+{# --- Service Worker Registration --- #}
+<script>
+  if ('serviceWorker' in navigator) {
+    // Enregistré dans pwa.js (chargé ci-dessous)
+    console.log('[PWA] Service Worker supporté');
+  }
+</script>
+
+{# --- Script PWA principal (installation, iOS, updates, push) --- #}
+<script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
+
+{# --- Browserconfig pour Windows / Edge --- #}
+{# browserconfig.xml généré séparément #}

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hors connexion — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0B1120;
+            --surface: #111827;
+            --surface-hover: #1F2937;
+            --text: #F1F5F9;
+            --text-2: #CBD5E1;
+            --text-3: #94A3B8;
+            --text-4: #64748B;
+            --border: #1E293B;
+            --blue: #2563EB;
+            --blue-light: #DBEAFE;
+            --blue-dark: #1D4ED8;
+            --green: #10B981;
+            --green-dark: #059669;
+            --green-light: #D1FAE5;
+            --yellow: #F59E0B;
+            --orange: #F97316;
+            --orange-light: #FFEDD5;
+            --radius: 18px;
+            --radius-lg: 24px;
+            --radius-sm: 12px;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{font-size:16px;overflow-x:hidden;max-width:100vw}
+        body{
+            font-family:'Inter',sans-serif;
+            background:var(--bg);
+            color:var(--text);
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            padding:24px;
+            -webkit-font-smoothing:antialiased;
+            text-align:center;
+            overflow-x:hidden;
+            max-width:100vw;
+        }
+        .offline-container{
+            max-width:520px;
+            width:100%;
+            animation:fadeInUp 0.6s ease;
+        }
+        @keyframes fadeInUp{
+            from{opacity:0;transform:translateY(30px)}
+            to{opacity:1;transform:translateY(0)}
+        }
+        @keyframes pulse{
+            0%,100%{transform:scale(1);opacity:0.7}
+            50%{transform:scale(1.08);opacity:1}
+        }
+        @keyframes float{
+            0%,100%{transform:translateY(0)}
+            50%{transform:translateY(-12px)}
+        }
+        .offline-icon{
+            font-size:80px;
+            margin-bottom:24px;
+            animation:float 3s ease-in-out infinite;
+        }
+        .offline-title{
+            font-family:'Outfit',sans-serif;
+            font-size:clamp(24px,4vw,32px);
+            font-weight:800;
+            margin-bottom:12px;
+            background:linear-gradient(135deg,#2563EB,#10B981,#F59E0B);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+            background-clip:text;
+        }
+        .offline-subtitle{
+            font-size:16px;
+            color:var(--text-3);
+            margin-bottom:32px;
+            line-height:1.6;
+        }
+        .offline-features{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:12px;
+            margin-bottom:32px;
+        }
+        .offline-feature{
+            background:var(--surface);
+            border:1px solid var(--border);
+            border-radius:var(--radius-sm);
+            padding:20px 16px;
+            text-align:center;
+            transition:all 0.2s;
+        }
+        .offline-feature:hover{
+            background:var(--surface-hover);
+            transform:translateY(-2px);
+        }
+        .offline-feature i{
+            font-size:28px;
+            margin-bottom:10px;
+            display:block;
+        }
+        .offline-feature .feat-name{
+            font-size:13px;
+            font-weight:600;
+            color:var(--text-2);
+        }
+        .offline-feature .feat-status{
+            font-size:11px;
+            color:var(--green);
+            font-weight:600;
+            margin-top:4px;
+        }
+        .offline-feature.locked .feat-status{
+            color:var(--text-4);
+        }
+        .offline-feature.locked i{
+            opacity:0.4;
+        }
+        .offline-actions{
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            justify-content:center;
+        }
+        .btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            padding:14px 28px;
+            border-radius:var(--radius-sm);
+            font-size:14px;
+            font-weight:600;
+            font-family:'Inter',sans-serif;
+            cursor:pointer;
+            transition:all 0.2s;
+            border:none;
+            text-decoration:none;
+        }
+        .btn-primary{
+            background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+            color:#fff;
+            box-shadow:0 4px 16px rgba(37,99,235,.25);
+        }
+        .btn-primary:hover{
+            transform:translateY(-3px);
+            box-shadow:0 8px 28px rgba(37,99,235,.35);
+        }
+        .btn-outline{
+            background:transparent;
+            color:var(--text-2);
+            border:1.5px solid var(--border);
+        }
+        .btn-outline:hover{
+            background:var(--surface-hover);
+            border-color:var(--text-4);
+        }
+        .btn i{font-size:16px}
+        .retry-indicator{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            margin-top:24px;
+            font-size:12px;
+            color:var(--text-4);
+            animation:pulse 2s ease-in-out infinite;
+        }
+        .retry-indicator .dot{
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            background:var(--green);
+        }
+        .offline-logo{
+            font-family:'Outfit',sans-serif;
+            font-weight:800;
+            font-size:14px;
+            margin-top:48px;
+            color:var(--text-4);
+            letter-spacing:.05em;
+        }
+        .disabled-section{
+            background:var(--surface);
+            border:1px dashed var(--border);
+            border-radius:var(--radius-sm);
+            padding:16px;
+            margin-bottom:32px;
+        }
+        .disabled-section h4{
+            font-size:13px;
+            font-weight:700;
+            color:#EF4444;
+            margin-bottom:8px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+        }
+        .disabled-section p{
+            font-size:12px;
+            color:var(--text-4);
+            line-height:1.5;
+        }
+        @media(max-width:480px){
+            .offline-features{grid-template-columns:1fr}
+            .offline-actions{flex-direction:column}
+            .btn{width:100%}
+        }
+    </style>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0B1120">
+</head>
+<body>
+    <div class="offline-container">
+        <!-- Icone animée -->
+        <div class="offline-icon">📡</div>
+
+        <!-- Titre -->
+        <h1 class="offline-title">Hors connexion</h1>
+        <p class="offline-subtitle">
+            Vous êtes actuellement hors ligne.<br>
+            Certaines fonctionnalités restent accessibles.
+        </p>
+
+        <!-- Opérations financières désactivées -->
+        <div class="disabled-section">
+            <h4><i class="fa-solid fa-shield-halved"></i> Opérations désactivées</h4>
+            <p>
+                Les transferts, dépôts, retraits et vérifications KYC nécessitent une connexion Internet sécurisée. Ces fonctionnalités seront de nouveau disponibles dès votre reconnexion.
+            </p>
+        </div>
+
+        <!-- Fonctionnalités disponibles -->
+        <div class="offline-features">
+            <div class="offline-feature">
+                <i class="fa-solid fa-clock-rotate-left" style="color:var(--green)"></i>
+                <div class="feat-name">Historique local</div>
+                <div class="feat-status"><i class="fa-solid fa-circle-check"></i> Disponible</div>
+            </div>
+            <div class="offline-feature">
+                <i class="fa-solid fa-user-circle" style="color:var(--blue)"></i>
+                <div class="feat-name">Profil</div>
+                <div class="feat-status"><i class="fa-solid fa-circle-check"></i> Disponible</div>
+            </div>
+            <div class="offline-feature">
+                <i class="fa-solid fa-gear" style="color:var(--orange)"></i>
+                <div class="feat-name">Paramètres</div>
+                <div class="feat-status"><i class="fa-solid fa-circle-check"></i> Disponible</div>
+            </div>
+            <div class="offline-feature">
+                <i class="fa-solid fa-calculator" style="color:var(--text-3)"></i>
+                <div class="feat-name">Calculateur</div>
+                <div class="feat-status"><i class="fa-solid fa-circle-check"></i> Disponible</div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="offline-actions">
+            <button class="btn btn-primary" onclick="retryConnection()">
+                <i class="fa-solid fa-rotate"></i> Réessayer
+            </button>
+            <button class="btn btn-outline" onclick="window.location.href='/'">
+                <i class="fa-solid fa-house"></i> Accueil
+            </button>
+        </div>
+
+        <!-- Indicateur de reconnexion auto -->
+        <div class="retry-indicator" id="retryIndicator" style="display:none">
+            <span class="dot"></span> Reconnexion automatique en cours...
+        </div>
+
+        <!-- Logo -->
+        <div class="offline-logo">TransAfrik © 2026</div>
+    </div>
+
+    <script>
+        // Reconnexion automatique toutes les 5 secondes
+        let retryInterval;
+        let retryCount = 0;
+
+        function startAutoRetry() {
+            const indicator = document.getElementById('retryIndicator');
+            indicator.style.display = 'inline-flex';
+            retryInterval = setInterval(async () => {
+                retryCount++;
+                try {
+                    const response = await fetch('/static/manifest.json', {
+                        method: 'HEAD',
+                        cache: 'no-cache',
+                    });
+                    if (response.ok) {
+                        clearInterval(retryInterval);
+                        window.location.reload();
+                    }
+                } catch (e) {
+                    // Toujours hors ligne
+                }
+                if (retryCount > 120) { // 10 minutes max
+                    clearInterval(retryInterval);
+                    indicator.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        function retryConnection() {
+            const indicator = document.getElementById('retryIndicator');
+            indicator.style.display = 'inline-flex';
+            fetch('/static/manifest.json', { method: 'HEAD', cache: 'no-cache' })
+                .then(response => {
+                    if (response.ok) window.location.reload();
+                    else startAutoRetry();
+                })
+                .catch(() => startAutoRetry());
+        }
+
+        // Démarrer la reconnexion auto au chargement
+        window.addEventListener('load', () => {
+            setTimeout(startAutoRetry, 3000);
+        });
+
+        // Écouter l'événement online
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

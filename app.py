@@ -90,6 +90,19 @@ with app.app_context():
 
 # ==================== ROUTES ====================
 
+# --- PWA Routes ---
+@app.route('/offline')
+def offline():
+    return render_template('offline.html')
+
+@app.route('/sw.js')
+def service_worker():
+    """Sert le Service Worker à la racine du site (obligatoire pour le scope '/'.)"""
+    from flask import send_from_directory, make_response
+    response = make_response(send_from_directory('static', 'sw.js'))
+    response.cache_control.no_cache = True
+    return response
+
 @app.route('/')
 def index():
     return render_template('index.html')
