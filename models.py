@@ -35,6 +35,31 @@ class User(db.Model, UserMixin):
     is_deleted = db.Column(db.Boolean, default=False)           # soft delete
     qr_identifier = db.Column(db.String(20), unique=True, nullable=True)  # TA-XXXX
 
+    # ---- Champs profil ----
+    birth_date = db.Column(db.Date, nullable=True)
+    gender = db.Column(db.String(10), nullable=True)            # male | female | other
+    profession = db.Column(db.String(150), nullable=True)
+    address = db.Column(db.String(300), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    postal_code = db.Column(db.String(20), nullable=True)
+    theme = db.Column(db.String(10), default='light')           # light | dark
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_method = db.Column(db.String(20), nullable=True)  # sms | email | authenticator
+    last_ip = db.Column(db.String(45), nullable=True)
+    updated_at = db.Column(db.DateTime, nullable=True)
+    # Limites
+    daily_limit = db.Column(db.Integer, default=500000)     # XOF minor units
+    monthly_limit = db.Column(db.Integer, default=5000000)  # XOF minor units
+    used_daily = db.Column(db.Integer, default=0)
+    used_monthly = db.Column(db.Integer, default=0)
+    # Notifications
+    notification_email = db.Column(db.Boolean, default=True)
+    notification_sms = db.Column(db.Boolean, default=True)
+    notification_push = db.Column(db.Boolean, default=True)
+    vibrations = db.Column(db.Boolean, default=True)
+    # Parrainage
+    referred_by = db.Column(db.Integer, nullable=True)       # id du parrain
+
     # Relations
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic',
                                    foreign_keys='Transaction.user_id')

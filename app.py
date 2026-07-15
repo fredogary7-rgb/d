@@ -555,6 +555,231 @@ def dashboard():
         country_names=COUNTRY_NAMES,
     )
 
+# --- PROFILE ---
+@app.route('/profile')
+@login_required
+def profile():
+    from datetime import date
+    user = current_user
+    tx_count = user.tx_count
+    beneficiary_count = user.beneficiary_count
+    total_sent = user.total_sent
+    total_received = user.total_received
+    unread_notifications = user.unread_notifications
+
+    # KYC progress
+    kyc = KycRequest.query.filter_by(user_id=user.id).first()
+    kyc_progress = kyc.progress_percent if kyc else 0
+
+    # QR count (placeholder — count user's transactions or specific QR records)
+    qr_count = Transaction.query.filter_by(user_id=user.id, type='receive').count()
+
+    # Ticket count
+    ticket_count = SupportTicket.query.filter_by(user_id=user.id).count()
+
+    # Referral count
+    referral_count = User.query.filter_by(referred_by=user.id).count()
+
+    return render_template(
+        'profile.html',
+        user=user,
+        tx_count=tx_count,
+        beneficiary_count=beneficiary_count,
+        total_sent=total_sent,
+        total_received=total_received,
+        unread_notifications=unread_notifications,
+        kyc_progress=kyc_progress,
+        qr_count=qr_count,
+        ticket_count=ticket_count,
+        referral_count=referral_count,
+        country_flags=COUNTRY_FLAGS,
+        country_names=COUNTRY_NAMES,
+    )
+
+@app.route('/profile/update', methods=['POST'])
+@login_required
+def profile_update():
+    user = current_user
+    firstname = request.form.get('firstname', '').strip()
+    lastname = request.form.get('lastname', '').strip()
+    if firstname and lastname:
+        user.fullname = f"{firstname} {lastname}"
+    elif firstname:
+        user.fullname = firstname
+    elif lastname:
+        user.fullname = lastname
+
+    birth_date_str = request.form.get('birth_date', '').strip()
+    if birth_date_str:
+        try:
+            user.birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Date de naissance invalide.', 'error')
+            return redirect(url_for('profile'))
+    else:
+        user.birth_date = None
+
+    gender = request.form.get('gender', '').strip()
+    user.gender = gender if gender in ('male', 'female', 'other') else None
+
+    profession = request.form.get('profession', '').strip()
+    user.profession = profession or None
+
+    address = request.form.get('address', '').strip()
+    user.address = address or None
+
+    city = request.form.get('city', '').strip()
+    user.city = city or None
+
+    postal_code = request.form.get('postal_code', '').strip()
+    user.postal_code = postal_code or None
+
+    country = request.form.get('country', '').strip()
+    if country and country in COUNTRY_NAMES:
+        user.country = country
+
+    user.updated_at = datetime.utcnow()
+    db.session.commit()
+    flash('Profil mis à jour avec succès.', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/profile/upload-avatar', methods=['POST', 'DELETE'])
+@login_required
+def profile_upload_avatar():
+    user = current_user
+    if request.method == 'DELETE':
+        user.profile_picture = None
+        user.updated_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'success': True})
+    # POST - upload
+    if 'avatar' not in request.files:
+        return jsonify({'success': False, 'message': 'Aucun fichier envoyé.'})
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'Fichier vide.'})
+    if file and allowed_file(file.filename):
+        import uuid as uuid_mod
+        filename = f"avatar_{user.id}_{uuid_mod.uuid4().hex[:8]}.{file.filename.rsplit('.',1)[1].lower()}"
+        upload_dir = os.path.join(app.static_folder, 'uploads', 'avatars')
+        os.makedirs(upload_dir, exist_ok=True)
+        filepath = os.path.join(upload_dir, filename)
+        file.save(filepath)
+        user.profile_picture = f"/static/uploads/avatars/{filename}"
+        user.updated_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'success': True, 'url': user.profile_picture})
+    return jsonify({'success': False, 'message': 'Format non autorisé (JPG, PNG, JPEG uniquement).'})
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ('jpg', 'jpeg', 'png')
+
+@app.route('/profile/change-password', methods=['POST'])
+@login_required
+def profile_change_password():
+    user = current_user
+    current_pw = request.form.get('current_password', '')
+    new_pw = request.form.get('new_password', '')
+    confirm_pw = request.form.get('confirm_password', '')
+
+    if not check_password_hash(user.password_hash, current_pw):
+        flash('Mot de passe actuel incorrect.', 'error')
+        return redirect(url_for('profile'))
+    if len(new_pw) < 8:
+        flash('Le nouveau mot de passe doit contenir au moins 8 caractères.', 'error')
+        return redirect(url_for('profile'))
+    if new_pw != confirm_pw:
+        flash('Les nouveaux mots de passe ne correspondent pas.', 'error')
+        return redirect(url_for('profile'))
+
+    user.password_hash = generate_password_hash(new_pw)
+    user.updated_at = datetime.utcnow()
+    db.session.commit()
+    flash('Mot de passe modifié avec succès.', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/profile/change-pin', methods=['POST'])
+@login_required
+def profile_change_pin():
+    user = current_user
+    current_pw = request.form.get('current_password', '')
+    pin = request.form.get('pin', '')
+    confirm_pin = request.form.get('confirm_pin', '')
+
+    if not check_password_hash(user.password_hash, current_pw):
+        flash('Mot de passe incorrect.', 'error')
+        return redirect(url_for('profile'))
+    if not pin.isdigit() or len(pin) != 4:
+        flash('Le PIN doit être composé de 4 chiffres.', 'error')
+        return redirect(url_for('profile'))
+    if pin != confirm_pin:
+        flash('Les PIN ne correspondent pas.', 'error')
+        return redirect(url_for('profile'))
+
+    user.pin_hash = generate_password_hash(pin)
+    user.updated_at = datetime.utcnow()
+    db.session.commit()
+    flash('PIN mis à jour avec succès.', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/profile/two-factor', methods=['POST'])
+@login_required
+def profile_two_factor():
+    user = current_user
+    enabled = request.form.get('two_factor_enabled') == 'on'
+    method = request.form.get('two_factor_method', 'sms').strip()
+
+    user.two_factor_enabled = enabled
+    user.two_factor_method = method if enabled else None
+    user.updated_at = datetime.utcnow()
+    db.session.commit()
+    status = 'activée' if enabled else 'désactivée'
+    flash(f'Authentification à deux facteurs {status}.', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/profile/preferences', methods=['POST'])
+@login_required
+def profile_preferences():
+    user = current_user
+    user.language = request.form.get('language', user.language)
+    user.currency = request.form.get('currency', user.currency)
+    country = request.form.get('country')
+    if country and country in COUNTRY_NAMES:
+        user.country = country
+    theme = request.form.get('theme')
+    if theme in ('light', 'dark'):
+        user.theme = theme
+    user.notification_email = request.form.get('notification_email') == '1'
+    user.notification_sms = request.form.get('notification_sms') == '1'
+    user.notification_push = request.form.get('notification_push') == '1'
+    user.vibrations = request.form.get('vibrations') == '1'
+    user.updated_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({'success': True, 'theme': user.theme})
+
+@app.route('/profile/delete-account', methods=['POST'])
+@login_required
+def profile_delete_account():
+    user = current_user
+    password = request.form.get('password', '')
+    confirm_text = request.form.get('confirm_text', '')
+
+    if not check_password_hash(user.password_hash, password):
+        flash('Mot de passe incorrect.', 'error')
+        return redirect(url_for('profile'))
+    if confirm_text != 'SUPPRIMER':
+        flash('Veuillez taper SUPPRIMER pour confirmer.', 'error')
+        return redirect(url_for('profile'))
+
+    # Soft delete: mark as deleted and deactivate
+    user.is_deleted = True
+    user.is_active = False
+    user.updated_at = datetime.utcnow()
+    db.session.commit()
+    logout_user()
+    flash('Votre compte a été supprimé. Nous sommes tristes de vous voir partir.', 'info')
+    return redirect(url_for('index'))
+
 # --- API: Calculate fees ---
 @app.route('/api/calculate-fees', methods=['POST'])
 @login_required
