@@ -354,8 +354,19 @@
 
   async function subscribeToPush(registration) {
     try {
-      // Remplacer par votre clé publique VAPID si vous utilisez des pushs web
-      const vapidPublicKey = null; // À configurer pour le push web
+      // Récupérer la clé publique VAPID depuis le backend
+      let vapidPublicKey = null;
+      try {
+        const keyResp = await fetch('/api/push/vapid-public-key');
+        const keyData = await keyResp.json();
+        vapidPublicKey = keyData.public_key || null;
+        if (vapidPublicKey) {
+          console.log('[PWA] Clé VAPID récupérée depuis le serveur');
+        }
+      } catch (e) {
+        console.warn('[PWA] Impossible de récupérer la clé VAPID:', e);
+      }
+
       const subscribeOptions = {
         userVisibleOnly: true,
       };
@@ -367,10 +378,31 @@
       if (!subscription) {
         subscription = await registration.pushManager.subscribe(subscribeOptions);
         console.log('[PWA] Abonnement push réussi');
+      } else {
+        console.log('[PWA] Abonnement push déjà actif');
       }
 
-      // Stocker l'abonnement pour le backend (optionnel)
-      // fetch('/api/push/subscribe', { method: 'POST', body: JSON.stringify(subscription) });
+      // Envoyer l'abonnement au backend pour le stocker
+      try {
+        const response = await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subscription: subscription.toJSON(),
+          }),
+        });
+        const result = await response.json();
+        if (result.success) {
+          console.log('[PWA] Abonnement enregistré sur le serveur');
+        } else {
+          console.warn('[PWA] Échec enregistrement serveur:', result.error);
+        }
+      } catch (fetchErr) {
+        console.warn('[PWA] Erreur réseau lors de l\'enregistrement push:', fetchErr);
+      }
+
+      // Stocker l'abonnement localement (pour désabonnement)
+      localStorage.setItem('push_subscription', JSON.stringify(subscription.toJSON()));
     } catch (err) {
       console.warn('[PWA] Échec abonnement push:', err);
     }

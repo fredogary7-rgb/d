@@ -512,6 +512,48 @@ class KycRequest(db.Model):
         return f'<KycRequest {self.reference} {self.status}>'
 
 
+class PushSubscription(db.Model):
+    """Abonnement Push Web — Web Push API (PWA, Chrome, Firefox, Edge, Safari 16+)."""
+
+    __tablename__ = 'push_subscriptions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    endpoint = db.Column(db.Text, nullable=False)
+    p256dh = db.Column(db.Text, nullable=False)
+    auth = db.Column(db.Text, nullable=False)
+    user_agent = db.Column(db.String(500), nullable=True)
+    platform = db.Column(db.String(50), nullable=True)        # android | windows | ios | macos | linux
+    browser = db.Column(db.String(50), nullable=True)          # chrome | firefox | edge | safari | opera
+    device_name = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relation
+    user = db.relationship('User', backref=db.backref('push_subscriptions', lazy='dynamic'))
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'endpoint', name='uq_user_endpoint'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'platform': self.platform,
+            'browser': self.browser,
+            'device_name': self.device_name,
+            'user_agent': self.user_agent,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'last_seen': self.last_seen.isoformat() if self.last_seen else None,
+        }
+
+    def __repr__(self):
+        return f'<PushSubscription {self.id} user={self.user_id} platform={self.platform}>'
+
+
 class OtpCode(db.Model):
     """Code OTP pour vérification par email via Resend (inscription, connexion, reset mdp)."""
 

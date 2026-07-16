@@ -5,6 +5,7 @@ werkzeug
 python-dotenv
 qrcode
 pillow
+pywebpush
 gunicorn
 psycopg2-binary
 requests

@@ -101,5 +101,46 @@ with app.app_context():
     os.makedirs(kyc_dir, exist_ok=True)
     print(f"+ uploads/kyc directory OK")
 
+    # --- Table push_subscriptions (Web Push) ---
+    try:
+        db.session.execute(text("""
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                subscription_json JSONB NOT NULL,
+                endpoint VARCHAR(1024) NOT NULL,
+                platform VARCHAR(50),
+                browser VARCHAR(50),
+                device_name VARCHAR(255),
+                user_agent TEXT,
+                keys_p256dh TEXT,
+                keys_auth TEXT,
+                created_at TIMESTAMP DEFAULT NOW(),
+                last_seen TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        """))
+        db.session.commit()
+        print("+ push_subscriptions table OK")
+
+        # Indexes
+        db.session.execute(text("""
+            CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id)
+        """))
+        db.session.execute(text("""
+            CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions(endpoint)
+        """))
+        db.session.execute(text("""
+            CREATE INDEX IF NOT EXISTS idx_push_subscriptions_platform ON push_subscriptions(platform)
+        """))
+        db.session.execute(text("""
+            CREATE INDEX IF NOT EXISTS idx_push_subscriptions_browser ON push_subscriptions(browser)
+        """))
+        db.session.commit()
+        print("+ push_subscriptions indexes OK")
+    except Exception as e:
+        db.session.rollback()
+        print(f"  push_subscriptions skip: {e}")
+
     # Create Transaction & Beneficiary tables if not exist
     print("Migration complete.")

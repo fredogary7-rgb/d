@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription
 from services.email_service import send_otp_email
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
@@ -2580,11 +2580,86 @@ def support_upload():
     })
 
 
-# ==================== PAGE 404 ====================
+# ══════════════════════════════════════════════════════════════════════════
+# PUSH NOTIFICATIONS — API routes
+# ══════════════════════════════════════════════════════════════════════════
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return jsonify({'error': 'Page non trouvée'}), 404
+@app.route('/api/push/vapid-public-key')
+def push_vapid_public_key():
+    """Expose la clé publique VAPID pour le frontend JS."""
+    from services.push_service import get_public_key_for_frontend
+    key = get_public_key_for_frontend()
+    return jsonify({'public_key': key})
+
+
+@app.route('/api/push/subscribe', methods=['POST'])
+@login_required
+def push_subscribe():
+    """Enregistre un abonnement Push depuis le navigateur."""
+    from services.push_service import save_subscription
+    data = request.get_json(silent=True) or {}
+    subscription = data.get('subscription', {})
+    user_agent = request.headers.get('User-Agent', '')
+
+    result = save_subscription(
+        user_id=current_user.id,
+        subscription_data=subscription,
+        user_agent=user_agent,
+    )
+    return jsonify(result), 200 if result.get('success') else 400
+
+
+@app.route('/api/push/unsubscribe', methods=['POST'])
+@login_required
+def push_unsubscribe():
+    """Supprime un abonnement Push."""
+    from services.push_service import remove_subscription
+    data = request.get_json(silent=True) or {}
+    endpoint = data.get('endpoint', '').strip()
+
+    if not endpoint:
+        return jsonify({'success': False, 'error': 'Aucun endpoint fourni.'}), 400
+
+    result = remove_subscription(user_id=current_user.id, endpoint=endpoint)
+    return jsonify(result)
+
+
+@app.route('/api/push/status', methods=['GET'])
+@login_required
+def push_status():
+    """Retourne le statut des abonnements Push de l'utilisateur connecté."""
+    from services.push_service import get_user_subscriptions
+
+    subs = get_user_subscriptions(current_user.id)
+    has_push = Notification.permission if hasattr(__builtins__, 'Notification') else 'denied'
+
+    return jsonify({
+        'success': True,
+        'subscriptions': subs,
+        'count': len(subs),
+        'notification_permission': Notification.permission if 'Notification' in request.headers.get('User-Agent', '') else 'unknown',
+        'push_supported': True,
+    })
+
+
+@app.route('/api/push/send-test', methods=['POST'])
+@login_required
+def push_send_test():
+    """Envoie une notification push de test à l'utilisateur connecté."""
+    from services.push_service import send_push_to_user
+
+    data = request.get_json(silent=True) or {}
+    title = data.get('title', 'Test TransAfrik')
+    body = data.get('body', 'Ceci est une notification de test ! 👍')
+    url = data.get('url', '/')
+
+    result = send_push_to_user(
+        user_id=current_user.id,
+        title=title,
+        body=body,
+        url=url,
+    )
+    return jsonify(result)
 
 
 if __name__ == '__main__':

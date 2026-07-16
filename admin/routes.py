@@ -12,7 +12,7 @@ from sqlalchemy import func
 from admin import admin_bp
 from admin.models import AdminLog, AdminUser, PlatformNotification, SystemConfig, UserNotification
 from models import (Beneficiary, SupportMessage, SupportTicket, Transaction,
-                    User, db)
+                    User, PushSubscription, db)
 
 
 # ── Decorator ──────────────────────────────────────────────────────────────
@@ -1069,3 +1069,95 @@ def global_search():
         'users': [{'id': u.id, 'name': u.fullname, 'email': u.email, 'avatar': u.first_name[0].upper()} for u in users],
         'transactions': [{'id': t.id, 'type': t.type, 'amount': t.amount, 'currency': t.currency or 'XOF', 'recipient': t.recipient_name, 'status': t.status} for t in txs]
     })
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# PUSH SUBSCRIPTIONS — Admin Panel Page
+# ══════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/push-subscriptions')
+@admin_required
+def push_subscriptions():
+    """Page listant tous les abonnements Push Web."""
+    from services.push_service import get_subscription_stats
+    stats = get_subscription_stats()
+    return render_template('admin_push_subscriptions.html', page='push_subscriptions', stats=stats)
+
+
+@admin_bp.route('/api/push-subscriptions')
+@admin_required
+def api_push_subscriptions():
+    """JSON: liste paginée des abonnements Push."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    search = request.args.get('search', '').strip()
+    platform_filter = request.args.get('platform', '').strip()
+    browser_filter = request.args.get('browser', '').strip()
+
+    query = PushSubscription.query
+
+    if search:
+        query = query.join(User).filter(
+            db.or_(
+                User.fullname.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%'),
+                PushSubscription.device_name.ilike(f'%{search}%'),
+                PushSubscription.user_agent.ilike(f'%{search}%'),
+            )
+        )
+    if platform_filter:
+        query = query.filter(PushSubscription.platform == platform_filter)
+    if browser_filter:
+        query = query.filter(PushSubscription.browser == browser_filter)
+
+    pagination = query.order_by(PushSubscription.last_seen.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    subs_data = []
+    for sub in pagination.items:
+        subs_data.append({
+            'id': sub.id,
+            'user_id': sub.user_id,
+            'user_name': sub.user.fullname if sub.user else 'Inconnu',
+            'user_email': sub.user.email if sub.user else '',
+            'platform': sub.platform or 'unknown',
+            'browser': sub.browser or 'unknown',
+            'device_name': sub.device_name or 'Inconnu',
+            'user_agent': (sub.user_agent or '')[:150],
+            'created_at': sub.created_at.isoformat() if sub.created_at else None,
+            'last_seen': sub.last_seen.isoformat() if sub.last_seen else None,
+            'updated_at': sub.updated_at.isoformat() if sub.updated_at else None,
+        })
+
+    return jsonify({
+        'success': True,
+        'subscriptions': subs_data,
+        'page': pagination.page,
+        'pages': pagination.pages,
+        'total': pagination.total,
+        'has_next': pagination.has_next,
+        'has_prev': pagination.has_prev,
+    })
+
+
+@admin_bp.route('/api/push-send', methods=['POST'])
+@admin_required
+def api_push_send():
+    """Envoyer une notification Push à tous les utilisateurs (broadcast)."""
+    from services.push_service import send_push_to_all
+    data = request.get_json(silent=True) or {}
+    title = data.get('title', 'TransAfrik')
+    body = data.get('body', 'Nouvelle notification de TransAfrik.')
+    url = data.get('url', '/')
+    result = send_push_to_all(title=title, body=body, url=url)
+    return jsonify(result)
+
+
+@admin_bp.route('/api/push-delete/<int:subscription_id>', methods=['DELETE'])
+@admin_required
+def api_push_delete(subscription_id):
+    """Supprimer un abonnement Push (admin)."""
+    from services.push_service import remove_subscription_by_id
+    result = remove_subscription_by_id(subscription_id)
+    return jsonify(result)

@@ -1,0 +1,304 @@
+{% extends "admin_layout.html" %}
+{% block title %}Abonnements Push | Admin TransAfrik{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">🔔 Abonnements Push</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sendPushModal">
+            <i class="fa-solid fa-paper-plane me-2"></i>Envoyer une notification
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">Total appareils</h6>
+                    <h2 class="mb-0">{{ stats.total }}</h2>
+                </div>
+            </div>
+        </div>
+        {% for platform, count in stats.platforms.items() %}
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">{{ platform|title }}</h6>
+                    <h2 class="mb-0">{{ count }}</h2>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Filtres -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small">Recherche</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Nom, email, appareil...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Plateforme</label>
+                    <select id="platformFilter" class="form-select">
+                        <option value="">Toutes</option>
+                        <option value="android">Android</option>
+                        <option value="ios">iOS</option>
+                        <option value="windows">Windows</option>
+                        <option value="macos">macOS</option>
+                        <option value="linux">Linux</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Navigateur</label>
+                    <select id="browserFilter" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="chrome">Chrome</option>
+                        <option value="firefox">Firefox</option>
+                        <option value="edge">Edge</option>
+                        <option value="safari">Safari</option>
+                        <option value="opera">Opera</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button id="refreshBtn" class="btn btn-outline-primary w-100">
+                        <i class="fa-solid fa-sync-alt me-1"></i>Actualiser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Utilisateur</th>
+                            <th>Plateforme</th>
+                            <th>Navigateur</th>
+                            <th>Appareil</th>
+                            <th>Inscription</th>
+                            <th>Dernière activité</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subscriptionsTableBody">
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">Chargement...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-3" id="paginationNav">
+        <ul class="pagination justify-content-center" id="paginationUl"></ul>
+    </nav>
+</div>
+
+<!-- Modal Envoyer Notification -->
+<div class="modal fade" id="sendPushModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Envoyer une notification Push</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Titre</label>
+                    <input type="text" id="pushTitle" class="form-control" value="TransAfrik" maxlength="100">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <textarea id="pushBody" class="form-control" rows="3" maxlength="255" placeholder="Votre message..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">URL de destination</label>
+                    <input type="text" id="pushUrl" class="form-control" value="/" placeholder="/">
+                </div>
+                <div id="pushResult" class="alert d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" id="sendPushBtn" class="btn btn-primary">
+                    <i class="fa-solid fa-paper-plane me-1"></i>Envoyer à tous
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    let currentPage = 1;
+
+    function loadSubscriptions(page) {
+        page = page || 1;
+        var search = document.getElementById('searchInput').value;
+        var platform = document.getElementById('platformFilter').value;
+        var browser = document.getElementById('browserFilter').value;
+
+        var params = new URLSearchParams({ page: page, per_page: 25 });
+        if (search) params.set('search', search);
+        if (platform) params.set('platform', platform);
+        if (browser) params.set('browser', browser);
+
+        fetch('/admin/api/push-subscriptions?' + params.toString())
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                currentPage = data.page;
+                renderTable(data.subscriptions);
+                renderPagination(data);
+            })
+            .catch(function(err) {
+                console.error(err);
+                document.getElementById('subscriptionsTableBody').innerHTML =
+                    '<tr><td colspan="8" class="text-center py-4 text-danger">Erreur de chargement</td></tr>';
+            });
+    }
+
+    function renderTable(subs) {
+        var tbody = document.getElementById('subscriptionsTableBody');
+        if (!subs.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Aucun abonnement trouvé</td></tr>';
+            return;
+        }
+        tbody.innerHTML = subs.map(function(s) {
+            return '<tr>' +
+                '<td><span class="badge bg-light text-dark">#' + s.id + '</span></td>' +
+                '<td>' +
+                    '<div class="fw-600">' + escapeHtml(s.user_name) + '</div>' +
+                    '<small class="text-muted">' + escapeHtml(s.user_email) + '</small>' +
+                '</td>' +
+                '<td><span class="badge bg-' + platformColor(s.platform) + '">' + escapeHtml(s.platform) + '</span></td>' +
+                '<td><span class="badge bg-' + browserColor(s.browser) + '">' + escapeHtml(s.browser) + '</span></td>' +
+                '<td><small title="' + escapeHtml(s.user_agent || '') + '">' + escapeHtml(s.device_name) + '</small></td>' +
+                '<td><small>' + formatDate(s.created_at) + '</small></td>' +
+                '<td><small>' + formatDate(s.last_seen) + '</small></td>' +
+                '<td>' +
+                    '<button class="btn btn-sm btn-outline-danger" onclick="deleteSubscription(' + s.id + ')" title="Supprimer">' +
+                        '<i class="fa-solid fa-trash"></i>' +
+                    '</button>' +
+                '</td>' +
+            '</tr>';
+        }).join('');
+    }
+
+    function renderPagination(data) {
+        var ul = document.getElementById('paginationUl');
+        var html = '';
+        for (var p = 1; p <= data.pages; p++) {
+            html += '<li class="page-item ' + (p === data.page ? 'active' : '') + '">' +
+                '<a class="page-link" href="#" data-page="' + p + '">' + p + '</a>' +
+            '</li>';
+        }
+        ul.innerHTML = html;
+        ul.querySelectorAll('.page-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadSubscriptions(parseInt(this.getAttribute('data-page')));
+            });
+        });
+    }
+
+    window.deleteSubscription = function(id) {
+        if (!confirm('Supprimer cet abonnement ? L\'utilisateur devra se réinscrire.')) return;
+        fetch('/admin/api/push-delete/' + id, { method: 'DELETE' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    loadSubscriptions(currentPage);
+                } else {
+                    alert('Erreur: ' + (data.error || 'Inconnue'));
+                }
+            })
+            .catch(function() { alert('Erreur réseau'); });
+    };
+
+    function platformColor(p) {
+        var colors = { android: 'success', ios: 'dark', windows: 'primary', macos: 'secondary', linux: 'warning' };
+        return colors[p] || 'info';
+    }
+
+    function browserColor(b) {
+        var colors = { chrome: 'success', firefox: 'warning', edge: 'info', safari: 'primary', opera: 'danger' };
+        return colors[b] || 'secondary';
+    }
+
+    function formatDate(d) {
+        if (!d) return '—';
+        var date = new Date(d);
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) +
+               ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Listeners
+    document.getElementById('refreshBtn').addEventListener('click', function() { loadSubscriptions(1); });
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') loadSubscriptions(1);
+    });
+    document.getElementById('platformFilter').addEventListener('change', function() { loadSubscriptions(1); });
+    document.getElementById('browserFilter').addEventListener('change', function() { loadSubscriptions(1); });
+
+    // Send push
+    document.getElementById('sendPushBtn').addEventListener('click', function() {
+        var btn = this;
+        var title = document.getElementById('pushTitle').value.trim();
+        var body = document.getElementById('pushBody').value.trim();
+        var url = document.getElementById('pushUrl').value.trim() || '/';
+
+        if (!title || !body) {
+            alert('Titre et message requis.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Envoi...';
+
+        var resultDiv = document.getElementById('pushResult');
+        resultDiv.className = 'alert d-none';
+
+        fetch('/admin/api/push-send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, body: body, url: url })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            resultDiv.className = data.success ? 'alert alert-success' : 'alert alert-warning';
+            resultDiv.innerHTML = '<strong>Résultat :</strong> ' + (data.sent || 0) + ' envoyé(s), ' + (data.failed || 0) + ' échec(s), ' + (data.cleaned || 0) + ' abonnement(s) invalide(s) supprimé(s).';
+            resultDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i>Envoyer à tous';
+            setTimeout(function() { loadSubscriptions(1); }, 1000);
+        })
+        .catch(function() {
+            resultDiv.className = 'alert alert-danger';
+            resultDiv.innerHTML = 'Erreur réseau.';
+            resultDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i>Envoyer à tous';
+        });
+    });
+
+    loadSubscriptions(1);
+})();
+</script>
+{% endblock %}
