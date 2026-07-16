@@ -1,151 +1,139 @@
 {% extends "admin_layout.html" %}
-{% block title %}Abonnements Push | Admin TransAfrik{% endblock %}
+{% block title %}🔔 Abonnements Push | Admin TransAfrik{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">🔔 Abonnements Push</h1>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sendPushModal">
-            <i class="fa-solid fa-paper-plane me-2"></i>Envoyer une notification
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h1>🔔 Abonnements Push</h1>
+        <p>Gestion des abonnements aux notifications Web Push</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-primary" id="openSendModal" onclick="openModal('sendPushModal')">
+            <i class="fa-solid fa-paper-plane"></i> Envoyer une notification
         </button>
     </div>
-
-    <!-- Stats -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">Total appareils</h6>
-                    <h2 class="mb-0">{{ stats.total }}</h2>
-                </div>
-            </div>
-        </div>
-        {% for platform, count in stats.platforms.items() %}
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-1">{{ platform|title }}</h6>
-                    <h2 class="mb-0">{{ count }}</h2>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Filtres -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label small">Recherche</label>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Nom, email, appareil...">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">Plateforme</label>
-                    <select id="platformFilter" class="form-select">
-                        <option value="">Toutes</option>
-                        <option value="android">Android</option>
-                        <option value="ios">iOS</option>
-                        <option value="windows">Windows</option>
-                        <option value="macos">macOS</option>
-                        <option value="linux">Linux</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">Navigateur</label>
-                    <select id="browserFilter" class="form-select">
-                        <option value="">Tous</option>
-                        <option value="chrome">Chrome</option>
-                        <option value="firefox">Firefox</option>
-                        <option value="edge">Edge</option>
-                        <option value="safari">Safari</option>
-                        <option value="opera">Opera</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button id="refreshBtn" class="btn btn-outline-primary w-100">
-                        <i class="fa-solid fa-sync-alt me-1"></i>Actualiser
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Utilisateur</th>
-                            <th>Plateforme</th>
-                            <th>Navigateur</th>
-                            <th>Appareil</th>
-                            <th>Inscription</th>
-                            <th>Dernière activité</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="subscriptionsTableBody">
-                        <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">Chargement...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pagination -->
-    <nav class="mt-3" id="paginationNav">
-        <ul class="pagination justify-content-center" id="paginationUl"></ul>
-    </nav>
 </div>
 
-<!-- Modal Envoyer Notification -->
-<div class="modal fade" id="sendPushModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Envoyer une notification Push</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Titre</label>
-                    <input type="text" id="pushTitle" class="form-control" value="TransAfrik" maxlength="100">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Message</label>
-                    <textarea id="pushBody" class="form-control" rows="3" maxlength="255" placeholder="Votre message..."></textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">URL de destination</label>
-                    <input type="text" id="pushUrl" class="form-control" value="/" placeholder="/">
-                </div>
-                <div id="pushResult" class="alert d-none"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" id="sendPushBtn" class="btn btn-primary">
-                    <i class="fa-solid fa-paper-plane me-1"></i>Envoyer à tous
-                </button>
-            </div>
+<!-- Stats -->
+<div class="stat-grid" id="pushStats">
+    <div class="stat-card fade-in">
+        <div class="stat-card-top">
+            <div class="stat-card-icon sci-blue"><i class="fa-solid fa-bell"></i></div>
+        </div>
+        <div class="stat-card-value" id="statTotal">—</div>
+        <div class="stat-card-label">Total appareils</div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+        <h3><i class="fa-solid fa-filter" style="color:var(--blue)"></i> Filtres</h3>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
+            <label>Recherche</label>
+            <input type="text" id="searchInput" class="form-input" placeholder="Nom, email, appareil..." onkeyup="if(event.key==='Enter')loadSubscriptions(1)">
+        </div>
+        <div class="form-group" style="min-width:140px;margin-bottom:0;">
+            <label>Plateforme</label>
+            <select id="platformFilter" class="form-select" onchange="loadSubscriptions(1)">
+                <option value="">Toutes</option>
+                <option value="android">Android</option>
+                <option value="ios">iOS</option>
+                <option value="windows">Windows</option>
+                <option value="macos">macOS</option>
+                <option value="linux">Linux</option>
+            </select>
+        </div>
+        <div class="form-group" style="min-width:140px;margin-bottom:0;">
+            <label>Navigateur</label>
+            <select id="browserFilter" class="form-select" onchange="loadSubscriptions(1)">
+                <option value="">Tous</option>
+                <option value="chrome">Chrome</option>
+                <option value="firefox">Firefox</option>
+                <option value="edge">Edge</option>
+                <option value="safari">Safari</option>
+                <option value="opera">Opera</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+            <button class="btn btn-outline" onclick="loadSubscriptions(1)" style="height:44px;">
+                <i class="fa-solid fa-sync-alt"></i> Actualiser
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tableau -->
+<div class="card">
+    <div class="card-header">
+        <h3>Appareils enregistrés</h3>
+        <span id="totalCount" style="font-size:13px;color:var(--text-4)"></span>
+    </div>
+    <div class="table-wrap" style="margin:0;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Utilisateur</th>
+                    <th>Plateforme</th>
+                    <th>Navigateur</th>
+                    <th>Appareil</th>
+                    <th>Inscription</th>
+                    <th>Dernière activité</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="subscriptionsTableBody">
+                <tr><td colspan="8"><div class="empty-state"><div class="spinner"></div><span style="margin-left:8px">Chargement...</span></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="paginationBox">
+    <ul class="pagination" id="paginationUl" style="display:flex;list-style:none;gap:6px;margin-top:16px;justify-content:center;padding:0;"></ul>
+</div>
+
+<!-- ═══ MODAL ENVOYER PUSH ═══ -->
+<div class="modal-overlay" id="sendPushModal">
+    <div class="modal">
+        <h3><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Envoyer une notification Push</h3>
+        <p>Envoyez une notification instantanée à tous les utilisateurs abonnés.</p>
+        <div class="form-group">
+            <label>Titre</label>
+            <input type="text" id="pushTitle" class="form-input" value="TransAfrik" maxlength="100">
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea id="pushBody" class="form-textarea" rows="3" maxlength="255" placeholder="Votre message..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>URL de destination</label>
+            <input type="text" id="pushUrl" class="form-input" value="/" placeholder="/dashboard">
+        </div>
+        <div id="pushResult" style="display:none;padding:12px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeModal('sendPushModal')">Annuler</button>
+            <button class="btn btn-primary" id="sendPushBtn" onclick="sendPush()">
+                <i class="fa-solid fa-paper-plane"></i> Envoyer à tous
+            </button>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_scripts %}
 <script>
 (function() {
-    let currentPage = 1;
+    var currentPage = 1;
 
+    // ===== LOAD SUBSCRIPTIONS =====
     function loadSubscriptions(page) {
         page = page || 1;
-        var search = document.getElementById('searchInput').value;
+        var search = document.getElementById('searchInput').value.trim();
         var platform = document.getElementById('platformFilter').value;
         var browser = document.getElementById('browserFilter').value;
 
@@ -160,34 +148,50 @@
                 currentPage = data.page;
                 renderTable(data.subscriptions);
                 renderPagination(data);
+                document.getElementById('totalCount').textContent = data.total + ' abonnement(s)';
+
+                // Update stats
+                document.getElementById('statTotal').textContent = data.total;
+                updatePlatformStats(data.subscriptions);
             })
             .catch(function(err) {
                 console.error(err);
                 document.getElementById('subscriptionsTableBody').innerHTML =
-                    '<tr><td colspan="8" class="text-center py-4 text-danger">Erreur de chargement</td></tr>';
+                    '<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-triangle-exclamation" style="color:var(--red);font-size:40px"></i>Erreur de chargement</div></td></tr>';
             });
+    }
+
+    function updatePlatformStats(subs) {
+        var platforms = {};
+        subs.forEach(function(s) {
+            var p = s.platform || 'unknown';
+            platforms[p] = (platforms[p] || 0) + 1;
+        });
+        // Simple: just show total for now
     }
 
     function renderTable(subs) {
         var tbody = document.getElementById('subscriptionsTableBody');
         if (!subs.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Aucun abonnement trouvé</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-bell-slash" style="font-size:40px"></i>Aucun abonnement trouvé</div></td></tr>';
             return;
         }
         tbody.innerHTML = subs.map(function(s) {
             return '<tr>' +
-                '<td><span class="badge bg-light text-dark">#' + s.id + '</span></td>' +
+                '<td><span style="font-size:11px;color:var(--text-4)">#' + s.id + '</span></td>' +
                 '<td>' +
-                    '<div class="fw-600">' + escapeHtml(s.user_name) + '</div>' +
-                    '<small class="text-muted">' + escapeHtml(s.user_email) + '</small>' +
+                    '<div class="tx-user">' +
+                        '<div class="tx-user-avatar" style="width:28px;height:28px;font-size:11px;border-radius:7px">' + (s.user_name ? s.user_name.charAt(0).toUpperCase() : '?') + '</div>' +
+                        '<div style="font-size:12px;line-height:1.3;"><strong>' + esc(s.user_name) + '</strong><br><span style="color:var(--text-4);font-size:11px">' + esc(s.user_email) + '</span></div>' +
+                    '</div>' +
                 '</td>' +
-                '<td><span class="badge bg-' + platformColor(s.platform) + '">' + escapeHtml(s.platform) + '</span></td>' +
-                '<td><span class="badge bg-' + browserColor(s.browser) + '">' + escapeHtml(s.browser) + '</span></td>' +
-                '<td><small title="' + escapeHtml(s.user_agent || '') + '">' + escapeHtml(s.device_name) + '</small></td>' +
-                '<td><small>' + formatDate(s.created_at) + '</small></td>' +
-                '<td><small>' + formatDate(s.last_seen) + '</small></td>' +
+                '<td><span class="badge-status bs-' + platformStatus(s.platform) + '">' + esc(s.platform || '?') + '</span></td>' +
+                '<td><span style="font-size:12px">' + esc(s.browser || '?') + '</span></td>' +
+                '<td><small title="' + esc(s.user_agent || '') + '">' + esc(s.device_name || '?') + '</small></td>' +
+                '<td><small>' + fmt(s.created_at) + '</small></td>' +
+                '<td><small>' + fmt(s.last_seen) + '</small></td>' +
                 '<td>' +
-                    '<button class="btn btn-sm btn-outline-danger" onclick="deleteSubscription(' + s.id + ')" title="Supprimer">' +
+                    '<button class="btn btn-sm btn-danger" onclick="deleteSub(' + s.id + ')" title="Supprimer">' +
                         '<i class="fa-solid fa-trash"></i>' +
                     '</button>' +
                 '</td>' +
@@ -199,12 +203,14 @@
         var ul = document.getElementById('paginationUl');
         var html = '';
         for (var p = 1; p <= data.pages; p++) {
-            html += '<li class="page-item ' + (p === data.page ? 'active' : '') + '">' +
-                '<a class="page-link" href="#" data-page="' + p + '">' + p + '</a>' +
+            html += '<li>' +
+                (p === data.page
+                    ? '<span class="current">' + p + '</span>'
+                    : '<a href="#" data-page="' + p + '">' + p + '</a>') +
             '</li>';
         }
         ul.innerHTML = html;
-        ul.querySelectorAll('.page-link').forEach(function(link) {
+        ul.querySelectorAll('a[data-page]').forEach(function(link) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 loadSubscriptions(parseInt(this.getAttribute('data-page')));
@@ -212,7 +218,7 @@
         });
     }
 
-    window.deleteSubscription = function(id) {
+    window.deleteSub = function(id) {
         if (!confirm('Supprimer cet abonnement ? L\'utilisateur devra se réinscrire.')) return;
         fetch('/admin/api/push-delete/' + id, { method: 'DELETE' })
             .then(function(r) { return r.json(); })
@@ -226,54 +232,21 @@
             .catch(function() { alert('Erreur réseau'); });
     };
 
-    function platformColor(p) {
-        var colors = { android: 'success', ios: 'dark', windows: 'primary', macos: 'secondary', linux: 'warning' };
-        return colors[p] || 'info';
-    }
-
-    function browserColor(b) {
-        var colors = { chrome: 'success', firefox: 'warning', edge: 'info', safari: 'primary', opera: 'danger' };
-        return colors[b] || 'secondary';
-    }
-
-    function formatDate(d) {
-        if (!d) return '—';
-        var date = new Date(d);
-        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) +
-               ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // Listeners
-    document.getElementById('refreshBtn').addEventListener('click', function() { loadSubscriptions(1); });
-    document.getElementById('searchInput').addEventListener('keyup', function(e) {
-        if (e.key === 'Enter') loadSubscriptions(1);
-    });
-    document.getElementById('platformFilter').addEventListener('change', function() { loadSubscriptions(1); });
-    document.getElementById('browserFilter').addEventListener('change', function() { loadSubscriptions(1); });
-
-    // Send push
-    document.getElementById('sendPushBtn').addEventListener('click', function() {
-        var btn = this;
+    window.sendPush = function() {
+        var btn = document.getElementById('sendPushBtn');
         var title = document.getElementById('pushTitle').value.trim();
         var body = document.getElementById('pushBody').value.trim();
         var url = document.getElementById('pushUrl').value.trim() || '/';
+        var resultDiv = document.getElementById('pushResult');
 
         if (!title || !body) {
-            alert('Titre et message requis.');
+            alert('Titre et message sont requis.');
             return;
         }
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Envoi...';
-
-        var resultDiv = document.getElementById('pushResult');
-        resultDiv.className = 'alert d-none';
+        btn.innerHTML = '<div class="spinner" style="margin-right:6px"></div> Envoi en cours...';
+        resultDiv.style.display = 'none';
 
         fetch('/admin/api/push-send', {
             method: 'POST',
@@ -282,22 +255,54 @@
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            resultDiv.className = data.success ? 'alert alert-success' : 'alert alert-warning';
-            resultDiv.innerHTML = '<strong>Résultat :</strong> ' + (data.sent || 0) + ' envoyé(s), ' + (data.failed || 0) + ' échec(s), ' + (data.cleaned || 0) + ' abonnement(s) invalide(s) supprimé(s).';
-            resultDiv.classList.remove('d-none');
+            resultDiv.style.display = 'block';
+            if (data.success) {
+                resultDiv.className = 'flash-msg flash-success';
+                resultDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (data.sent || 0) + ' envoyé(s), ' + (data.failed || 0) + ' échec(s), ' + (data.cleaned || 0) + ' abonnement(s) invalide(s) supprimé(s).';
+            } else {
+                resultDiv.className = 'flash-msg flash-warning';
+                resultDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + (data.error || 'Erreur inconnue');
+            }
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i>Envoyer à tous';
-            setTimeout(function() { loadSubscriptions(1); }, 1000);
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer à tous';
+            loadSubscriptions(1);
         })
         .catch(function() {
-            resultDiv.className = 'alert alert-danger';
-            resultDiv.innerHTML = 'Erreur réseau.';
-            resultDiv.classList.remove('d-none');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'flash-msg flash-error';
+            resultDiv.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Erreur réseau.';
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i>Envoyer à tous';
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer à tous';
         });
-    });
+    };
 
+    // ===== HELPERS =====
+    function esc(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function fmt(d) {
+        if (!d) return '—';
+        var date = new Date(d);
+        return date.toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) +
+               ' ' + date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    function platformStatus(p) {
+        switch(p) {
+            case 'android': return 'success';
+            case 'ios': return 'processing';
+            case 'windows': return 'open';
+            case 'macos': return 'pending';
+            case 'linux': return 'failed';
+            default: return 'pending';
+        }
+    }
+
+    // ===== INIT =====
     loadSubscriptions(1);
 })();
 </script>

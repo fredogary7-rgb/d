@@ -101,6 +101,15 @@ with app.app_context():
     os.makedirs(kyc_dir, exist_ok=True)
     print(f"+ uploads/kyc directory OK")
 
+    # --- Colonne email pour otp_codes ---
+    try:
+        db.session.execute(text("ALTER TABLE otp_codes ADD COLUMN IF NOT EXISTS email VARCHAR(255)"))
+        db.session.commit()
+        print("+ otp_codes.email OK")
+    except Exception as e:
+        db.session.rollback()
+        print(f"  otp_codes.email skip: {e}")
+
     # --- Table push_subscriptions (Web Push) ---
     try:
         db.session.execute(text("""
