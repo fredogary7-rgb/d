@@ -8,7 +8,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage
-from services.sms_service import send_sms, format_phone as format_sms_phone
+from services.email_service import send_otp_email
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
 from transfer_config import COUNTRIES, get_operators, get_country
@@ -160,7 +160,7 @@ def register():
         if not phone or len(phone.replace(' ', '').replace('+', '').replace('-', '')) < 8:
             errors.append('Numéro de téléphone invalide.')
 
-        phone_clean = format_sms_phone(phone)
+        phone_clean = phone.replace(' ', '').replace('+', '').replace('-', '').strip()
         if User.query.filter_by(phone=phone_clean).first():
             errors.append('Ce numéro de téléphone est déjà utilisé.')
         if country not in ['TG','BJ','CM','CI','BF','CG','CD','GA','UG','ZM','SN']:
@@ -171,19 +171,12 @@ def register():
         if errors:
             return jsonify({'success': False, 'message': errors[0], 'errors': errors}), 400
 
-        otp_result = create_otp(phone_clean, 'register')
+        otp_result = create_otp(email, 'register')
         if not otp_result.get('success'):
             return jsonify({'success': False, 'message': otp_result.get('error', 'Erreur OTP.')}), 429
 
         code = otp_result['code']
-        sms_message = (
-            f"TransAfrik\n"
-            f"Votre code de verification est :\n"
-            f"{code}\n\n"
-            f"Ce code expire dans 5 minutes.\n"
-            f"Ne le partagez avec personne."
-        )
-        send_sms(phone_clean, sms_message)
+        send_otp_email(email, code, 'register')
 
         session['pending_register'] = {
             'email': email,
@@ -195,7 +188,7 @@ def register():
 
         return jsonify({
             'success': True,
-            'message': 'Un code de vérification a été envoyé par SMS.',
+            'message': 'Un code de vérification a été envoyé par email.',
             'redirect': url_for('verify_otp_page', purpose='register'),
         })
 
@@ -209,11 +202,11 @@ def verify_otp_page(purpose='login'):
         flash('Type de vérification invalide.', 'error')
         return redirect(url_for('index'))
 
-    phone = session.get('pending_phone', '')
-    if not phone:
+    email_display = session.get('pending_email', '')
+    if not email_display:
         pending = session.get('pending_register', {})
-        phone = pending.get('phone', '')
-        if not phone:
+        email_display = pending.get('email', '')
+        if not email_display:
             flash('Session expirée. Veuillez recommencer.', 'warning')
             return redirect(url_for('login'))
 
@@ -224,7 +217,7 @@ def verify_otp_page(purpose='login'):
         if not code or len(code) != 6:
             return jsonify({'success': False, 'message': 'Le code doit contenir 6 chiffres.'}), 400
 
-        result = verify_otp(phone, code, purpose)
+        result = verify_otp(email_display, code, purpose)
         if not result.get('success'):
             return jsonify({'success': False, 'message': result.get('error', 'Code invalide.')}), 400
 
@@ -244,7 +237,7 @@ def verify_otp_page(purpose='login'):
             db.session.commit()
 
             session.pop('pending_register', None)
-            session.pop('pending_phone', None)
+            session.pop('pending_email', None)
             login_user(user)
 
             app.logger.info(f"Nouveau compte créé via OTP : {user.email}")
@@ -264,7 +257,7 @@ def verify_otp_page(purpose='login'):
                 return jsonify({'success': False, 'message': 'Utilisateur introuvable.'}), 404
 
             session.pop('pending_login_user_id', None)
-            session.pop('pending_phone', None)
+            session.pop('pending_email', None)
             login_user(user)
 
             app.logger.info(f"Connexion OTP réussie : {user.email}")
@@ -282,42 +275,43 @@ def verify_otp_page(purpose='login'):
                 'redirect': url_for('reset_password'),
             })
 
-    return render_template('verify_otp.html', purpose=purpose, phone=phone)
+    return render_template('verify_otp.html', purpose=purpose, phone=email_display)
 
 
 # --- RESEND OTP ---
 @app.route('/api/otp/resend', methods=['POST'])
 def api_resend_otp():
     data = request.get_json()
-    phone = data.get('phone', '').strip()
+    email = data.get('email', '').strip().lower()
+    if not email:
+        # Rétrocompatibilité : chercher phone
+        phone = data.get('phone', '').strip()
+        if phone:
+            user = User.query.filter_by(phone=phone).first()
+            if user:
+                email = user.email
+            else:
+                email = phone
+    if not email:
+        # Fallback depuis la session
+        pending = session.get('pending_register', {})
+        email = pending.get('email', '')
 
-    if not phone:
-        phone = session.get('pending_phone', '')
-        if not phone:
-            pending = session.get('pending_register', {})
-            phone = pending.get('phone', '')
+    if not email:
+        return jsonify({'success': False, 'message': 'Aucun email trouvé.'}), 400
 
-    if not phone:
-        return jsonify({'success': False, 'message': 'Aucun numéro trouvé.'}), 400
-
-    phone_clean = format_sms_phone(phone)
-    otp_result = resend_otp_service(phone_clean)
+    email_lower = email.strip().lower()
+    otp_result = resend_otp_service(email_lower)
 
     if not otp_result.get('success'):
         return jsonify({'success': False, 'message': otp_result.get('error', 'Erreur OTP.')}), 429
 
     code = otp_result['code']
-    sms_message = (
-        f"TransAfrik\n"
-        f"Votre code de verification est :\n"
-        f"{code}\n\n"
-        f"Ce code expire dans 5 minutes.\n"
-        f"Ne le partagez avec personne."
-    )
-    send_sms(phone_clean, sms_message)
-    app.logger.info(f"OTP renvoyé à {phone_clean}")
+    purpose = session.get('pending_register', {}).get('purpose', 'login')
+    send_otp_email(email_lower, code, purpose)
+    app.logger.info(f"EMAIL | OTP renvoyé à {email_lower}")
 
-    return jsonify({'success': True, 'message': 'Nouveau code envoyé par SMS.'})
+    return jsonify({'success': True, 'message': 'Nouveau code envoyé par email.'})
 
 
 # --- FORGOT PASSWORD ---
@@ -328,38 +322,38 @@ def forgot_password():
 
     if request.method == 'POST':
         data = request.get_json()
+        email = data.get('email', '').strip().lower()
         phone = data.get('phone', '').strip()
-        if not phone:
-            return jsonify({'success': False, 'message': 'Numéro de téléphone requis.'}), 400
 
-        phone_clean = format_sms_phone(phone)
-        user = User.query.filter_by(phone=phone_clean).first()
+        if not email and not phone:
+            return jsonify({'success': False, 'message': 'Email ou numéro de téléphone requis.'}), 400
+
+        user = None
+        if email:
+            user = User.query.filter_by(email=email).first()
+        if not user and phone:
+            phone_clean = phone.replace(' ', '').replace('+', '').replace('-', '').strip()
+            user = User.query.filter_by(phone=phone_clean).first()
+
         if not user:
             return jsonify({
                 'success': True,
-                'message': 'Si ce numéro est associé à un compte, un code vous sera envoyé.',
+                'message': 'Si cet email/numéro est associé à un compte, un code vous sera envoyé.',
             })
 
-        otp_result = create_otp(phone_clean, 'reset_password')
+        otp_result = create_otp(user.email, 'reset_password')
         if not otp_result.get('success'):
             return jsonify({'success': False, 'message': otp_result.get('error', 'Erreur OTP.')}), 429
 
         code = otp_result['code']
-        sms_message = (
-            f"TransAfrik\n"
-            f"Votre code de reinitialisation est :\n"
-            f"{code}\n\n"
-            f"Ce code expire dans 5 minutes.\n"
-            f"Ne le partagez avec personne."
-        )
-        send_sms(phone_clean, sms_message)
+        send_otp_email(user.email, code, 'reset_password')
 
-        session['pending_phone'] = phone_clean
+        session['pending_email'] = user.email
         session['pending_reset_user_id'] = user.id
 
         return jsonify({
             'success': True,
-            'message': 'Un code de réinitialisation a été envoyé par SMS.',
+            'message': 'Un code de réinitialisation a été envoyé par email.',
             'redirect': url_for('verify_otp_page', purpose='reset_password'),
         })
 

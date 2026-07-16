@@ -1,12 +1,13 @@
 """
 Service OTP - Generation et validation de codes a usage unique.
+Le canal d'envoi est l'email (via Resend). L'identifiant principal est l'adresse email.
 
 Fonctions :
-- generate_otp()           - code 6 chiffres (crypto-safe)
-- create_otp(phone, purpose) - cree un OTP en base et retourne le code
-- verify_otp(phone, code, purpose) - verifie et invalide le code OTP
-- resend_otp(phone)        - renvoie un OTP (verifie le delai de 60s)
-- delete_expired_otps()    - nettoie les OTP expires
+- generate_otp()                  - code 6 chiffres (crypto-safe)
+- create_otp(email, purpose)      - cree un OTP en base et retourne le code
+- verify_otp(email, code, purpose) - verifie et invalide le code OTP
+- resend_otp(email)               - renvoie un OTP (verifie le delai de 60s)
+- delete_expired_otps()           - nettoie les OTP expires
 """
 
 import secrets
@@ -38,15 +39,21 @@ def generate_otp(length: int = OTP_LENGTH) -> str:
     return code
 
 
-def create_otp(phone: str, purpose: str) -> dict:
-    """Cree un nouvel OTP pour un telephone donne (avec anti-abus).
+def create_otp(email: str, purpose: str) -> dict:
+    """Cree un nouvel OTP pour un email donne (avec anti-abus).
+
+    Args:
+        email: Adresse email de l'utilisateur.
+        purpose: But de l'OTP (register | login | reset_password | change_phone).
 
     Returns:
         {"success": True, "code": "482913", "otp_id": 123}
         ou {"success": False, "error": "..."}
     """
+    email_lower = email.strip().lower()
+
     # Anti-abus : delai 60s entre deux envois
-    recent_otp = OtpCode.query.filter_by(phone=phone, is_verified=False).order_by(
+    recent_otp = OtpCode.query.filter_by(email=email_lower, is_verified=False).order_by(
         OtpCode.created_at.desc()
     ).first()
 
@@ -57,7 +64,7 @@ def create_otp(phone: str, purpose: str) -> dict:
 
         if elapsed < OTP_RESEND_COOLDOWN_SECONDS:
             wait = int(OTP_RESEND_COOLDOWN_SECONDS - elapsed)
-            otp_logger.warning(f"Anti-spam : renvoi bloque pour {phone} - attendre {wait}s")
+            otp_logger.warning(f"Anti-spam : renvoi bloque pour {email_lower} - attendre {wait}s")
             return {
                 "success": False,
                 "error": f"Veuillez attendre {wait} secondes avant de renvoyer un code.",
@@ -66,12 +73,12 @@ def create_otp(phone: str, purpose: str) -> dict:
     # Anti-abus : max 5 OTP par heure
     one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
     hourly_count = OtpCode.query.filter(
-        OtpCode.phone == phone,
+        OtpCode.email == email_lower,
         OtpCode.created_at >= one_hour_ago,
     ).count()
 
     if hourly_count >= OTP_MAX_PER_HOUR:
-        otp_logger.warning(f"Anti-abus : trop d'OTP pour {phone} ({hourly_count}/h)")
+        otp_logger.warning(f"Anti-abus : trop d'OTP pour {email_lower} ({hourly_count}/h)")
         return {
             "success": False,
             "error": "Trop de tentatives. Veuillez reessayer dans une heure.",
@@ -79,7 +86,7 @@ def create_otp(phone: str, purpose: str) -> dict:
 
     # Supprimer les anciens OTP non verifies
     OtpCode.query.filter(
-        OtpCode.phone == phone,
+        OtpCode.email == email_lower,
         OtpCode.is_verified == False,
     ).delete()
 
@@ -88,7 +95,8 @@ def create_otp(phone: str, purpose: str) -> dict:
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_VALIDITY_MINUTES)
 
     otp = OtpCode(
-        phone=phone,
+        email=email_lower,
+        phone=None,  # plus obligatoire
         code=code,
         purpose=purpose,
         expires_at=expires_at,
@@ -99,39 +107,51 @@ def create_otp(phone: str, purpose: str) -> dict:
     db.session.commit()
 
     otp_logger.info(
-        f"OTP cree - phone={phone} | purpose={purpose} | "
+        f"OTP cree - email={email_lower} | purpose={purpose} | "
         f"id={otp.id} | expires={expires_at.isoformat()}"
     )
 
     return {"success": True, "code": code, "otp_id": otp.id}
 
 
-def verify_otp(phone: str, code: str, purpose: str) -> dict:
+def verify_otp(email: str, code: str, purpose: str) -> dict:
     """Verifie un code OTP saisi par l'utilisateur.
+
+    Args:
+        email: Adresse email de l'utilisateur.
+        code: Code OTP saisi.
+        purpose: But de l'OTP.
 
     Returns:
         {"success": True} ou {"success": False, "error": "...", "attempts_remaining": 2}
     """
+    email_lower = email.strip().lower()
+
     otp = OtpCode.query.filter_by(
-        phone=phone, purpose=purpose, is_verified=False,
+        email=email_lower, purpose=purpose, is_verified=False,
     ).order_by(OtpCode.created_at.desc()).first()
 
     if not otp:
-        otp_logger.warning(f"OTP introuvable pour {phone} / {purpose}")
-        return {
-            "success": False,
-            "error": "Aucun code de verification trouve. Veuillez en demander un nouveau.",
-        }
+        otp_logger.warning(f"OTP introuvable pour {email_lower} / {purpose}")
+        # Chercher aussi par telephone pour retrocompatibilite
+        otp = OtpCode.query.filter_by(
+            phone=email, purpose=purpose, is_verified=False,
+        ).order_by(OtpCode.created_at.desc()).first()
+        if not otp:
+            return {
+                "success": False,
+                "error": "Aucun code de verification trouve. Veuillez en demander un nouveau.",
+            }
 
     if otp.is_expired:
-        otp_logger.warning(f"OTP expire - phone={phone} | id={otp.id}")
+        otp_logger.warning(f"OTP expire - email={email_lower} | id={otp.id}")
         return {
             "success": False,
             "error": "Le code a expire. Veuillez en demander un nouveau.",
         }
 
     if otp.attempts >= OTP_MAX_ATTEMPTS:
-        otp_logger.warning(f"OTP bloque - phone={phone} | id={otp.id} | attempts={otp.attempts}")
+        otp_logger.warning(f"OTP bloque - email={email_lower} | id={otp.id} | attempts={otp.attempts}")
         otp.is_verified = True
         db.session.commit()
         return {
@@ -145,7 +165,7 @@ def verify_otp(phone: str, code: str, purpose: str) -> dict:
     if otp.code != code.strip():
         remaining = OTP_MAX_ATTEMPTS - otp.attempts
         otp_logger.warning(
-            f"Code OTP invalide - phone={phone} | id={otp.id} | "
+            f"Code OTP invalide - email={email_lower} | id={otp.id} | "
             f"attempt={otp.attempts}/{OTP_MAX_ATTEMPTS} | restant={remaining}"
         )
         return {
@@ -157,15 +177,32 @@ def verify_otp(phone: str, code: str, purpose: str) -> dict:
     otp.is_verified = True
     db.session.commit()
 
-    otp_logger.info(f"OTP valide - phone={phone} | id={otp.id} | purpose={purpose}")
+    otp_logger.info(f"OTP valide - email={email_lower} | id={otp.id} | purpose={purpose}")
     return {"success": True, "message": "Code verifie avec succes."}
 
 
-def resend_otp(phone: str) -> dict:
-    """Renvoie un OTP (recupere le purpose depuis le dernier OTP)."""
-    last_otp = OtpCode.query.filter_by(phone=phone).order_by(
+def resend_otp(email: str) -> dict:
+    """Renvoie un OTP (recupere le purpose depuis le dernier OTP).
+
+    Args:
+        email: Adresse email de l'utilisateur.
+
+    Returns:
+        {"success": True, "code": "...", "otp_id": ...}
+        ou {"success": False, "error": "..."}
+    """
+    email_lower = email.strip().lower()
+
+    # Chercher d'abord par email
+    last_otp = OtpCode.query.filter_by(email=email_lower).order_by(
         OtpCode.created_at.desc()
     ).first()
+
+    if not last_otp:
+        # Retrocompatibilite : chercher par phone
+        last_otp = OtpCode.query.filter_by(phone=email).order_by(
+            OtpCode.created_at.desc()
+        ).first()
 
     if not last_otp:
         return {
@@ -173,7 +210,7 @@ def resend_otp(phone: str) -> dict:
             "error": "Aucun code a renvoyer. Veuillez recommencer.",
         }
 
-    return create_otp(phone, last_otp.purpose)
+    return create_otp(email_lower, last_otp.purpose)
 
 
 def delete_expired_otps() -> int:

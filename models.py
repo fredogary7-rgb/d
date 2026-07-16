@@ -513,13 +513,14 @@ class KycRequest(db.Model):
 
 
 class OtpCode(db.Model):
-    """Code OTP pour vérification par SMS (inscription, connexion, reset mdp)."""
+    """Code OTP pour vérification par email via Resend (inscription, connexion, reset mdp)."""
 
     __tablename__ = 'otp_codes'
 
     # ---- Identification ----
     id = db.Column(db.Integer, primary_key=True)
-    phone = db.Column(db.String(30), nullable=False, index=True)
+    phone = db.Column(db.String(30), nullable=True, index=True)       # conservé pour rétrocompatibilité
+    email = db.Column(db.String(255), nullable=False, index=True)     # email pour envoi OTP via Resend
     code = db.Column(db.String(10), nullable=False)
     purpose = db.Column(db.String(20), nullable=False, index=True)  # register | login | reset_password | change_phone
     expires_at = db.Column(db.DateTime, nullable=False)
@@ -538,7 +539,7 @@ class OtpCode(db.Model):
         return max(0, 3 - self.attempts)
 
     def __repr__(self):
-        return f'<OtpCode {self.id} phone={self.phone} purpose={self.purpose} verified={self.is_verified}>'
+        return f'<OtpCode {self.id} email={self.email} purpose={self.purpose} verified={self.is_verified}>'
 
 
 def generate_ticket_number():
