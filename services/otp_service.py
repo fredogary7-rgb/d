@@ -96,7 +96,7 @@ def create_otp(email: str, purpose: str) -> dict:
 
     otp = OtpCode(
         email=email_lower,
-        phone=None,  # plus obligatoire
+        phone='',  # plus obligatoire (colonne NOT NULL en BDD, mais non utilisé)
         code=code,
         purpose=purpose,
         expires_at=expires_at,
