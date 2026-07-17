@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 from models import db, User, Withdrawal, Transaction
 from services.soleaspay import withdraw as soleaspay_withdraw, convert_currency
 from services.fees import calculate_fee
-from services.email_service import send_email
+from services.email_service import _send_email as send_email
 from services.push_service import send_push_notification
 from config.operators import OPERATORS
 
@@ -376,7 +376,7 @@ def _notify_withdrawal(user: User, withdrawal: Withdrawal, success: bool = True)
     # Email
     if user.email:
         try:
-            send_email(to=user.email, subject=subject, html=body_html)
+            send_email(to_email=user.email, subject=subject, html_body=body_html)
         except Exception as e:
             logger.error(f"Notification email échouée: {e}")
 
