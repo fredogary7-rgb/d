@@ -2,6 +2,7 @@ import os
 import logging
 import hmac
 import hashlib
+import json
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -851,21 +852,18 @@ def _log_webhook(webhook_type: str, reference: str, status: str, payload: dict):
 
 # ==================== WEBHOOKS SOLEASPAY ====================
 
-@app.route('/webhook/soleaspay/payment', methods=['POST'])
-def webhook_payment():
-    signature = request.headers.get('X-SoleasPay-Signature', '')
-    raw_body = request.get_data()
-    if not _verify_webhook_signature(raw_body, signature):
-        webhook_logger.warning('Signature invalide — webhook rejeté')
-        return jsonify({'success': False, 'message': 'Signature invalide'}), 403
-
-    payload = request.get_json(silent=True) or {}
-    if not payload:
-        return jsonify({'success': False, 'message': 'Payload invalide'}), 400
-
+def _handle_payment_webhook(payload: dict):
+    """Logique de traitement d'un webhook PURCHASE (Pay-In)."""
     external_ref = payload.get('external_reference') or payload.get('order_id') or ''
     transfer = get_transfer_by_reference(external_ref) if external_ref else None
-    _log_webhook('PAYMENT', external_ref, payload.get('status', 'UNKNOWN'), payload)
+    _log_webhook('PURCHASE', external_ref, payload.get('status', 'UNKNOWN'), payload)
+
+    webhook_logger.info(
+        f"WEBHOOK RECEIVED\n"
+        f"Operation : PURCHASE\n"
+        f"Status : {payload.get('status', 'UNKNOWN')}\n"
+        f"Reference : {external_ref}"
+    )
 
     if not transfer:
         webhook_logger.warning(f'Transfer introuvable pour external_reference={external_ref}')
@@ -884,7 +882,14 @@ def webhook_payment():
         transfer.webhook_payload = payload
         db.session.commit()
         handle_payment_success(transfer, payin_response=payload)
-        webhook_logger.info(f'Pay-In SUCCESS → PAYMENT_SUCCESS + Withdraw lancé pour {transfer.reference}')
+        webhook_logger.info(
+            f"WEBHOOK RECEIVED\n"
+            f"Operation : PURCHASE\n"
+            f"Status : SUCCESS\n"
+            f"Reference : {transfer.reference}\n"
+            f"User : {transfer.user_id}\n"
+            f"Result : COMPLETED"
+        )
         return jsonify({
             'success': True,
             'message': 'Paiement confirmé, retrait lancé',
@@ -895,7 +900,14 @@ def webhook_payment():
         from services.transfer_service import mark_payment_failed
         transfer.webhook_payload = payload
         mark_payment_failed(transfer, payin_response=payload)
-        webhook_logger.info(f'Pay-In FAILED pour {transfer.reference}')
+        webhook_logger.info(
+            f"WEBHOOK RECEIVED\n"
+            f"Operation : PURCHASE\n"
+            f"Status : FAILED\n"
+            f"Reference : {transfer.reference}\n"
+            f"User : {transfer.user_id}\n"
+            f"Result : FAILED"
+        )
         return jsonify({
             'success': False,
             'message': 'Paiement échoué',
@@ -913,18 +925,8 @@ def webhook_payment():
         })
 
 
-@app.route('/webhook/soleaspay/withdraw', methods=['POST'])
-def webhook_withdraw():
-    signature = request.headers.get('X-SoleasPay-Signature', '')
-    raw_body = request.get_data()
-    if not _verify_webhook_signature(raw_body, signature):
-        webhook_logger.warning('Signature invalide — webhook rejeté')
-        return jsonify({'success': False, 'message': 'Signature invalide'}), 403
-
-    payload = request.get_json(silent=True) or {}
-    if not payload:
-        return jsonify({'success': False, 'message': 'Payload invalide'}), 400
-
+def _handle_withdraw_webhook(payload: dict):
+    """Logique de traitement d'un webhook WITHDRAW."""
     data = payload.get('data', {})
     if isinstance(data, list) and len(data) > 0:
         ref = data[0].get('external_reference') or data[0].get('reference') or ''
@@ -935,6 +937,13 @@ def webhook_withdraw():
 
     transfer = get_transfer_by_reference(ref) if ref else None
     _log_webhook('WITHDRAW', ref, payload.get('status', 'UNKNOWN'), payload)
+
+    webhook_logger.info(
+        f"WEBHOOK RECEIVED\n"
+        f"Operation : WITHDRAW\n"
+        f"Status : {payload.get('status', 'UNKNOWN')}\n"
+        f"Reference : {ref}"
+    )
 
     if not transfer:
         webhook_logger.warning(f'Transfer introuvable pour reference={ref}')
@@ -951,7 +960,14 @@ def webhook_withdraw():
 
     if is_payment_success(payload):
         handle_withdraw_success(transfer, withdraw_response=payload)
-        webhook_logger.info(f'Withdraw SUCCESS → COMPLETED pour {transfer.reference}')
+        webhook_logger.info(
+            f"WEBHOOK RECEIVED\n"
+            f"Operation : WITHDRAW\n"
+            f"Status : SUCCESS\n"
+            f"Reference : {transfer.reference}\n"
+            f"User : {transfer.user_id}\n"
+            f"Result : COMPLETED"
+        )
         return jsonify({
             'success': True,
             'message': 'Transfert terminé avec succès',
@@ -960,7 +976,14 @@ def webhook_withdraw():
         })
     elif is_payment_failed(payload):
         handle_withdraw_failed(transfer, reason=payload.get('message', 'Échec du retrait'), webhook_payload=payload)
-        webhook_logger.info(f'Withdraw FAILED pour {transfer.reference}')
+        webhook_logger.info(
+            f"WEBHOOK RECEIVED\n"
+            f"Operation : WITHDRAW\n"
+            f"Status : FAILED\n"
+            f"Reference : {transfer.reference}\n"
+            f"User : {transfer.user_id}\n"
+            f"Result : FAILED"
+        )
         return jsonify({
             'success': False,
             'message': 'Retrait échoué',
@@ -976,6 +999,41 @@ def webhook_withdraw():
             'message': 'Statut inconnu, payload enregistré',
             'reference': transfer.reference,
         })
+
+
+@app.route('/webhook/soleaspay', methods=['POST'])
+def webhook_soleaspay():
+    """Webhook unifié SoleasPay — route unique pour PURCHASE et WITHDRAW."""
+    signature = request.headers.get('X-SoleasPay-Signature', '')
+    raw_body = request.get_data()
+    if not _verify_webhook_signature(raw_body, signature):
+        webhook_logger.warning('Signature invalide — webhook rejeté')
+        return jsonify({'success': False, 'message': 'Signature invalide'}), 403
+
+    payload = request.get_json(silent=True) or {}
+    if not payload:
+        return jsonify({'success': False, 'message': 'Payload invalide'}), 400
+
+    # Logger intégralement les headers et le payload
+    webhook_logger.info(f"WEBHOOK RECEIVED | Headers: {dict(request.headers)} | Payload: {payload}")
+
+    # Détecter automatiquement le type d'opération
+    data = payload.get('data', {})
+    if isinstance(data, dict):
+        operation = data.get('operation') or payload.get('operation') or ''
+    else:
+        operation = payload.get('operation') or ''
+
+    operation = operation.upper().strip()
+
+    # Router selon le type d'opération
+    if operation == 'PURCHASE':
+        return _handle_payment_webhook(payload)
+    elif operation in ('WITHDRAW', 'WITHDRAWAL'):
+        return _handle_withdraw_webhook(payload)
+    else:
+        webhook_logger.warning(f'Type d\'opération inconnu: {operation}')
+        return jsonify({'success': False, 'message': f'Type d\'opération inconnu: {operation}'}), 400
 
 
 # ==================== API STATUS ====================

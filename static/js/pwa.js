@@ -327,9 +327,17 @@
   /* ==========================================================
      PUSH NOTIFICATIONS
      ========================================================== */
+  let _pushRegistration = null;
+  const PUSH_SUB_STORAGE_KEY = 'transafrik_push_sub';
+  const PUSH_PENDING_KEY = 'transafrik_push_pending';
+
   function setupPushNotifications(registration) {
+    // Stocker le ServiceWorkerRegistration pour usage ultérieur
+    _pushRegistration = registration;
+
     // Vérifier si les notifications sont supportées
     if (!('Notification' in window) || !('PushManager' in window)) {
+      console.warn('[PWA] Push API non supportée');
       return;
     }
 
@@ -344,7 +352,7 @@
       if (Notification.permission === 'default') {
         Notification.requestPermission().then(permission => {
           if (permission === 'granted') {
-            subscribeToPush(registration);
+            subscribeToPush(_pushRegistration || registration);
           }
         });
       }
@@ -352,7 +360,21 @@
     }, { once: true });
   }
 
+  /**
+   * Tente l'abonnement push et l'enregistrement sur le serveur.
+   * Si le serveur répond 401/403 (non authentifié), l'abonnement
+   * est sauvegardé en localStorage avec un flag "pending" pour
+   * être réessayé plus tard (quand l'utilisateur sera connecté).
+   *
+   * @param {ServiceWorkerRegistration} registration
+   * @returns {Promise<{success: boolean, skip?: boolean}>}
+   */
   async function subscribeToPush(registration) {
+    if (!registration) {
+      console.warn('[PWA] Aucune registration SW disponible');
+      return { success: false };
+    }
+
     try {
       // Récupérer la clé publique VAPID depuis le backend
       let vapidPublicKey = null;
@@ -377,10 +399,13 @@
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) {
         subscription = await registration.pushManager.subscribe(subscribeOptions);
-        console.log('[PWA] Abonnement push réussi');
+        console.log('[PWA] Abonnement push navigateur réussi');
       } else {
-        console.log('[PWA] Abonnement push déjà actif');
+        console.log('[PWA] Abonnement push navigateur déjà actif');
       }
+
+      const subJson = subscription.toJSON();
+      localStorage.setItem(PUSH_SUB_STORAGE_KEY, JSON.stringify(subJson));
 
       // Envoyer l'abonnement au backend pour le stocker
       try {
@@ -388,23 +413,92 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            subscription: subscription.toJSON(),
+            subscription: subJson,
           }),
         });
+
+        // Si non authentifié, sauvegarder pour plus tard
+        if (response.status === 401 || response.status === 403) {
+          console.warn('[PWA] Utilisateur non connecté — abonnement sauvegardé en attente');
+          localStorage.setItem(PUSH_PENDING_KEY, '1');
+          return { success: false, pending: true };
+        }
+
         const result = await response.json();
         if (result.success) {
           console.log('[PWA] Abonnement enregistré sur le serveur');
+          localStorage.removeItem(PUSH_PENDING_KEY);
+          return { success: true };
         } else {
-          console.warn('[PWA] Échec enregistrement serveur:', result.error);
+          console.warn('[PWA] Échec enregistrement serveur:', result.error || result.message);
+          localStorage.setItem(PUSH_PENDING_KEY, '1');
+          return { success: false, error: result.error || result.message };
         }
       } catch (fetchErr) {
         console.warn('[PWA] Erreur réseau lors de l\'enregistrement push:', fetchErr);
+        localStorage.setItem(PUSH_PENDING_KEY, '1');
+        return { success: false, error: fetchErr.message };
       }
-
-      // Stocker l'abonnement localement (pour désabonnement)
-      localStorage.setItem('push_subscription', JSON.stringify(subscription.toJSON()));
     } catch (err) {
       console.warn('[PWA] Échec abonnement push:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Réessaie d'envoyer l'abonnement push au serveur.
+   * À appeler depuis les pages authentifiées (dashboard, etc.)
+   * ou automatiquement à chaque chargement de page.
+   *
+   * Appel global: TransAfrik.syncPushSubscription()
+   */
+  async function syncPushSubscription() {
+    // Vérifier s'il y a un abonnement en attente
+    const pending = localStorage.getItem(PUSH_PENDING_KEY);
+    const subRaw = localStorage.getItem(PUSH_SUB_STORAGE_KEY);
+
+    if (!subRaw) {
+      console.log('[PWA] Aucun abonnement push local à synchroniser');
+      return { success: false, reason: 'no_subscription' };
+    }
+
+    // Si la permission a été révoquée, nettoyer
+    if (Notification.permission !== 'granted') {
+      console.log('[PWA] Permission notification révoquée — nettoyage');
+      localStorage.removeItem(PUSH_SUB_STORAGE_KEY);
+      localStorage.removeItem(PUSH_PENDING_KEY);
+      return { success: false, reason: 'permission_denied' };
+    }
+
+    console.log('[PWA] Tentative de synchronisation push' + (pending ? ' (en attente)' : ''));
+
+    try {
+      const response = await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscription: JSON.parse(subRaw),
+        }),
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        console.log('[PWA] Utilisateur toujours non connecté — en attente');
+        localStorage.setItem(PUSH_PENDING_KEY, '1');
+        return { success: false, pending: true };
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('[PWA] Abonnement synchronisé avec le serveur');
+        localStorage.removeItem(PUSH_PENDING_KEY);
+        return { success: true };
+      } else {
+        console.warn('[PWA] Échec synchronisation:', result.error || result.message);
+        return { success: false, error: result.error || result.message };
+      }
+    } catch (err) {
+      console.warn('[PWA] Erreur réseau synchronisation push:', err);
+      return { success: false, error: err.message };
     }
   }
 
@@ -485,7 +579,21 @@
     setupInstallBanner();
     setupNetworkDetection();
     setupLogoutCleanup();
+
+    // Tenter de synchroniser un abonnement push en attente
+    // (ex: l'utilisateur a accepté les notifs avant d'être connecté)
+    // On attend 3s pour laisser le SW s'enregistrer et la session se charger
+    setTimeout(() => {
+      syncPushSubscription().catch(() => {});
+    }, 3000);
   });
+
+  // ============================================================
+  //  API GLOBALE — accessible via window.TransAfrik
+  // ============================================================
+  window.TransAfrik = window.TransAfrik || {};
+  window.TransAfrik.syncPushSubscription = syncPushSubscription;
+  window.TransAfrik.subscribeToPush = subscribeToPush;
 
   console.log('[PWA] Module TransAfrik initialisé');
 })();
