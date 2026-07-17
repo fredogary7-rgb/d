@@ -715,3 +715,99 @@ class SupportMessage(db.Model):
 
     def __repr__(self):
         return f'<SupportMessage {self.id} ticket={self.ticket_id} sender={self.sender_type}>'
+
+
+class Withdrawal(db.Model):
+    """Retrait direct vers Mobile Money / Compte bancaire via SoleasPay."""
+
+    __tablename__ = 'withdrawals'
+
+    STATUS_CHOICES = [
+        'CREATED',
+        'WAITING_WITHDRAW',
+        'WITHDRAW_PROCESSING',
+        'COMPLETED',
+        'FAILED',
+        'REJECTED',
+        'CANCELLED',
+    ]
+
+    # ---- Identification ----
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(64), unique=True, nullable=False, index=True,
+                          default=lambda: 'WDR' + uuid.uuid4().hex[:10].upper())
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # ---- Destinataire ----
+    recipient_name = db.Column(db.String(150), nullable=True)
+    recipient_phone = db.Column(db.String(30), nullable=False)
+    recipient_country = db.Column(db.String(5), nullable=False)
+    recipient_operator = db.Column(db.String(50), nullable=False)
+    recipient_operator_id = db.Column(db.Integer, nullable=True)
+
+    # ---- Financier ----
+    amount = db.Column(db.Integer, nullable=False)               # unités mineures
+    currency = db.Column(db.String(10), nullable=False, default='XOF')
+    fees = db.Column(db.Integer, nullable=False, default=0)       # unités mineures
+    total_debited = db.Column(db.Integer, nullable=False)          # amount + fees
+    converted_amount = db.Column(db.Integer, nullable=True)        # si conversion devise
+    exchange_rate = db.Column(db.Float, nullable=True, default=1.0)
+
+    # ---- Statut ----
+    status = db.Column(db.String(30), nullable=False, default='CREATED', index=True)
+    status_message = db.Column(db.Text, nullable=True)
+
+    # ---- Références SoleasPay ----
+    withdraw_reference = db.Column(db.String(200), nullable=True)   # reference retournée par SoleasPay
+    external_reference = db.Column(db.String(200), nullable=True)
+
+    # ---- Payloads ----
+    request_payload = db.Column(db.Text, nullable=True)    # JSON envoyé à SoleasPay
+    response_payload = db.Column(db.Text, nullable=True)   # JSON reçu de SoleasPay
+    webhook_payload = db.Column(db.Text, nullable=True)    # JSON reçu du webhook
+
+    # ---- Remboursement ----
+    refunded = db.Column(db.Boolean, default=False)
+    refund_amount = db.Column(db.Integer, nullable=True)
+    refund_at = db.Column(db.DateTime, nullable=True)
+
+    # ---- Relation ----
+    user = db.relationship('User', backref=db.backref('withdrawals', lazy='dynamic'))
+
+    def amount_display(self):
+        return self.amount / 100
+
+    def fees_display(self):
+        return self.fees / 100
+
+    def total_display(self):
+        return self.total_debited / 100
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'reference': self.reference,
+            'user_id': self.user_id,
+            'recipient_name': self.recipient_name,
+            'recipient_phone': self.recipient_phone,
+            'recipient_country': self.recipient_country,
+            'recipient_operator': self.recipient_operator,
+            'amount': self.amount,
+            'currency': self.currency,
+            'fees': self.fees,
+            'total_debited': self.total_debited,
+            'converted_amount': self.converted_amount,
+            'exchange_rate': self.exchange_rate,
+            'status': self.status,
+            'status_message': self.status_message,
+            'withdraw_reference': self.withdraw_reference,
+            'external_reference': self.external_reference,
+            'refunded': self.refunded,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    def __repr__(self):
+        return f'<Withdrawal {self.reference} {self.status} {self.amount} {self.currency}>'

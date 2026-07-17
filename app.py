@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription, Withdrawal
 from services.email_service import send_otp_email
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
@@ -32,6 +32,13 @@ from services.payment_workflow import (
     is_payment_failed,
 )
 from services.fees import calculate_fee as calculate_fee_service
+from services.withdraw_service import (
+    submit_withdraw,
+    get_withdrawal_history,
+    get_available_countries,
+    get_operators_by_country,
+    status_label as withdraw_status_label,
+)
 from admin import admin_bp
 from admin.models import AdminUser, AdminLog, SystemConfig
 
@@ -537,6 +544,120 @@ def api_country(country_code):
     if country:
         return jsonify({'country': country})
     return jsonify({'error': 'Pays non trouvé'}), 404
+
+# ==================== WITHDRAW / RETRAIT ====================
+
+@app.route('/withdraw')
+@login_required
+def withdraw_page():
+    """Page de retrait — envoyer de l'argent vers un wallet Mobile Money."""
+    countries = get_available_countries()
+    return render_template('withdraw.html',
+                           user=current_user,
+                           countries=countries,
+                           country_flags=COUNTRY_FLAGS,
+                           country_names=COUNTRY_NAMES)
+
+
+@app.route('/api/withdraw/operators/<country_code>')
+@login_required
+def api_withdraw_operators(country_code):
+    """Retourne les opérateurs disponibles pour un pays donné."""
+    ops = get_operators_by_country(country_code.upper())
+    return jsonify({'success': True, 'operators': ops})
+
+
+@app.route('/api/withdraw/fees', methods=['POST'])
+@login_required
+def api_withdraw_fees():
+    """Calcule les frais pour un retrait."""
+    from services.withdraw_service import _calculate_withdrawal_fee
+    from services.soleaspay import convert_currency
+
+    data = request.get_json(silent=True) or {}
+    amount_display = float(data.get('amount', 0))
+    currency = data.get('currency', 'XOF').upper()
+    operator_id = int(data.get('operator_id', 0))
+
+    op_info = None
+    for key, op in OPERATORS.items():
+        if op['id'] == operator_id:
+            op_info = op
+            break
+
+    if not op_info:
+        return jsonify({'success': False, 'message': 'Opérateur invalide.'}), 400
+
+    op_currency = op_info.get('currency', 'XOF')
+    amount_minor = int(round(amount_display * 100))
+
+    # Conversion si nécessaire
+    exchange_rate = 1.0
+    converted_minor = amount_minor
+    if currency != op_currency:
+        try:
+            conv = convert_currency(amount_display, currency, op_currency)
+            if not conv.get('success', True):
+                return jsonify({'success': False, 'message': f'Conversion {currency} → {op_currency} impossible.'}), 400
+            converted_display = float(conv.get('result', amount_display))
+            converted_minor = int(round(converted_display * 100))
+            exchange_rate = converted_minor / amount_minor if amount_minor > 0 else 1.0
+        except Exception:
+            return jsonify({'success': False, 'message': 'Erreur de conversion.'}), 400
+
+    fee_result = _calculate_withdrawal_fee(
+        amount=converted_minor,
+        sender_country=current_user.country,
+        receiver_country=op_info['country'],
+        receiver_operator=op_info['slug'],
+    )
+    fees = fee_result['fees']
+    total_debited = converted_minor + fees
+
+    return jsonify({
+        'success': True,
+        'amount': amount_minor,
+        'converted_amount': converted_minor,
+        'fees': fees,
+        'total_debited': total_debited,
+        'receiver_gets': converted_minor,
+        'currency': currency,
+        'op_currency': op_currency,
+        'exchange_rate': exchange_rate,
+    })
+
+
+@app.route('/withdraw/create', methods=['POST'])
+@login_required
+def withdraw_create():
+    """Crée un retrait (POST)."""
+    data = request.get_json(silent=True) or {}
+
+    result = submit_withdraw(current_user, data)
+    if not result.get('success'):
+        return jsonify(result), 400
+
+    withdrawal = result['withdrawal']
+    return jsonify({
+        'success': True,
+        'message': result.get('message', 'Retrait créé.'),
+        'withdrawal': withdrawal.to_dict(),
+        'redirect': url_for('withdraw_page'),
+    })
+
+
+@app.route('/api/withdraw/history')
+@login_required
+def api_withdraw_history():
+    """Retourne l'historique des retraits de l'utilisateur."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    result = get_withdrawal_history(current_user.id, page=page, per_page=per_page)
+    # Ajouter le label de statut
+    for w in result['withdrawals']:
+        w['status_label'] = withdraw_status_label(w['status'])
+    return jsonify({'success': True, **result})
+
 
 # --- DASHBOARD ---
 @app.route('/dashboard')
