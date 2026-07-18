@@ -813,7 +813,7 @@ class Notification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     # Relation
-    user = db.relationship('User', backref=db.backref('notifications', lazy='dynamic'))
+    user = db.relationship('User', backref=db.backref('user_notifications_list', lazy='dynamic'))
 
     @property
     def icon(self):
