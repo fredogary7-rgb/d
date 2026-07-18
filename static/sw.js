@@ -3,7 +3,7 @@
    PWA Production : Cache intelligent, offline, network-first
    ============================================================ */
 
-const CACHE_VERSION = 'transafrik-v1.0.0';
+const CACHE_VERSION = 'transafrik-v1.0.1';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_PAGES = `${CACHE_VERSION}-pages`;
@@ -50,6 +50,22 @@ const NO_CACHE_PATTERNS = [
   '/profile/change-pin',
   '/profile/delete',
   '/webhook',
+  '/receive',
+  '/support',
+  '/send-money',
+  '/request/',
+  '/pay/',
+  '/history',
+  '/fees-calculator',
+  '/scan',
+  '/settings',
+  '/profile',
+  '/converter',
+  '/beneficiaries',
+  '/my-qrcode',
+  '/qr-history',
+  '/forgot-password',
+  '/reset-password',
 ];
 
 /* --- Vérifie si une URL ne doit pas être cachée --- */
