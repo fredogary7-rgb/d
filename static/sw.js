@@ -1,9 +1,10 @@
 /* ============================================================
-   TransAfrik Service Worker — v1.0.0
+   TransAfrik Service Worker — v1.0.2
    PWA Production : Cache intelligent, offline, network-first
+   Protège contre les schémas chrome-extension:, edge-extension:, etc.
    ============================================================ */
 
-const CACHE_VERSION = 'transafrik-v1.0.1';
+const CACHE_VERSION = 'transafrik-v1.0.2';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_PAGES = `${CACHE_VERSION}-pages`;
@@ -73,6 +74,16 @@ function isNoCache(url) {
   return NO_CACHE_PATTERNS.some(pattern => url.includes(pattern));
 }
 
+/* --- Vérifie si le protocole est compatible avec Cache Storage --- */
+function isCacheableProtocol(url) {
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch (_) {
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
+}
+
 /* ============================================================
    INSTALL — Pré-cache des ressources critiques
    ============================================================ */
@@ -83,11 +94,15 @@ self.addEventListener('install', (event) => {
       .then(cache => {
         console.log('[SW] Pré-cache de', PRECACHE_URLS.length, 'ressources');
         return Promise.allSettled(
-          PRECACHE_URLS.map(url =>
-            cache.add(url).catch(err =>
+          PRECACHE_URLS.map(url => {
+            if (!isCacheableProtocol(url)) {
+              console.log('[SW] Pré-cache IGNORÉ (protocole non http(s)):', url.substring(0, 60));
+              return Promise.resolve();
+            }
+            return cache.add(url).catch(err =>
               console.warn('[SW] Échec pré-cache:', url, err.message)
-            )
-          )
+            );
+          })
         );
       })
       .then(() => {
@@ -173,8 +188,9 @@ async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) {
     // Mise à jour en arrière-plan (stale-while-revalidate light)
+    const reqUrl = request.url;
     fetch(request).then(response => {
-      if (response && response.status === 200) {
+      if (response && response.status === 200 && isCacheableProtocol(reqUrl)) {
         caches.open(cacheName).then(cache => cache.put(request, response));
       }
     }).catch(() => {});
@@ -183,8 +199,10 @@ async function cacheFirst(request, cacheName) {
   try {
     const response = await fetch(request);
     if (response && response.status === 200) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, response.clone());
+      if (isCacheableProtocol(request.url)) {
+        const cache = await caches.open(cacheName);
+        cache.put(request, response.clone());
+      }
     }
     return response;
   } catch (err) {
@@ -197,8 +215,10 @@ async function networkFirst(request, cacheName) {
   try {
     const response = await fetch(request);
     if (response && response.status === 200) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, response.clone());
+      if (isCacheableProtocol(request.url)) {
+        const cache = await caches.open(cacheName);
+        cache.put(request, response.clone());
+      }
     }
     return response;
   } catch (err) {
@@ -211,8 +231,9 @@ async function networkFirst(request, cacheName) {
 /* Stale-While-Revalidate : sert le cache immédiatement, rafraîchit en arrière-plan */
 async function staleWhileRevalidate(request, cacheName) {
   const cached = await caches.match(request);
+  const reqUrl = request.url;
   const fetchPromise = fetch(request).then(response => {
-    if (response && response.status === 200) {
+    if (response && response.status === 200 && isCacheableProtocol(reqUrl)) {
       caches.open(cacheName).then(cache => cache.put(request, response.clone()));
     }
     return response;
