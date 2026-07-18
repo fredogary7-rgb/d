@@ -2949,10 +2949,13 @@ def receive_qr_page(request_code):
 @app.route('/request/<request_code>')
 def public_payment_request_page(request_code):
     """Page publique pour payer une demande (accessible sans login)."""
+    print("REQUEST TOKEN:", request_code)
     pr = get_payment_request_by_code(request_code)
     if not pr:
-        flash('Demande de paiement introuvable ou expirée.', 'error')
-        return redirect(url_for('index'))
+        return render_template('receive_pay.html',
+                               payment_request=None,
+                               receiver=None,
+                               error_message='Demande de paiement introuvable ou expirée.')
 
     # Vérifier si expirée
     if pr.status == 'EXPIRED' or (pr.expires_at and pr.expires_at < datetime.utcnow()):
@@ -2960,12 +2963,16 @@ def public_payment_request_page(request_code):
             pr.status = 'EXPIRED'
             pr.updated_at = datetime.utcnow()
             db.session.commit()
-        flash('Cette demande de paiement a expiré.', 'warning')
-        return redirect(url_for('index'))
+        return render_template('receive_pay.html',
+                               payment_request=pr,
+                               receiver=User.query.get(pr.receiver_id),
+                               error_message='Cette demande de paiement a expiré.')
 
     if pr.status == 'PAID':
-        flash('Cette demande de paiement a déjà été payée.', 'info')
-        return redirect(url_for('index'))
+        return render_template('receive_pay.html',
+                               payment_request=pr,
+                               receiver=User.query.get(pr.receiver_id),
+                               error_message='Cette demande de paiement a déjà été payée.')
 
     receiver = User.query.get(pr.receiver_id)
     return render_template('receive_pay.html',
@@ -2973,7 +2980,37 @@ def public_payment_request_page(request_code):
                            receiver=receiver)
 
 
-@app.route('/api/receive/pay', methods=['POST'])
+@app.route('/pay/@<username>')
+def pay_username(username):
+    """Page publique de paiement vers un utilisateur (accessible sans login)."""
+    print("PAY LINK:", username)
+    # Utiliser search_user_for_payment qui cherche par username, email, téléphone ou UUID
+    target = search_user_for_payment(username)
+    if not target:
+        return render_template('receive_pay.html',
+                               payment_request=None,
+                               receiver=None,
+                               error_message=f'Utilisateur "@{username}" introuvable.')
+
+    # Vérifier si l'utilisateur a une demande de paiement active
+    active_request = PaymentRequest.query.filter_by(
+        receiver_id=target['id'],
+        status='PENDING'
+    ).first()
+
+    if active_request and active_request.expires_at and active_request.expires_at >= datetime.utcnow():
+        # Il y a une demande active, afficher la page de paiement avec cette demande
+        receiver = User.query.get(active_request.receiver_id)
+        return render_template('receive_pay.html',
+                               payment_request=active_request,
+                               receiver=receiver)
+
+    # Pas de demande active, afficher une page de paiement libre
+    from models import User as UserModel
+    receiver = UserModel.query.get(target['id'])
+    return render_template('receive_pay.html',
+                           payment_request=None,
+                           receiver=receiver)
 @login_required
 def api_receive_pay():
     """Payer une demande de paiement."""

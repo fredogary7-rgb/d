@@ -387,8 +387,91 @@
             {% endif %}
             {% endif %}
 
+        {% elif receiver %}
+            <!-- Free payment mode: receiver found, no specific payment request -->
+            <div class="pay-avatar">
+                {{ receiver.fullname[0] | upper if receiver.fullname else '?' }}
+            </div>
+            <div class="pay-receiver-name">
+                {{ receiver.fullname if receiver else 'Utilisateur TransAfrik' }}
+            </div>
+            <div class="pay-receiver-username">
+                @{{ receiver.username if receiver.username else receiver.phone }}
+            </div>
+
+            <div class="pay-amount-display" style="font-size:18px; color:#94A3B8; margin-bottom:8px;">
+                Paiement libre
+            </div>
+            <div class="pay-description">
+                Envoyez le montant de votre choix à {{ receiver.fullname }}.
+            </div>
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.id != receiver.id %}
+                <form id="payForm" onsubmit="handleFreePay(event)">
+                    <div class="pay-form-group" style="text-align:center;">
+                        <div style="font-size:13px; color:#64748B; margin-bottom:8px;">
+                            Connecté en tant que <strong style="color:#F1F5F9;">{{ current_user.fullname }}</strong>
+                        </div>
+                        <div style="font-size:13px; color:#64748B;">
+                            Solde disponible : <strong style="color:#34D399;">{{ current_user.balance }} {{ current_user.currency or 'XOF' }}</strong>
+                        </div>
+                    </div>
+                    <div class="pay-form-group">
+                        <label class="pay-label">Montant ({{ current_user.currency or 'XOF' }})</label>
+                        <input type="number" class="pay-input" id="freeAmountInput"
+                               placeholder="Ex: 5000" min="500" required
+                               style="text-align:center; font-size:18px;">
+                    </div>
+                    <div class="pay-form-group">
+                        <label class="pay-label">Code PIN (4 chiffres)</label>
+                        <input type="password" class="pay-input" id="pinInput"
+                               placeholder="••••" maxlength="4" inputmode="numeric" autocomplete="off"
+                               style="text-align:center; font-size:20px; letter-spacing:8px;">
+                    </div>
+                    <button type="submit" class="pay-btn pay-btn-primary" id="payBtn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Envoyer de l'argent
+                    </button>
+                    <div id="payLoader" style="display:none; margin-top:12px;">
+                        <span class="pay-spinner"></span> Traitement en cours...
+                    </div>
+                </form>
+                {% else %}
+                <div class="pay-status pay-status-expired" style="margin-top:16px;">
+                    <i class="fa-solid fa-ban"></i>
+                    Vous ne pouvez pas vous payer vous-même.
+                </div>
+                {% endif %}
+            {% else %}
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size:14px; color:#94A3B8;">
+                        Connectez-vous pour envoyer de l'argent à {{ receiver.fullname }}.
+                    </div>
+                    <a href="{{ url_for('login') }}?next={{ request.path }}" class="pay-btn pay-btn-primary" style="text-decoration:none;">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        Se connecter
+                    </a>
+                    <a href="{{ url_for('register') }}" class="pay-btn pay-btn-login" style="text-decoration:none;">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Créer un compte
+                    </a>
+                </div>
+            {% endif %}
+
+        {% elif error_message %}
+            <!-- Error state -->
+            <div class="pay-status pay-status-expired">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ error_message }}
+            </div>
+            <a href="{{ url_for('index') }}" class="pay-btn pay-btn-login" style="text-decoration:none;">
+                <i class="fa-solid fa-house"></i>
+                Retour à l'accueil
+            </a>
+
         {% else %}
-            <!-- No payment request found -->
+            <!-- No payment request found and no receiver -->
             <div class="pay-status pay-status-expired">
                 <i class="fa-solid fa-circle-exclamation"></i>
                 Demande de paiement introuvable ou expirée.
