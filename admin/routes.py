@@ -11,7 +11,7 @@ from sqlalchemy import func
 
 from admin import admin_bp
 from admin.models import AdminLog, AdminUser, PlatformNotification, SystemConfig, UserNotification
-from models import (Beneficiary, PaymentRequest, SupportMessage, SupportTicket,
+from models import (Beneficiary, Notification, PaymentRequest, SupportMessage, SupportTicket,
                     Transaction, TransactionReceive, User, PushSubscription, db)
 
 
@@ -811,6 +811,15 @@ def notification_send():
     for u in users:
         link = UserNotification(user_id=u.id, notification_id=notification.id)
         db.session.add(link)
+        # Also create entry in user-facing notifications table
+        user_notif = Notification(
+            user_id=u.id,
+            title=title,
+            message=message_text,
+            category='system',
+            link='/notifications',
+        )
+        db.session.add(user_notif)
 
     log_action(admin, 'notification_send', 'notification', notification.id, {
         'title': title,
