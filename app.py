@@ -1205,11 +1205,16 @@ def api_transfer_status(reference):
 @login_required
 def history():
     transfers = Transfer.query.filter_by(sender_user_id=current_user.id)
-    total_count = transfers.count()
+    pay_sent = TransactionReceive.query.filter_by(sender_id=current_user.id)
+    total_count = transfers.count() + pay_sent.count()
     total_amount = db.session.query(
         db.func.coalesce(db.func.sum(Transfer.total_amount), 0)
     ).filter(Transfer.sender_user_id == current_user.id).scalar()
-    completed_count = transfers.filter(Transfer.status == 'COMPLETED').count()
+    total_paid = db.session.query(
+        db.func.coalesce(db.func.sum(TransactionReceive.amount), 0)
+    ).filter(TransactionReceive.sender_id == current_user.id).scalar()
+    total_amount = (total_amount or 0) + (total_paid or 0)
+    completed_count = transfers.filter(Transfer.status == 'COMPLETED').count() + pay_sent.filter_by(status='completed').count()
     pending_count = transfers.filter(
         Transfer.status.in_(['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING',
                              'PAYMENT_SUCCESS', 'WITHDRAW_PROCESSING'])
@@ -1231,30 +1236,47 @@ def api_history():
     filter_status = request.args.get('status', 'ALL')
     search = request.args.get('search', '').strip()
 
-    query = Transfer.query.filter_by(sender_user_id=current_user.id)
+    # 1) Transferts classiques (envoi vers numéro)
+    t_query = Transfer.query.filter(Transfer.sender_user_id == current_user.id)
 
     if filter_status and filter_status != 'ALL':
         if filter_status == 'PENDING':
-            query = query.filter(Transfer.status.in_(['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING', 'PAYMENT_SUCCESS', 'WITHDRAW_PROCESSING']))
+            t_query = t_query.filter(Transfer.status.in_(['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING', 'PAYMENT_SUCCESS', 'WITHDRAW_PROCESSING']))
         elif filter_status == 'COMPLETED':
-            query = query.filter_by(status='COMPLETED')
+            t_query = t_query.filter_by(status='COMPLETED')
         elif filter_status == 'FAILED':
-            query = query.filter_by(status='FAILED')
+            t_query = t_query.filter_by(status='FAILED')
         elif filter_status == 'CANCELLED':
-            query = query.filter_by(status='CANCELLED')
+            t_query = t_query.filter_by(status='CANCELLED')
         else:
-            query = query.filter_by(status=filter_status)
+            t_query = t_query.filter_by(status=filter_status)
 
     if search:
         search_term = f'%{search}%'
-        query = query.filter(db.or_(
+        t_query = t_query.filter(db.or_(
             Transfer.reference.ilike(search_term),
             Transfer.receiver_phone.ilike(search_term),
             Transfer.receiver_name.ilike(search_term),
             Transfer.sender_phone.ilike(search_term),
         ))
 
-    pagination = query.order_by(Transfer.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    t_list = t_query.order_by(Transfer.created_at.desc()).all()
+
+    # 2) Paiements libre (via pay link) — payeur
+    p_query = TransactionReceive.query.filter(TransactionReceive.sender_id == current_user.id)
+
+    if filter_status and filter_status != 'ALL':
+        if filter_status == 'COMPLETED':
+            p_query = p_query.filter(TransactionReceive.status == 'completed')
+        elif filter_status in ('FAILED', 'CANCELLED', 'PENDING'):
+            p_query = p_query.filter(TransactionReceive.status == filter_status.lower())
+        # autres statuts n'affectent pas les TransactionReceive
+
+    if search:
+        search_term = f'%{search}%'
+        p_query = p_query.filter(TransactionReceive.reference.ilike(search_term))
+
+    p_list = p_query.order_by(TransactionReceive.created_at.desc()).all()
 
     country_names = {
         'TG': 'Togo', 'BJ': 'B\u00e9nin', 'CM': 'Cameroun', 'CI': 'C\u00f4te d\'Ivoire',
@@ -1268,23 +1290,62 @@ def api_history():
         'ZM': '\U0001f1ff\U0001f1f2', 'SN': '\U0001f1f8\U0001f1f3',
     }
 
-    transfers_data = []
-    for t in pagination.items:
+    # 3) Fusionner les deux listes en dicts uniformes
+    from models import User
+
+    entries = []
+
+    for t in t_list:
         d = t.to_dict()
+        d['type'] = 'transfer'
         d['receiver_country_name'] = country_names.get(t.receiver_country, t.receiver_country)
         d['receiver_country_flag'] = country_flags.get(t.receiver_country, '\U0001f30d')
         d['sender_country_name'] = country_names.get(t.sender_country, t.sender_country)
         d['sender_country_flag'] = country_flags.get(t.sender_country, '\U0001f30d')
-        transfers_data.append(d)
+        d['receiver_operator'] = t.receiver_operator
+        d['fees'] = t.fees or 0
+        d['total_amount'] = t.total_amount or 0
+        entries.append(d)
+
+    for p in p_list:
+        receiver = User.query.get(p.receiver_id) if p.receiver_id else None
+        d = {
+            'type': 'payment',
+            'reference': p.reference or f'PAY-{p.id}',
+            'created_at': p.created_at.isoformat() if p.created_at else None,
+            'receiver_name': receiver.fullname if receiver else 'Utilisateur',
+            'receiver_phone': getattr(receiver, 'phone', '') or '',
+            'receiver_country': '',
+            'receiver_country_name': '',
+            'receiver_country_flag': '\U0001f30d',
+            'receiver_operator': 'TransAfrik',
+            'amount': p.amount,
+            'currency': p.currency or 'XOF',
+            'fees': 0,
+            'total_amount': p.amount,
+            'status': p.status.upper() if p.status else 'COMPLETED',
+        }
+        entries.append(d)
+
+    # 4) Trier par date décroissante
+    entries.sort(key=lambda x: x['created_at'] or '', reverse=True)
+
+    # 5) Pagination manuelle
+    total = len(entries)
+    pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
+    page = max(1, min(page, pages))
+    start = (page - 1) * per_page
+    end = start + per_page
+    chunk = entries[start:end]
 
     return jsonify({
         'success': True,
-        'transfers': transfers_data,
-        'page': pagination.page,
-        'pages': pagination.pages,
-        'total': pagination.total,
-        'has_next': pagination.has_next,
-        'has_prev': pagination.has_prev,
+        'transfers': chunk,
+        'page': page,
+        'pages': pages,
+        'total': total,
+        'has_next': page < pages,
+        'has_prev': page > 1,
     })
 
 
