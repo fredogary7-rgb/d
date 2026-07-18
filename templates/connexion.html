@@ -315,6 +315,7 @@ form.addEventListener('submit',async function(e){
         const data=await res.json();
         const toast=document.getElementById('toast');
         if(data.success){
+            sessionStorage.setItem('transafrik_just_logged_in', '1');
             toast.style.background='var(--green)';toast.textContent='✓ Connexion réussie ! Redirection...';toast.classList.add('show');
             setTimeout(()=>{window.location.href=data.redirect||'/'},1500);
         }else{

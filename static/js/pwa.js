@@ -15,6 +15,7 @@
 
   let _pushRegistration = null;
   let _pushSetupDone = false;
+  let _pushSyncing = false;  // Verrou pour éviter les synchronisations concurrentes
 
   /* ==========================================================
      SERVICE WORKER REGISTRATION
@@ -597,26 +598,29 @@
   }
 
   /* ==========================================================
-     SYNC — Réessayer un abonnement en attente
-     (appelé automatiquement après connexion)
+     SYNC — Enregistrer un abonnement en attente dans le backend
+     Verrou _pushSyncing pour éviter les appels simultanés.
      ========================================================== */
   async function syncPushSubscription() {
-    console.log(LOG_PREFIX, TAG, '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(LOG_PREFIX, TAG, '🔄 syncPushSubscription() appelé');
+    // ── Verrou : éviter deux synchronisations concurrentes ──
+    if (_pushSyncing) {
+      console.log(LOG_PREFIX, TAG, '⏩ Sync déjà en cours — ignoré');
+      return { success: false, reason: 'already_syncing' };
+    }
+
+    const pending = localStorage.getItem(PUSH_PENDING_KEY);
+    if (!pending) {
+      console.log(LOG_PREFIX, TAG, '⏩ Aucun flag PUSH_PENDING — rien à synchroniser');
+      return { success: false, reason: 'no_pending_flag' };
+    }
 
     const subRaw = localStorage.getItem(PUSH_SUB_STORAGE_KEY);
-    const pending = localStorage.getItem(PUSH_PENDING_KEY);
-
-    console.log(LOG_PREFIX, TAG, '   subRaw présent:', !!subRaw);
-    console.log(LOG_PREFIX, TAG, '   pending flag:', pending);
-    console.log(LOG_PREFIX, TAG, '   Notification.permission:', Notification.permission);
-
     if (!subRaw) {
-      console.log(LOG_PREFIX, TAG, '⏩ Aucun abonnement local — rien à synchroniser');
+      console.log(LOG_PREFIX, TAG, '⚠️  Flag pending présent mais aucune subscription — nettoyage');
+      localStorage.removeItem(PUSH_PENDING_KEY);
       return { success: false, reason: 'no_subscription' };
     }
 
-    // Vérifier la permission
     if (Notification.permission !== 'granted') {
       console.log(LOG_PREFIX, TAG, '🚫 Permission révoquée — nettoyage localStorage');
       localStorage.removeItem(PUSH_SUB_STORAGE_KEY);
@@ -624,7 +628,9 @@
       return { success: false, reason: 'permission_denied' };
     }
 
-    console.log(LOG_PREFIX, TAG, '📤 Tentative synchronisation vers le serveur...');
+    _pushSyncing = true;
+    console.log(LOG_PREFIX, TAG, '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(LOG_PREFIX, TAG, '🔁 Sync Push démarrée (pending =', pending, ')');
 
     try {
       let subJson;
@@ -634,16 +640,133 @@
         console.error(LOG_PREFIX, TAG, '❌ Subscription JSON corrompu — suppression');
         localStorage.removeItem(PUSH_SUB_STORAGE_KEY);
         localStorage.removeItem(PUSH_PENDING_KEY);
+        _pushSyncing = false;
         return { success: false, reason: 'corrupted_json' };
       }
 
+      console.log(LOG_PREFIX, TAG, '📤 Envoi subscription au serveur...');
       const result = await sendSubscriptionToServer(subJson);
-      console.log(LOG_PREFIX, TAG, '   Résultat sync:', JSON.stringify(result));
+
+      if (result.success) {
+        // Succès : nettoyage complet
+        console.log(LOG_PREFIX, TAG, '✅ Sync Push réussie !');
+        localStorage.removeItem(PUSH_PENDING_KEY);
+        // On conserve la subscription dans localStorage pour les synchros futures
+        console.log(LOG_PREFIX, TAG, '   Flag PUSH_PENDING supprimé');
+      } else if (result.pending) {
+        console.log(LOG_PREFIX, TAG, '⏳ Sync repoussée —', result.reason || 'non authentifié');
+      } else {
+        console.log(LOG_PREFIX, TAG, '❌ Sync échouée —', result.error || result.reason || 'inconnue');
+      }
+
+      _pushSyncing = false;
       return result;
     } catch (err) {
       console.error(LOG_PREFIX, TAG, '❌ Exception syncPushSubscription:', err.message);
-      return { success: false, error: err.message };
+      _pushSyncing = false;
+      return { success: false, error: 'exception: ' + err.message };
     }
+  }
+
+  /**
+   * Vérifie si on est sur une page authentifiée.
+   */
+  function _isAuthPage() {
+    return document.querySelector('.topbar-profile') !== null
+        || document.querySelector('.sidebar') !== null
+        || document.querySelector('.balance-card') !== null
+        || document.querySelector('.mobile-bottom-nav') !== null;
+  }
+
+  /**
+   * Tente une synchronisation push si un abonnement est en attente.
+   * Appelée sur chaque chargement de page authentifiée.
+   * Si l'utilisateur vient de se connecter (flag sessionStorage),
+   * la sync est déclenchée immédiatement avec un délai réduit.
+   */
+  function autoSyncOnAuthPages() {
+    if (!_isAuthPage()) {
+      console.log(LOG_PREFIX, TAG, '⏸️  Page non authentifiée — sync différée');
+      return;
+    }
+    if (!localStorage.getItem(PUSH_PENDING_KEY)) {
+      console.log(LOG_PREFIX, TAG, '⏩ Aucun abonnement en attente');
+      return;
+    }
+
+    // ── L'utilisateur vient de se connecter → sync immédiate ──
+    const justLoggedIn = sessionStorage.getItem('transafrik_just_logged_in');
+    if (justLoggedIn) {
+      sessionStorage.removeItem('transafrik_just_logged_in');
+      console.log(LOG_PREFIX, TAG, '🔑 Flag just_logged_in détecté → sync immédiate');
+      setTimeout(() => {
+        syncPushSubscription().catch(err => {
+          console.error(LOG_PREFIX, TAG, '❌ autoSyncOnAuthPages (just_logged_in) a échoué:', err.message);
+        });
+      }, 800);
+      return;
+    }
+
+    // ── Chargement normal d'une page authentifiée ──
+    console.log(LOG_PREFIX, TAG, '✅ Page authentifiée détectée → syncPushSubscription()');
+    setTimeout(() => {
+      syncPushSubscription().catch(err => {
+        console.error(LOG_PREFIX, TAG, '❌ autoSyncOnAuthPages a échoué:', err.message);
+      });
+    }, 2000);
+  }
+
+  /**
+   * Écouteur global qui tente une sync push quand l'utilisateur
+   * revient sur la page (focus/visibilitychange).
+   * Utile après une connexion ou un changement de permission.
+   */
+  function setupPushSyncListeners() {
+    // ── Focus : utilisateur revient sur l'onglet ──
+    window.addEventListener('focus', () => {
+      if (!localStorage.getItem(PUSH_PENDING_KEY)) return;
+      if (!_isAuthPage()) return;
+      console.log(LOG_PREFIX, TAG, '👁️  Fenêtre focus → vérification sync push');
+      // Délai court pour laisser la session se stabiliser
+      setTimeout(() => {
+        syncPushSubscription().catch(err => {
+          console.error(LOG_PREFIX, TAG, '❌ Sync sur focus a échoué:', err.message);
+        });
+      }, 1500);
+    });
+
+    // ── Visibility change : page redevient visible ──
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) return;
+      if (!localStorage.getItem(PUSH_PENDING_KEY)) return;
+      if (!_isAuthPage()) return;
+      console.log(LOG_PREFIX, TAG, '👁️  Page redevenue visible → vérification sync push');
+      setTimeout(() => {
+        syncPushSubscription().catch(err => {
+          console.error(LOG_PREFIX, TAG, '❌ Sync sur visibilitychange a échoué:', err.message);
+        });
+      }, 1500);
+    });
+
+    console.log(LOG_PREFIX, TAG, '👂 Écouteurs focus/visibilitychange actifs');
+  }
+
+  /**
+   * Appel explicite après une connexion réussie.
+   * Fonction exposée pour être appelée depuis le code de login (par ex. dashboard.html).
+   */
+  function onLoginSuccess() {
+    console.log(LOG_PREFIX, TAG, '🔑 Login détecté → tentative sync immédiate');
+    if (!localStorage.getItem(PUSH_PENDING_KEY)) {
+      console.log(LOG_PREFIX, TAG, '⏩ Aucun abonnement en attente après login');
+      return;
+    }
+    // Petit délai pour que les cookies de session soient bien en place
+    setTimeout(() => {
+      syncPushSubscription().catch(err => {
+        console.error(LOG_PREFIX, TAG, '❌ onLoginSuccess sync a échoué:', err.message);
+      });
+    }, 1500);
   }
 
   /* ==========================================================
@@ -718,30 +841,6 @@
   }
 
   /* ==========================================================
-     DÉTECTION DE CONNEXION — lancer syncPushSubscription
-     quand l'utilisateur arrive sur une page authentifiée
-     ========================================================== */
-  function autoSyncOnAuthPages() {
-    // Vérifier si on est sur une page authentifiée (dashboard, send-money, etc.)
-    const isAuthPage = document.querySelector('.topbar-profile') !== null
-                    || document.querySelector('.sidebar') !== null
-                    || document.querySelector('.balance-card') !== null
-                    || document.querySelector('.mobile-bottom-nav') !== null;
-
-    if (isAuthPage) {
-      console.log(LOG_PREFIX, TAG, '✅ Page authentifiée détectée → syncPushSubscription()');
-      // Attendre que la session soit bien chargée (les cookies)
-      setTimeout(() => {
-        syncPushSubscription().catch(err => {
-          console.error(LOG_PREFIX, TAG, '❌ autoSyncOnAuthPages a échoué:', err.message);
-        });
-      }, 2000);
-    } else {
-      console.log(LOG_PREFIX, TAG, '⏸️  Page non authentifiée — sync différée');
-    }
-  }
-
-  /* ==========================================================
      INIT
      ========================================================== */
   document.addEventListener('DOMContentLoaded', () => {
@@ -757,9 +856,9 @@
     setupInstallBanner();
     setupNetworkDetection();
     setupLogoutCleanup();
+    setupPushSyncListeners();
 
     // Tenter de synchroniser un abonnement push en attente
-    // quand l'utilisateur est sur une page authentifiée
     autoSyncOnAuthPages();
 
     console.log(LOG_PREFIX, '✅ Module PWA initialisé');
@@ -772,6 +871,7 @@
   window.TransAfrik.syncPushSubscription = syncPushSubscription;
   window.TransAfrik.subscribeToPush = subscribeToPushWithLogs;
   window.TransAfrik.waitForSWReady = waitForSWReady;
+  window.TransAfrik.onLoginSuccess = onLoginSuccess;
 
   console.log(LOG_PREFIX, '📦 API globale TransAfrik.* exposée');
 })();
