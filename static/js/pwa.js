@@ -1,36 +1,50 @@
 /* ============================================================
-   TransAfrik PWA — v1.0.0
+   TransAfrik PWA — v2.0.0
    Gère : Installation, iOS, Mise à jour, Push Notifications
+   Logs détaillés à chaque étape pour debug facile (F12 → Console)
    ============================================================ */
 
 (function () {
   'use strict';
 
+  const LOG_PREFIX = '[PWA]';
+  const TAG = '🔔 PUSH';
+
+  const PUSH_SUB_STORAGE_KEY = 'transafrik_push_sub';
+  const PUSH_PENDING_KEY = 'transafrik_push_pending';
+
+  let _pushRegistration = null;
+  let _pushSetupDone = false;
+
   /* ==========================================================
      SERVICE WORKER REGISTRATION
      ========================================================== */
   function registerSW() {
+    console.log(LOG_PREFIX, '1️⃣  Début enregistrement Service Worker...');
+
     if (!('serviceWorker' in navigator)) {
-      console.warn('[PWA] Service Worker non supporté.');
+      console.warn(LOG_PREFIX, '❌ Service Worker non supporté par ce navigateur.');
       return;
     }
 
-    const swPath = '/sw.js';
-
-    navigator.serviceWorker.register(swPath, { scope: '/' })
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then(registration => {
-        console.log('[PWA] SW enregistré — scope:', registration.scope);
+        console.log(LOG_PREFIX, '✅ SW enregistré — scope:', registration.scope);
+        console.log(LOG_PREFIX, '   SW state:', registration.active ? 'actif' : (registration.installing ? 'installation...' : (registration.waiting ? 'en attente' : 'inconnu')));
 
         // Vérifier s'il y a une mise à jour en attente
         if (registration.waiting) {
+          console.log(LOG_PREFIX, '🔄 SW en attente détecté');
           handleUpdate(registration);
         }
 
         // Écouter les mises à jour futures
         registration.addEventListener('updatefound', () => {
+          console.log(LOG_PREFIX, '🔄 Nouveau SW trouvé (updatefound)');
           const newWorker = registration.installing;
           if (!newWorker) return;
           newWorker.addEventListener('statechange', () => {
+            console.log(LOG_PREFIX, '   Nouveau SW state:', newWorker.state);
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               handleUpdate(registration);
             }
@@ -39,7 +53,7 @@
 
         // Écouter les changements de contrôleur (après skipWaiting)
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-          console.log('[PWA] Nouveau SW actif — rechargement');
+          console.log(LOG_PREFIX, '🔄 Nouveau contrôleur SW actif — rechargement');
           window.location.reload();
         });
 
@@ -48,19 +62,41 @@
           registration.update().catch(() => {});
         }, 30 * 60 * 1000);
 
-        // Demander les permissions de notification
+        // Lancer la configuration Push
         setupPushNotifications(registration);
       })
       .catch(err => {
-        console.error('[PWA] Échec enregistrement SW:', err);
+        console.error(LOG_PREFIX, '❌ Échec enregistrement SW:', err.message, err);
       });
+  }
+
+  /* ==========================================================
+     SW READY CHECK (attendre que registration soit prête)
+     ========================================================== */
+  function waitForSWReady() {
+    return new Promise((resolve, reject) => {
+      if (!('serviceWorker' in navigator)) {
+        console.warn(LOG_PREFIX, TAG, '❌ SW non supporté');
+        return reject(new Error('SW non supporté'));
+      }
+
+      navigator.serviceWorker.ready.then(registration => {
+        console.log(LOG_PREFIX, TAG, '✅ SW prêt (registration.ready)');
+        console.log(LOG_PREFIX, TAG, '   scope:', registration.scope);
+        console.log(LOG_PREFIX, TAG, '   pushManager présent:', !!registration.pushManager);
+        _pushRegistration = registration;
+        resolve(registration);
+      }).catch(err => {
+        console.error(LOG_PREFIX, TAG, '❌ SW.ready a échoué:', err.message);
+        reject(err);
+      });
+    });
   }
 
   /* ==========================================================
      MISE À JOUR
      ========================================================== */
   function handleUpdate(registration) {
-    // Ne pas spammer — une seule bannière par session
     if (sessionStorage.getItem('pwa_update_shown')) return;
     sessionStorage.setItem('pwa_update_shown', '1');
 
@@ -72,7 +108,6 @@
   }
 
   function showUpdateBanner(onUpdate) {
-    // Éviter les doublons
     if (document.getElementById('pwa-update-banner')) return;
 
     const banner = document.createElement('div');
@@ -104,199 +139,134 @@
     `;
 
     document.body.appendChild(banner);
-
     document.getElementById('pwa-update-btn').addEventListener('click', () => {
       banner.remove();
-      if (onUpdate) onUpdate();
+      onUpdate();
     });
-
-    document.getElementById('pwa-update-close').addEventListener('click', () => {
-      banner.remove();
-    });
+    document.getElementById('pwa-update-close').addEventListener('click', () => banner.remove());
   }
 
   /* ==========================================================
-     INSTALLATION BANNIÈRE PREMIUM
+     INSTALLATION (BANNIÈRE PWA)
      ========================================================== */
-
-  let deferredPrompt = null;
-  const INSTALL_STORAGE_KEY = 'pwa_install_rejected_at';
-
   function setupInstallBanner() {
-    // Écouter le prompt d'installation natif
+    let deferredPrompt = null;
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      maybeShowInstallBanner();
+      console.log(LOG_PREFIX, '📱 beforeinstallprompt reçu — PWA installable');
+
+      const wasDismissed = sessionStorage.getItem('pwa_install_dismissed');
+      if (wasDismissed) {
+        console.log(LOG_PREFIX, '📱 Installation déjà proposée cette session');
+        return;
+      }
+
+      showInstallBanner(() => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(result => {
+          console.log(LOG_PREFIX, '📱 Choix utilisateur:', result.outcome);
+          deferredPrompt = null;
+        });
+      });
     });
 
-    // Détecter si l'app est déjà installée
     window.addEventListener('appinstalled', () => {
-      console.log('[PWA] Application installée');
+      console.log(LOG_PREFIX, '✅ PWA installée avec succès');
       deferredPrompt = null;
-      localStorage.removeItem(INSTALL_STORAGE_KEY);
-      const banner = document.getElementById('pwa-install-banner');
-      if (banner) banner.remove();
     });
 
-    // Si déjà en standalone, ne rien afficher
-    if (isStandalone()) return;
-
-    // Pour iOS : détection spéciale
-    if (isIOS() && !isStandalone()) {
-      setTimeout(showIOSInstallGuide, 5000);
+    // Détection iOS
+    const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isStandalone = 'standalone' in navigator && navigator.standalone;
+    if (isIOS && !isStandalone) {
+      const wasShown = sessionStorage.getItem('pwa_ios_shown');
+      if (!wasShown) {
+        sessionStorage.setItem('pwa_ios_shown', '1');
+        setTimeout(() => showIOSGuide(), 3000);
+      }
     }
   }
 
-  function maybeShowInstallBanner() {
-    // Ne pas afficher si déjà montré cette semaine
-    const rejectedAt = localStorage.getItem(INSTALL_STORAGE_KEY);
-    if (rejectedAt) {
-      const rejectedDate = new Date(parseInt(rejectedAt));
-      const now = new Date();
-      const diffDays = (now - rejectedDate) / (1000 * 60 * 60 * 24);
-      if (diffDays < 7) return;
-    }
-
-    // Ne pas afficher si déjà en standalone
-    if (isStandalone()) return;
-
-    // Ne pas afficher sur iOS (géré séparément)
-    if (isIOS()) return;
-
-    // Afficher après 3 secondes
-    setTimeout(showInstallBanner, 3000);
-  }
-
-  function showInstallBanner() {
+  function showInstallBanner(onInstall) {
     if (document.getElementById('pwa-install-banner')) return;
 
     const banner = document.createElement('div');
     banner.id = 'pwa-install-banner';
     banner.innerHTML = `
       <div style="
-        position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99998;
-        background:linear-gradient(135deg,#0B1120,#111827);color:#F1F5F9;
+        position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;
+        background:#fff;color:#0F172A;
         padding:20px 28px;border-radius:20px;
         font-family:'Inter',sans-serif;
-        display:flex;align-items:center;gap:20px;
-        box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(37,99,235,.2);
-        animation:slideUp 0.5s ease;max-width:95vw;flex-wrap:wrap;justify-content:center;
-        border:1px solid rgba(37,99,235,.3);backdrop-filter:blur(20px);
+        box-shadow:0 16px 48px rgba(0,0,0,.15);
+        animation:slideUp 0.4s ease;max-width:90vw;
+        display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
       ">
-        <div style="display:flex;align-items:center;gap:12px">
-          <img src="/static/logo.png" alt="TransAfrik" style="width:44px;height:44px;border-radius:12px" onerror="this.style.display='none'">
-          <div>
-            <div style="font-weight:800;font-size:15px;font-family:'Outfit',sans-serif">Installer TransAfrik</div>
-            <div style="font-size:12px;color:#94A3B8;margin-top:2px">Accès rapide, notifications, hors-ligne</div>
-          </div>
+        <img src="/static/logo.png" style="width:40px;height:40px;border-radius:10px" alt="">
+        <div>
+          <div style="font-weight:700;font-size:14px">Installer TransAfrik</div>
+          <div style="font-size:11px;color:#64748B">Accès rapide depuis l'écran d'accueil</div>
         </div>
-        <div style="display:flex;gap:8px">
-          <button id="pwa-install-btn" style="
-            padding:10px 22px;background:linear-gradient(135deg,#2563EB,#1D4ED8);
-            color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;
-            cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;
-            box-shadow:0 4px 16px rgba(37,99,235,.3);transition:all 0.2s;
-          "><i class="fa-solid fa-download" style="margin-right:6px"></i>Installer</button>
-          <button id="pwa-install-later" style="
-            padding:10px 18px;background:rgba(255,255,255,.05);
-            color:#CBD5E1;border:1px solid rgba(255,255,255,.1);border-radius:12px;
-            font-weight:600;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all 0.2s;
-          ">Plus tard</button>
-          <button id="pwa-install-close" style="
-            background:none;border:none;color:#64748B;
-            cursor:pointer;font-size:16px;padding:4px;
-          "><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button id="pwa-install-btn" style="
+          padding:10px 20px;background:#2563EB;color:#fff;
+          border:none;border-radius:10px;font-weight:700;font-size:13px;
+          cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;
+        ">Installer</button>
+        <button id="pwa-install-close" style="
+          background:none;border:none;color:#94A3B8;
+          cursor:pointer;font-size:18px;padding:4px;
+        "><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <style>
-        @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-      </style>
     `;
 
     document.body.appendChild(banner);
-
-    document.getElementById('pwa-install-btn').addEventListener('click', async () => {
-      banner.remove();
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log('[PWA] Choix installation:', outcome);
-        deferredPrompt = null;
-      }
-    });
-
-    document.getElementById('pwa-install-later').addEventListener('click', () => {
-      banner.remove();
-      localStorage.setItem(INSTALL_STORAGE_KEY, Date.now().toString());
-    });
-
+    document.getElementById('pwa-install-btn').addEventListener('click', () => { banner.remove(); onInstall(); });
     document.getElementById('pwa-install-close').addEventListener('click', () => {
       banner.remove();
-      localStorage.setItem(INSTALL_STORAGE_KEY, Date.now().toString());
+      sessionStorage.setItem('pwa_install_dismissed', '1');
     });
   }
 
-  /* ==========================================================
-     iOS INSTALL GUIDE
-     ========================================================== */
-  function isIOS() {
-    return /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-  }
-
-  function isStandalone() {
-    return window.matchMedia('(display-mode: standalone)').matches ||
-           navigator.standalone ||
-           document.referrer.includes('android-app://');
-  }
-
-  function showIOSInstallGuide() {
+  function showIOSGuide() {
     if (document.getElementById('pwa-ios-guide')) return;
-    if (sessionStorage.getItem('pwa_ios_guide_shown')) return;
-    sessionStorage.setItem('pwa_ios_guide_shown', '1');
 
     const guide = document.createElement('div');
     guide.id = 'pwa-ios-guide';
     guide.innerHTML = `
       <div style="
-        position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99997;
-        background:linear-gradient(135deg,#0B1120,#111827);color:#F1F5F9;
+        position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;
+        background:#fff;color:#0F172A;
         padding:24px;border-radius:20px;
         font-family:'Inter',sans-serif;
-        box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(37,99,235,.2);
-        animation:slideUp 0.5s ease;max-width:380px;width:90vw;
-        border:1px solid rgba(37,99,235,.3);backdrop-filter:blur(20px);
+        box-shadow:0 16px 48px rgba(0,0,0,.15);
+        animation:slideUp 0.4s ease;max-width:90vw;width:340px;
       ">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <img src="/static/logo.png" alt="TransAfrik" style="width:36px;height:36px;border-radius:10px" onerror="this.style.display='none'">
-            <div>
-              <div style="font-weight:800;font-size:14px;font-family:'Outfit',sans-serif">Installer TransAfrik</div>
-              <div style="font-size:11px;color:#94A3B8">Sur iPhone / iPad</div>
-            </div>
-          </div>
-          <button id="pwa-ios-close" style="background:none;border:none;color:#64748B;cursor:pointer;font-size:18px"><i class="fa-solid fa-xmark"></i></button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-weight:800;font-size:15px">📱 Installer sur iPhone/iPad</div>
+          <button id="pwa-ios-close" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:18px"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">
-          <div style="display:flex;align-items:center;gap:14px">
+        <div style="display:flex;flex-direction:column;gap:14px;font-size:12px;color:#475569">
+          <div style="display:flex;align-items:center;gap:12px">
             <div style="width:32px;height:32px;border-radius:8px;background:#2563EB;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <i class="fa-solid fa-arrow-up-from-bracket" style="color:#fff;font-size:14px"></i>
+              <i class="fa-solid fa-share-from-square" style="color:#fff;font-size:14px"></i>
             </div>
             <div>
               <div style="font-size:13px;font-weight:600">1. Appuyez sur <span style="color:#2563EB">Partager</span></div>
-              <div style="font-size:11px;color:#94A3B8;margin-top:2px">dans la barre Safari en bas de l'écran</div>
+              <div style="font-size:11px;color:#94A3B8;margin-top:2px">dans la barre d'outils Safari</div>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;align-items:center;gap:12px">
             <div style="width:32px;height:32px;border-radius:8px;background:#10B981;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <i class="fa-solid fa-square-plus" style="color:#fff;font-size:14px"></i>
+              <i class="fa-solid fa-plus" style="color:#fff;font-size:14px"></i>
             </div>
             <div>
-              <div style="font-size:13px;font-weight:600">2. <span style="color:#10B981">Ajouter à l'écran d'accueil</span></div>
-              <div style="font-size:11px;color:#94A3B8;margin-top:2px">faites défiler le menu si nécessaire</div>
+              <div style="font-size:13px;font-weight:600">2. Sélectionnez <span style="color:#10B981">Sur l'écran d'accueil</span></div>
+              <div style="font-size:11px;color:#94A3B8;margin-top:2px">dans le menu qui s'affiche</div>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;align-items:center;gap:12px">
             <div style="width:32px;height:32px;border-radius:8px;background:#F59E0B;display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <i class="fa-solid fa-check" style="color:#fff;font-size:14px"></i>
             </div>
@@ -309,199 +279,317 @@
         <button id="pwa-ios-gotit" style="
           width:100%;padding:12px;background:linear-gradient(135deg,#2563EB,#1D4ED8);
           color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;
-          cursor:pointer;font-family:'Inter',sans-serif;
+          cursor:pointer;font-family:'Inter',sans-serif;margin-top:16px;
         ">Compris !</button>
       </div>
-      <style>
-        @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-      </style>
     `;
 
     document.body.appendChild(guide);
-
     function removeGuide() { guide.remove(); }
     document.getElementById('pwa-ios-close').addEventListener('click', removeGuide);
     document.getElementById('pwa-ios-gotit').addEventListener('click', removeGuide);
   }
 
   /* ==========================================================
-     PUSH NOTIFICATIONS
+     PUSH NOTIFICATIONS — LOGS DÉTAILLÉS
      ========================================================== */
-  let _pushRegistration = null;
-  const PUSH_SUB_STORAGE_KEY = 'transafrik_push_sub';
-  const PUSH_PENDING_KEY = 'transafrik_push_pending';
 
+  /**
+   * Configure le système Push (appelé après l'enregistrement du SW).
+   * Vérifie les permissions, puis tente la subscription.
+   */
   function setupPushNotifications(registration) {
-    // Stocker le ServiceWorkerRegistration pour usage ultérieur
+    if (_pushSetupDone) {
+      console.log(LOG_PREFIX, TAG, '⏩ setupPushNotifications déjà fait — ignoré');
+      return;
+    }
+
+    console.log(LOG_PREFIX, TAG, '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(LOG_PREFIX, TAG, '2️⃣  Début configuration Push...');
+    console.log(LOG_PREFIX, TAG, '   registration présente:', !!registration);
+    console.log(LOG_PREFIX, TAG, '   pushManager:', registration ? !!registration.pushManager : 'N/A');
+    console.log(LOG_PREFIX, TAG, '   Notification API supportée:', 'Notification' in window);
+    console.log(LOG_PREFIX, TAG, '   PushManager API supportée:', 'PushManager' in window);
+    console.log(LOG_PREFIX, TAG, '   Permission actuelle:', Notification.permission);
+
     _pushRegistration = registration;
 
     // Vérifier si les notifications sont supportées
     if (!('Notification' in window) || !('PushManager' in window)) {
-      console.warn('[PWA] Push API non supportée');
+      console.warn(LOG_PREFIX, TAG, '❌ Push API non supportée — abandon');
       return;
     }
 
-    // Ne pas redemander si déjà accordées
+    // Étape 1 : Si déjà accordée → subscribe immédiatement
     if (Notification.permission === 'granted') {
-      subscribeToPush(registration);
+      console.log(LOG_PREFIX, TAG, '✅ Permission déjà accordée → subscribe immédiat');
+      subscribeToPushWithLogs(registration);
+      _pushSetupDone = true;
       return;
     }
 
-    // Ne pas demander tout de suite — attendre une interaction utilisateur
-    document.addEventListener('click', function askOnce() {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            subscribeToPush(_pushRegistration || registration);
-          }
-        });
-      }
-      document.removeEventListener('click', askOnce);
-    }, { once: true });
+    // Étape 2 : Si refusée → ne rien faire
+    if (Notification.permission === 'denied') {
+      console.warn(LOG_PREFIX, TAG, '🚫 Permission refusée — abandon');
+      _pushSetupDone = true;
+      return;
+    }
+
+    // Étape 3 : Permission "default" — demander après interaction utilisateur
+    console.log(LOG_PREFIX, TAG, '⏳ Permission "default" — attente interaction utilisateur...');
+    console.log(LOG_PREFIX, TAG, '   ➡️  Cliquez n\'importe où sur la page pour déclencher la demande');
+
+    // On va demander sur le premier clic sur la page
+    const permissionHandler = function askOnce() {
+      console.log(LOG_PREFIX, TAG, '🖱️  Clic détecté — demande de permission Notification...');
+
+      Notification.requestPermission().then(permission => {
+        console.log(LOG_PREFIX, TAG, '📋 Résultat permission:', permission);
+
+        if (permission === 'granted') {
+          console.log(LOG_PREFIX, TAG, '✅ Permission accordée — subscribe');
+          subscribeToPushWithLogs(_pushRegistration || registration);
+        } else if (permission === 'denied') {
+          console.warn(LOG_PREFIX, TAG, '🚫 Permission refusée par l\'utilisateur');
+        } else {
+          console.log(LOG_PREFIX, TAG, '⏸️  Permission "default" — utilisateur a ignoré');
+        }
+      });
+
+      document.removeEventListener('click', permissionHandler);
+    };
+
+    document.addEventListener('click', permissionHandler, { once: true });
+    _pushSetupDone = true;
+    console.log(LOG_PREFIX, TAG, '⏳ En attente du premier clic utilisateur...');
   }
 
   /**
-   * Tente l'abonnement push et l'enregistrement sur le serveur.
-   * Si le serveur répond 401/403 (non authentifié), l'abonnement
-   * est sauvegardé en localStorage avec un flag "pending" pour
-   * être réessayé plus tard (quand l'utilisateur sera connecté).
-   *
-   * @param {ServiceWorkerRegistration} registration
-   * @returns {Promise<{success: boolean, skip?: boolean}>}
+   * Flux complet d'abonnement Push avec logs détaillés.
+   * Appelé UNIQUEMENT après que Notification.permission === 'granted'.
    */
-  async function subscribeToPush(registration) {
+  async function subscribeToPushWithLogs(registration) {
+    console.log(LOG_PREFIX, TAG, '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(LOG_PREFIX, TAG, '3️⃣  Début subscribeToPushWithLogs...');
+
     if (!registration) {
-      console.warn('[PWA] Aucune registration SW disponible');
-      return { success: false };
+      console.error(LOG_PREFIX, TAG, '❌ Aucune registration SW — impossible de subscribe');
+      return { success: false, error: 'no_registration' };
     }
+
+    // ============ Étape 3a : Récupérer la clé VAPID publique ============
+    console.log(LOG_PREFIX, TAG, '3a. Récupération clé VAPID publique depuis /api/push/vapid-public-key...');
+    let vapidPublicKey = null;
 
     try {
-      // Récupérer la clé publique VAPID depuis le backend
-      let vapidPublicKey = null;
-      try {
-        const keyResp = await fetch('/api/push/vapid-public-key');
+      const keyResp = await fetch('/api/push/vapid-public-key');
+      console.log(LOG_PREFIX, TAG, '   Réponse HTTP:', keyResp.status, keyResp.statusText);
+
+      if (keyResp.ok) {
         const keyData = await keyResp.json();
+        console.log(LOG_PREFIX, TAG, '   Réponse JSON:', JSON.stringify(keyData));
         vapidPublicKey = keyData.public_key || null;
+
         if (vapidPublicKey) {
-          console.log('[PWA] Clé VAPID récupérée depuis le serveur');
-        }
-      } catch (e) {
-        console.warn('[PWA] Impossible de récupérer la clé VAPID:', e);
-      }
-
-      const subscribeOptions = {
-        userVisibleOnly: true,
-      };
-      if (vapidPublicKey) {
-        subscribeOptions.applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
-      }
-
-      let subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        subscription = await registration.pushManager.subscribe(subscribeOptions);
-        console.log('[PWA] Abonnement push navigateur réussi');
-      } else {
-        console.log('[PWA] Abonnement push navigateur déjà actif');
-      }
-
-      const subJson = subscription.toJSON();
-      localStorage.setItem(PUSH_SUB_STORAGE_KEY, JSON.stringify(subJson));
-
-      // Envoyer l'abonnement au backend pour le stocker
-      try {
-        const response = await fetch('/api/push/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            subscription: subJson,
-          }),
-        });
-
-        // Si non authentifié, sauvegarder pour plus tard
-        if (response.status === 401 || response.status === 403) {
-          console.warn('[PWA] Utilisateur non connecté — abonnement sauvegardé en attente');
-          localStorage.setItem(PUSH_PENDING_KEY, '1');
-          return { success: false, pending: true };
-        }
-
-        const result = await response.json();
-        if (result.success) {
-          console.log('[PWA] Abonnement enregistré sur le serveur');
-          localStorage.removeItem(PUSH_PENDING_KEY);
-          return { success: true };
+          console.log(LOG_PREFIX, TAG, '✅ Clé VAPID reçue — longueur:', vapidPublicKey.length, 'caractères');
         } else {
-          console.warn('[PWA] Échec enregistrement serveur:', result.error || result.message);
-          localStorage.setItem(PUSH_PENDING_KEY, '1');
-          return { success: false, error: result.error || result.message };
+          console.warn(LOG_PREFIX, TAG, '⚠️  Clé VAPID vide dans la réponse');
         }
-      } catch (fetchErr) {
-        console.warn('[PWA] Erreur réseau lors de l\'enregistrement push:', fetchErr);
-        localStorage.setItem(PUSH_PENDING_KEY, '1');
-        return { success: false, error: fetchErr.message };
+      } else {
+        console.error(LOG_PREFIX, TAG, `❌ Erreur HTTP ${keyResp.status} lors de la récupération VAPID`);
+        const body = await keyResp.text().catch(() => '');
+        console.error(LOG_PREFIX, TAG, '   Corps réponse:', body.substring(0, 200));
+      }
+    } catch (e) {
+      console.error(LOG_PREFIX, TAG, '❌ Exception lors de la récupération VAPID:', e.message);
+    }
+
+    // ============ Étape 3b : Convertir la clé VAPID en Uint8Array ============
+    console.log(LOG_PREFIX, TAG, '3b. Préparation de applicationServerKey...');
+    const subscribeOptions = { userVisibleOnly: true };
+
+    if (vapidPublicKey) {
+      try {
+        subscribeOptions.applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+        console.log(LOG_PREFIX, TAG, '✅ applicationServerKey convertie — longueur:', subscribeOptions.applicationServerKey.length, 'octets');
+      } catch (e) {
+        console.error(LOG_PREFIX, TAG, '❌ Erreur conversion clé VAPID:', e.message);
+      }
+    } else {
+      console.warn(LOG_PREFIX, TAG, '⚠️  Aucune clé VAPID — subscription sans applicationServerKey (peut échouer)');
+    }
+
+    // ============ Étape 3c : Subscription pushManager ============
+    console.log(LOG_PREFIX, TAG, '3c. Subscription pushManager...');
+    let subscription = null;
+
+    try {
+      // Vérifier d'abord si une subscription existe déjà
+      subscription = await registration.pushManager.getSubscription();
+      console.log(LOG_PREFIX, TAG, '   getSubscription():', subscription ? 'trouvée' : 'aucune');
+
+      if (!subscription) {
+        console.log(LOG_PREFIX, TAG, '   Appel pushManager.subscribe()...');
+        subscription = await registration.pushManager.subscribe(subscribeOptions);
+        console.log(LOG_PREFIX, TAG, '✅ Subscription créée avec succès');
+      } else {
+        console.log(LOG_PREFIX, TAG, '✅ Subscription déjà existante — réutilisée');
       }
     } catch (err) {
-      console.warn('[PWA] Échec abonnement push:', err);
-      return { success: false, error: err.message };
+      console.error(LOG_PREFIX, TAG, '❌ Échec pushManager.subscribe():', err.message);
+      console.error(LOG_PREFIX, TAG, '   Stack:', err.stack);
+      return { success: false, error: 'subscribe_failed: ' + err.message };
     }
+
+    // ============ Étape 3d : Valider la subscription ============
+    console.log(LOG_PREFIX, TAG, '3d. Validation subscription...');
+    const subJson = subscription.toJSON();
+    console.log(LOG_PREFIX, TAG, '   endpoint:', subJson.endpoint.substring(0, 80) + '...');
+    console.log(LOG_PREFIX, TAG, '   keys.p256dh présent:', !!subJson.keys?.p256dh);
+    console.log(LOG_PREFIX, TAG, '   keys.auth présent:', !!subJson.keys?.auth);
+
+    if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
+      console.error(LOG_PREFIX, TAG, '❌ Subscription incomplète — abandon');
+      console.error(LOG_PREFIX, TAG, '   Données:', JSON.stringify(subJson));
+      return { success: false, error: 'incomplete_subscription' };
+    }
+
+    console.log(LOG_PREFIX, TAG, '✅ Subscription valide — sauvegarde locale...');
+    localStorage.setItem(PUSH_SUB_STORAGE_KEY, JSON.stringify(subJson));
+    console.log(LOG_PREFIX, TAG, '   Sauvegardée dans localStorage:', PUSH_SUB_STORAGE_KEY);
+
+    // ============ Étape 3e : Envoyer au backend ============
+    console.log(LOG_PREFIX, TAG, '3e. Envoi subscription au backend POST /api/push/subscribe...');
+    return await sendSubscriptionToServer(subJson);
   }
 
   /**
-   * Réessaie d'envoyer l'abonnement push au serveur.
-   * À appeler depuis les pages authentifiées (dashboard, etc.)
-   * ou automatiquement à chaque chargement de page.
-   *
-   * Appel global: TransAfrik.syncPushSubscription()
+   * Envoie la subscription au backend /api/push/subscribe.
+   * Gère 200, 302 (redirect=login), 401, 403, 400, 500, erreur réseau.
    */
+  async function sendSubscriptionToServer(subJson) {
+    try {
+      console.log(LOG_PREFIX, TAG, '   ➡️  POST /api/push/subscribe');
+      console.log(LOG_PREFIX, TAG, '      Body: { subscription: { endpoint: "...", keys: {...} } }');
+
+      const response = await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin', // Envoyer les cookies de session
+        body: JSON.stringify({ subscription: subJson }),
+      });
+
+      console.log(LOG_PREFIX, TAG, '   ⬅️  Réponse HTTP:', response.status, response.statusText);
+      console.log(LOG_PREFIX, TAG, '      Content-Type:', response.headers.get('content-type'));
+
+      // ── Gérer le cas 302 (redirect → page login) ──
+      // fetch suit les redirects automatiquement, donc si on a un 200
+      // avec une réponse HTML, c'est probablement la page login
+      const contentType = response.headers.get('content-type') || '';
+
+      if (response.status === 200 && contentType.includes('text/html')) {
+        console.warn(LOG_PREFIX, TAG, '⚠️  Réponse HTML reçue → probablement redirigé vers login');
+        console.log(LOG_PREFIX, TAG, '   Utilisateur non authentifié — mise en attente');
+        localStorage.setItem(PUSH_PENDING_KEY, '1');
+        return { success: false, pending: true, reason: 'redirected_to_login' };
+      }
+
+      // ── Gérer 401 / 403 ──
+      if (response.status === 401 || response.status === 403) {
+        console.warn(LOG_PREFIX, TAG, `⚠️  HTTP ${response.status} — utilisateur non authentifié`);
+        localStorage.setItem(PUSH_PENDING_KEY, '1');
+        return { success: false, pending: true, reason: 'http_' + response.status };
+      }
+
+      // ── Gérer erreurs ──
+      if (!response.ok) {
+        console.error(LOG_PREFIX, TAG, `❌ HTTP ${response.status} — échec enregistrement`);
+        const errorBody = await response.text().catch(() => '');
+        console.error(LOG_PREFIX, TAG, '   Corps erreur:', errorBody.substring(0, 300));
+        localStorage.setItem(PUSH_PENDING_KEY, '1');
+        return { success: false, error: `http_${response.status}: ${errorBody.substring(0, 100)}` };
+      }
+
+      // ── Succès ──
+      const result = await response.json();
+      console.log(LOG_PREFIX, TAG, '   Réponse JSON:', JSON.stringify(result));
+
+      if (result.success) {
+        console.log(LOG_PREFIX, TAG, '✅ Abonnement enregistré sur le serveur !');
+        console.log(LOG_PREFIX, TAG, '   subscription_id:', result.subscription_id || result.subscription_id || 'N/A');
+        console.log(LOG_PREFIX, TAG, '   created:', result.created || false);
+        console.log(LOG_PREFIX, TAG, '   updated:', result.updated || false);
+        localStorage.removeItem(PUSH_PENDING_KEY);
+        console.log(LOG_PREFIX, TAG, '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log(LOG_PREFIX, TAG, '🎉 SYSTÈME PUSH OPÉRATIONNEL !');
+        return { success: true };
+      } else {
+        console.warn(LOG_PREFIX, TAG, '❌ Serveur a répondu success=false');
+        console.warn(LOG_PREFIX, TAG, '   Erreur:', result.error || result.message || 'inconnue');
+        localStorage.setItem(PUSH_PENDING_KEY, '1');
+        return { success: false, error: result.error || result.message };
+      }
+    } catch (fetchErr) {
+      console.error(LOG_PREFIX, TAG, '❌ Erreur réseau/fetch:', fetchErr.message);
+      console.error(LOG_PREFIX, TAG, '   Stack:', fetchErr.stack);
+      localStorage.setItem(PUSH_PENDING_KEY, '1');
+      return { success: false, error: 'network: ' + fetchErr.message };
+    }
+  }
+
+  /* ==========================================================
+     SYNC — Réessayer un abonnement en attente
+     (appelé automatiquement après connexion)
+     ========================================================== */
   async function syncPushSubscription() {
-    // Vérifier s'il y a un abonnement en attente
-    const pending = localStorage.getItem(PUSH_PENDING_KEY);
+    console.log(LOG_PREFIX, TAG, '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(LOG_PREFIX, TAG, '🔄 syncPushSubscription() appelé');
+
     const subRaw = localStorage.getItem(PUSH_SUB_STORAGE_KEY);
+    const pending = localStorage.getItem(PUSH_PENDING_KEY);
+
+    console.log(LOG_PREFIX, TAG, '   subRaw présent:', !!subRaw);
+    console.log(LOG_PREFIX, TAG, '   pending flag:', pending);
+    console.log(LOG_PREFIX, TAG, '   Notification.permission:', Notification.permission);
 
     if (!subRaw) {
-      console.log('[PWA] Aucun abonnement push local à synchroniser');
+      console.log(LOG_PREFIX, TAG, '⏩ Aucun abonnement local — rien à synchroniser');
       return { success: false, reason: 'no_subscription' };
     }
 
-    // Si la permission a été révoquée, nettoyer
+    // Vérifier la permission
     if (Notification.permission !== 'granted') {
-      console.log('[PWA] Permission notification révoquée — nettoyage');
+      console.log(LOG_PREFIX, TAG, '🚫 Permission révoquée — nettoyage localStorage');
       localStorage.removeItem(PUSH_SUB_STORAGE_KEY);
       localStorage.removeItem(PUSH_PENDING_KEY);
       return { success: false, reason: 'permission_denied' };
     }
 
-    console.log('[PWA] Tentative de synchronisation push' + (pending ? ' (en attente)' : ''));
+    console.log(LOG_PREFIX, TAG, '📤 Tentative synchronisation vers le serveur...');
 
     try {
-      const response = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subscription: JSON.parse(subRaw),
-        }),
-      });
-
-      if (response.status === 401 || response.status === 403) {
-        console.log('[PWA] Utilisateur toujours non connecté — en attente');
-        localStorage.setItem(PUSH_PENDING_KEY, '1');
-        return { success: false, pending: true };
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        console.log('[PWA] Abonnement synchronisé avec le serveur');
+      let subJson;
+      try {
+        subJson = JSON.parse(subRaw);
+      } catch (e) {
+        console.error(LOG_PREFIX, TAG, '❌ Subscription JSON corrompu — suppression');
+        localStorage.removeItem(PUSH_SUB_STORAGE_KEY);
         localStorage.removeItem(PUSH_PENDING_KEY);
-        return { success: true };
-      } else {
-        console.warn('[PWA] Échec synchronisation:', result.error || result.message);
-        return { success: false, error: result.error || result.message };
+        return { success: false, reason: 'corrupted_json' };
       }
+
+      const result = await sendSubscriptionToServer(subJson);
+      console.log(LOG_PREFIX, TAG, '   Résultat sync:', JSON.stringify(result));
+      return result;
     } catch (err) {
-      console.warn('[PWA] Erreur réseau synchronisation push:', err);
+      console.error(LOG_PREFIX, TAG, '❌ Exception syncPushSubscription:', err.message);
       return { success: false, error: err.message };
     }
   }
 
+  /* ==========================================================
+     urlBase64ToUint8Array — conversion clé VAPID
+     ========================================================== */
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -518,7 +606,7 @@
      ========================================================== */
   function setupNetworkDetection() {
     window.addEventListener('online', () => {
-      console.log('[PWA] Connexion rétablie');
+      console.log(LOG_PREFIX, '🌐 Connexion rétablie');
       const toast = document.createElement('div');
       toast.style.cssText = `
         position:fixed;top:88px;right:24px;z-index:99999;
@@ -533,7 +621,7 @@
     });
 
     window.addEventListener('offline', () => {
-      console.log('[PWA] Hors connexion');
+      console.log(LOG_PREFIX, '📴 Hors connexion');
       const toast = document.createElement('div');
       toast.style.cssText = `
         position:fixed;top:88px;right:24px;z-index:99999;
@@ -547,7 +635,6 @@
       setTimeout(() => toast.remove(), 3000);
     });
 
-    // Injecter le style d'animation
     const style = document.createElement('style');
     style.textContent = '@keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}';
     document.head.appendChild(style);
@@ -560,32 +647,63 @@
     document.addEventListener('click', (e) => {
       const link = e.target.closest('a[href*="logout"]');
       if (link) {
-        // Envoyer un message au SW pour vider les caches
+        console.log(LOG_PREFIX, '🚪 Déconnexion détectée — nettoyage');
         if (navigator.serviceWorker && navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage('CLEAR_ALL_CACHES');
         }
-        // Vider le localStorage des données sensibles
         localStorage.removeItem('transafrik_balance');
         sessionStorage.clear();
+        // Ne PAS supprimer push_sub — il sera resynchronisé après reconnexion
       }
     });
+  }
+
+  /* ==========================================================
+     DÉTECTION DE CONNEXION — lancer syncPushSubscription
+     quand l'utilisateur arrive sur une page authentifiée
+     ========================================================== */
+  function autoSyncOnAuthPages() {
+    // Vérifier si on est sur une page authentifiée (dashboard, send-money, etc.)
+    const isAuthPage = document.querySelector('.topbar-profile') !== null
+                    || document.querySelector('.sidebar') !== null
+                    || document.querySelector('.balance-card') !== null
+                    || document.querySelector('.mobile-bottom-nav') !== null;
+
+    if (isAuthPage) {
+      console.log(LOG_PREFIX, TAG, '✅ Page authentifiée détectée → syncPushSubscription()');
+      // Attendre que la session soit bien chargée (les cookies)
+      setTimeout(() => {
+        syncPushSubscription().catch(err => {
+          console.error(LOG_PREFIX, TAG, '❌ autoSyncOnAuthPages a échoué:', err.message);
+        });
+      }, 2000);
+    } else {
+      console.log(LOG_PREFIX, TAG, '⏸️  Page non authentifiée — sync différée');
+    }
   }
 
   /* ==========================================================
      INIT
      ========================================================== */
   document.addEventListener('DOMContentLoaded', () => {
+    console.log(LOG_PREFIX, '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(LOG_PREFIX, '🚀 INIT PWA v2.0.0 — DOMContentLoaded');
+    console.log(LOG_PREFIX, '   URL:', window.location.href);
+    console.log(LOG_PREFIX, '   serviceWorker support:', 'serviceWorker' in navigator);
+    console.log(LOG_PREFIX, '   Notification support:', 'Notification' in window);
+    console.log(LOG_PREFIX, '   PushManager support:', 'PushManager' in window);
+    console.log(LOG_PREFIX, '   standalone (PWA installée):', 'standalone' in navigator ? navigator.standalone : 'N/A');
+
     registerSW();
     setupInstallBanner();
     setupNetworkDetection();
     setupLogoutCleanup();
 
     // Tenter de synchroniser un abonnement push en attente
-    // (ex: l'utilisateur a accepté les notifs avant d'être connecté)
-    // On attend 3s pour laisser le SW s'enregistrer et la session se charger
-    setTimeout(() => {
-      syncPushSubscription().catch(() => {});
-    }, 3000);
+    // quand l'utilisateur est sur une page authentifiée
+    autoSyncOnAuthPages();
+
+    console.log(LOG_PREFIX, '✅ Module PWA initialisé');
   });
 
   // ============================================================
@@ -593,7 +711,8 @@
   // ============================================================
   window.TransAfrik = window.TransAfrik || {};
   window.TransAfrik.syncPushSubscription = syncPushSubscription;
-  window.TransAfrik.subscribeToPush = subscribeToPush;
+  window.TransAfrik.subscribeToPush = subscribeToPushWithLogs;
+  window.TransAfrik.waitForSWReady = waitForSWReady;
 
-  console.log('[PWA] Module TransAfrik initialisé');
+  console.log(LOG_PREFIX, '📦 API globale TransAfrik.* exposée');
 })();

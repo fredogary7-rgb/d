@@ -11,8 +11,8 @@ from sqlalchemy import func
 
 from admin import admin_bp
 from admin.models import AdminLog, AdminUser, PlatformNotification, SystemConfig, UserNotification
-from models import (Beneficiary, SupportMessage, SupportTicket, Transaction,
-                    User, PushSubscription, db)
+from models import (Beneficiary, PaymentRequest, SupportMessage, SupportTicket,
+                    Transaction, TransactionReceive, User, PushSubscription, db)
 
 
 # ── Decorator ──────────────────────────────────────────────────────────────
@@ -1161,3 +1161,161 @@ def api_push_delete(subscription_id):
     from services.push_service import remove_subscription_by_id
     result = remove_subscription_by_id(subscription_id)
     return jsonify(result)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# PAIEMENT REQUESTS (RECEIVE MONEY) — Admin
+# ══════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/payment-requests')
+@admin_required
+def payment_requests():
+    """Page listant toutes les demandes de paiement (Recevoir)."""
+    admin = get_admin()
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
+    status_filter = request.args.get('status', '')
+    search = request.args.get('search', '').strip()
+
+    query = PaymentRequest.query
+
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    if search:
+        query = query.join(User, PaymentRequest.receiver_id == User.id).filter(
+            db.or_(
+                User.fullname.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%'),
+                PaymentRequest.request_code.ilike(f'%{search}%'),
+                PaymentRequest.description.ilike(f'%{search}%'),
+            )
+        )
+
+    requests_paginated = query.order_by(PaymentRequest.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    # Aggregates for stats
+    pending_count = PaymentRequest.query.filter_by(status='PENDING').count()
+    paid_count = PaymentRequest.query.filter_by(status='PAID').count()
+    cancelled_count = PaymentRequest.query.filter_by(status='CANCELLED').count()
+    expired_count = PaymentRequest.query.filter_by(status='EXPIRED').count()
+
+    # Total amount of paid requests
+    total_paid = db.session.query(func.coalesce(func.sum(PaymentRequest.amount), 0)).filter(
+        PaymentRequest.status == 'PAID'
+    ).scalar()
+
+    return render_template(
+        'admin_payment_requests.html',
+        page='payment_requests',
+        requests=requests_paginated,
+        pending_count=pending_count,
+        paid_count=paid_count,
+        cancelled_count=cancelled_count,
+        expired_count=expired_count,
+        total_paid=int(total_paid),
+        status_filter=status_filter,
+        search=search,
+    )
+
+
+@admin_bp.route('/payment-requests/<int:pr_id>')
+@admin_required
+def payment_request_detail(pr_id):
+    """Détail d'une demande de paiement."""
+    admin = get_admin()
+    payment_request = PaymentRequest.query.get_or_404(pr_id)
+    receiver = User.query.get(payment_request.receiver_id)
+
+    # Related transaction receive record
+    tx_receive = TransactionReceive.query.filter_by(
+        user_id=payment_request.receiver_id,
+        description=f'Paiement reçu (request {payment_request.request_code})'
+    ).first()
+
+    return render_template(
+        'admin_payment_requests.html',
+        page='payment_requests_detail',
+        payment_request=payment_request,
+        receiver=receiver,
+        tx_receive=tx_receive,
+    )
+
+
+@admin_bp.route('/payment-requests/<int:pr_id>/cancel', methods=['POST'])
+@admin_required
+def admin_cancel_payment_request(pr_id):
+    """Forcer l'annulation d'une demande de paiement."""
+    admin = get_admin()
+    pr = PaymentRequest.query.get_or_404(pr_id)
+    if pr.status not in ('PENDING',):
+        flash('Seules les demandes en attente peuvent être annulées.', 'error')
+        return redirect(url_for('admin.payment_requests'))
+
+    pr.status = 'CANCELLED'
+    log_action(admin, 'payment_request_cancel', 'payment_request', pr.id, {
+        'request_code': pr.request_code,
+        'receiver_id': pr.receiver_id,
+        'amount': pr.amount,
+    })
+    db.session.commit()
+    flash(f'Demande {pr.request_code} annulée.', 'success')
+    return redirect(url_for('admin.payment_requests'))
+
+
+@admin_bp.route('/api/payment-requests')
+@admin_required
+def api_payment_requests():
+    """JSON: liste paginée des demandes de paiement."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    status = request.args.get('status', '')
+    search = request.args.get('search', '').strip()
+
+    query = PaymentRequest.query
+
+    if status:
+        query = query.filter_by(status=status)
+    if search:
+        query = query.join(User, PaymentRequest.receiver_id == User.id).filter(
+            db.or_(
+                User.fullname.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%'),
+                PaymentRequest.request_code.ilike(f'%{search}%'),
+            )
+        )
+
+    pagination = query.order_by(PaymentRequest.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    items = []
+    for pr in pagination.items:
+        receiver = User.query.get(pr.receiver_id)
+        payer = User.query.get(pr.payer_id) if pr.payer_id else None
+        items.append({
+            'id': pr.id,
+            'request_code': pr.request_code,
+            'receiver_id': pr.receiver_id,
+            'receiver_name': receiver.fullname if receiver else 'Inconnu',
+            'receiver_email': receiver.email if receiver else '',
+            'payer_name': payer.fullname if payer else None,
+            'amount': pr.amount,
+            'currency': pr.currency or 'XOF',
+            'description': pr.description or '',
+            'status': pr.status,
+            'created_at': pr.created_at.isoformat() if pr.created_at else None,
+            'expires_at': pr.expires_at.isoformat() if pr.expires_at else None,
+            'paid_at': pr.paid_at.isoformat() if pr.paid_at else None,
+        })
+
+    return jsonify({
+        'success': True,
+        'items': items,
+        'page': pagination.page,
+        'pages': pagination.pages,
+        'total': pagination.total,
+        'has_next': pagination.has_next,
+        'has_prev': pagination.has_prev,
+    })

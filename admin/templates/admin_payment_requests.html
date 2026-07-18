@@ -1,0 +1,169 @@
+{% extends "admin_layout.html" %}
+{% block title %}Demandes de paiement — Admin{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <div class="page-header-breadcrumb"><a href="/admin">Admin</a> · Demandes de paiement</div>
+        <h1><i class="fa-solid fa-hand-holding-dollar" style="color:var(--purple)"></i> Demandes de paiement</h1>
+        <p>Gérez les demandes "Recevoir de l'argent" créées par les utilisateurs.</p>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-card-top"><div class="stat-card-icon sci-blue"><i class="fa-solid fa-spinner"></i></div></div>
+        <div class="stat-card-value">{{ pending_count }}</div>
+        <div class="stat-card-label">En attente</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-top"><div class="stat-card-icon sci-green"><i class="fa-solid fa-circle-check"></i></div></div>
+        <div class="stat-card-value">{{ paid_count }}</div>
+        <div class="stat-card-label">Payées</div>
+        <div class="stat-card-change scc-up"><i class="fa-solid fa-coins"></i> {{ "{:,.0f}".format(total_paid) }} XOF</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-top"><div class="stat-card-icon sci-red"><i class="fa-solid fa-circle-xmark"></i></div></div>
+        <div class="stat-card-value">{{ cancelled_count }}</div>
+        <div class="stat-card-label">Annulées</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-top"><div class="stat-card-icon sci-yellow"><i class="fa-solid fa-clock"></i></div></div>
+        <div class="stat-card-value">{{ expired_count }}</div>
+        <div class="stat-card-label">Expirées</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card">
+    <div class="card-header">
+        <h3>Toutes les demandes</h3>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher..." value="{{ search }}">
+            </div>
+            <select class="form-select" id="statusFilter" onchange="applyFilters()">
+                <option value="">Tous les statuts</option>
+                <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>🟡 En attente</option>
+                <option value="PAID" {% if status_filter == 'PAID' %}selected{% endif %}>🟢 Payée</option>
+                <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>🔴 Annulée</option>
+                <option value="EXPIRED" {% if status_filter == 'EXPIRED' %}selected{% endif %}>🟠 Expirée</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        {% if requests and requests.items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Demandeur</th>
+                    <th>Pays</th>
+                    <th>Montant</th>
+                    <th>Description</th>
+                    <th>Statut</th>
+                    <th>Créée le</th>
+                    <th>Expire le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set status_labels = {'PENDING':'En attente','PAID':'Payée','CANCELLED':'Annulée','EXPIRED':'Expirée'} %}
+                {% set status_classes = {'PENDING':'bs-pending','PAID':'bs-success','CANCELLED':'bs-failed','EXPIRED':'bs-pending'} %}
+                {% for pr in requests.items %}
+                <tr>
+                    <td data-label="Code"><code class="mono" style="color:var(--blue)">{{ pr.request_code }}</code></td>
+                    <td data-label="Demandeur">
+                        {% set receiver = pr.receiver %}
+                        <div class="tx-user">
+                            <div class="tx-user-avatar">{{ (receiver.fullname if receiver else '?')[0]|upper }}</div>
+                            <div>
+                                <div style="font-weight:600">{{ receiver.fullname if receiver else 'Utilisateur supprimé' }}</div>
+                                <div style="font-size:10px;color:var(--text-4)">{{ receiver.email if receiver else '' }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Pays">{{ pr.receiver_country or '—' }}</td>
+                    <td data-label="Montant"><strong>{{ "{:,.0f}".format(pr.amount) }} {{ pr.currency or 'XOF' }}</strong></td>
+                    <td data-label="Description" style="max-width:180px;white-space:normal;font-size:12px;color:var(--text-3)">{{ pr.description or '—' }}</td>
+                    <td data-label="Statut"><span class="badge-status {{ status_classes.get(pr.status, 'bs-pending') }}">{{ status_labels.get(pr.status, pr.status) }}</span></td>
+                    <td data-label="Créée">{{ pr.created_at.strftime('%d/%m/%Y %H:%M') if pr.created_at else '—' }}</td>
+                    <td data-label="Expire">{{ pr.expires_at.strftime('%d/%m/%Y %H:%M') if pr.expires_at else '—' }}</td>
+                    <td data-label="Actions">
+                        <div style="display:flex;gap:6px">
+                            {% if pr.status == 'PENDING' %}
+                            <form method="POST" action="/admin/payment-requests/{{ pr.id }}/cancel" onsubmit="return confirmAction('Annuler la demande {{ pr.request_code }} ?')" style="display:inline">
+                                <button class="btn btn-danger btn-sm" title="Annuler la demande"><i class="fa-solid fa-xmark"></i></button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            <p>Aucune demande de paiement trouvée.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if requests and requests.pages > 1 %}
+    <div class="pagination">
+        {% if requests.has_prev %}
+        <a href="?page={{ requests.prev_num }}&status={{ status_filter }}&search={{ search }}"><i class="fa-solid fa-chevron-left"></i></a>
+        {% else %}
+        <span class="disabled"><i class="fa-solid fa-chevron-left"></i></span>
+        {% endif %}
+
+        {% for p in range(1, requests.pages + 1) %}
+            {% if p == requests.page %}
+            <span class="current">{{ p }}</span>
+            {% elif p <= 3 or p > requests.pages - 3 or (p >= requests.page - 1 and p <= requests.page + 1) %}
+            <a href="?page={{ p }}&status={{ status_filter }}&search={{ search }}">{{ p }}</a>
+            {% elif p == 4 or p == requests.pages - 3 %}
+            <span class="disabled">…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if requests.has_next %}
+        <a href="?page={{ requests.next_num }}&status={{ status_filter }}&search={{ search }}"><i class="fa-solid fa-chevron-right"></i></a>
+        {% else %}
+        <span class="disabled"><i class="fa-solid fa-chevron-right"></i></span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function applyFilters() {
+    const status = document.getElementById('statusFilter').value;
+    const search = document.getElementById('searchInput').value.trim();
+    let url = '/admin/payment-requests?';
+    if (status) url += 'status=' + encodeURIComponent(status) + '&';
+    if (search) url += 'search=' + encodeURIComponent(search) + '&';
+    url = url.replace(/[?&]$/, '');
+    window.location.href = url;
+}
+
+// Search on Enter
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') applyFilters();
+});
+
+// Search debounce
+let searchTimeout;
+document.getElementById('searchInput').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 500);
+});
+</script>
+{% endblock %}

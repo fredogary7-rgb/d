@@ -263,6 +263,59 @@ def send_push_notification(
     return _send_to_subscription(sub, title, body, url, icon, badge, tag, data, actions, require_interaction, ttl)
 
 
+def send_push_to_user(
+    user_id: int,
+    title: str,
+    body: str,
+    url: str = "/",
+    icon: str = "/static/img/icons/icon-192x192.png",
+    badge: str = "/static/img/icons/icon-72x72.png",
+    tag: str = "transafrik",
+    data: Optional[dict] = None,
+    actions: Optional[list] = None,
+    require_interaction: bool = False,
+) -> dict:
+    """Envoie une notification Push à TOUS les abonnements d'un utilisateur.
+
+    Returns:
+        {"success": True, "sent": 3, "failed": 0, "cleaned": 0, "details": [...]}
+    """
+    subs = PushSubscription.query.filter_by(user_id=user_id).order_by(
+        PushSubscription.last_seen.desc()
+    ).all()
+
+    if not subs:
+        push_logger.info(f"NOTIFICATION | Aucun abonnement pour user_id={user_id}")
+        return {"success": True, "sent": 0, "failed": 0, "cleaned": 0, "details": []}
+
+    results = {"success": True, "sent": 0, "failed": 0, "cleaned": 0, "details": []}
+
+    for sub in subs:
+        r = _send_to_subscription(sub, title, body, url, icon, badge, tag, data, actions, require_interaction)
+        if r.get("success"):
+            results["sent"] += 1
+        else:
+            results["failed"] += 1
+            if r.get("status_code") in (404, 410):
+                remove_subscription_by_id(sub.id)
+                results["cleaned"] += 1
+                push_logger.info(
+                    f"ERREUR {r.get('status_code')} | Suppression abonnement invalide "
+                    f"id={sub.id} user={sub.user_id}"
+                )
+            results["details"].append({
+                "subscription_id": sub.id,
+                "device_name": sub.device_name,
+                "error": r.get("error", "Unknown"),
+            })
+
+    push_logger.info(
+        f"NOTIFICATION | user={user_id} | "
+        f"envoyé={results['sent']} échoué={results['failed']} nettoyé={results['cleaned']}"
+    )
+    return results
+
+
 def send_push_to_all(
     title: str,
     body: str,
@@ -304,39 +357,6 @@ def send_push_to_all(
 
     push_logger.info(
         f"NOTIFICATION | Diffusion terminée | "
-        f"envoyé={results['sent']} échoué={results['failed']} nettoyé={results['cleaned']}"
-    )
-    return results
-
-
-def send_push_to_user(
-    user_id: int,
-    title: str,
-    body: str,
-    url: str = "/",
-    icon: str = "/static/img/icons/icon-192x192.png",
-    badge: str = "/static/img/icons/icon-72x72.png",
-    tag: str = "transafrik",
-    data: Optional[dict] = None,
-    actions: Optional[list] = None,
-    require_interaction: bool = False,
-) -> dict:
-    """Envoie une notification Push à tous les appareils d'un utilisateur."""
-    subs = PushSubscription.query.filter_by(user_id=user_id).order_by(PushSubscription.id).all()
-    results = {"success": True, "sent": 0, "failed": 0, "cleaned": 0}
-
-    for sub in subs:
-        r = _send_to_subscription(sub, title, body, url, icon, badge, tag, data, actions, require_interaction)
-        if r.get("success"):
-            results["sent"] += 1
-        else:
-            results["failed"] += 1
-            if r.get("status_code") in (404, 410):
-                remove_subscription_by_id(sub.id)
-                results["cleaned"] += 1
-
-    push_logger.info(
-        f"NOTIFICATION | Envoi user_id={user_id} | "
         f"envoyé={results['sent']} échoué={results['failed']} nettoyé={results['cleaned']}"
     )
     return results

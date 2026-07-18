@@ -1,0 +1,512 @@
+{% extends "index.html" %}
+{% block title %}Payer — TransAfrik{% endblock %}
+
+{% block content %}
+<style>
+    /* ════════════════════════════════════════════════════
+       RECEIVE PAY PUBLIC PAGE — STYLES
+       ════════════════════════════════════════════════════ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: #F1F5F9;
+    }
+
+    .pay-container {
+        width: 100%;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* ── Logo ── */
+    .pay-logo {
+        text-align: center;
+        margin-bottom: 8px;
+    }
+    .pay-logo img {
+        height: 40px;
+    }
+    .pay-logo-text {
+        font-size: 20px;
+        font-weight: 800;
+        color: #38BDF8;
+        letter-spacing: -.5px;
+    }
+    .pay-logo-text span {
+        color: #FACC15;
+    }
+
+    /* ── Card ── */
+    .pay-card {
+        background: rgba(255,255,255,.04);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 24px;
+        padding: 32px 28px;
+        text-align: center;
+        box-shadow: 0 25px 60px rgba(0,0,0,.4);
+    }
+
+    .pay-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #38BDF8, #818CF8);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 12px;
+        box-shadow: 0 8px 24px rgba(56,189,248,.3);
+    }
+
+    .pay-receiver-name {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .pay-receiver-username {
+        font-size: 13px;
+        color: #94A3B8;
+        margin-bottom: 24px;
+    }
+
+    .pay-amount-display {
+        font-size: 40px;
+        font-weight: 800;
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: -.03em;
+        margin-bottom: 4px;
+        background: linear-gradient(135deg, #F1F5F9, #38BDF8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .pay-description {
+        font-size: 14px;
+        color: #64748B;
+        margin-bottom: 24px;
+    }
+
+    .pay-expiry {
+        font-size: 12px;
+        color: #F87171;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    /* ── Status Messages ── */
+    .pay-status {
+        padding: 14px 20px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .pay-status-expired {
+        background: rgba(248,113,113,.12);
+        color: #FCA5A5;
+        border: 1px solid rgba(248,113,113,.2);
+    }
+    .pay-status-paid {
+        background: rgba(52,211,153,.12);
+        color: #6EE7B7;
+        border: 1px solid rgba(52,211,153,.2);
+    }
+
+    /* ── Form ── */
+    .pay-form-group {
+        margin-bottom: 16px;
+        text-align: left;
+    }
+    .pay-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        color: #64748B;
+        margin-bottom: 6px;
+    }
+    .pay-input {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 14px;
+        color: #F1F5F9;
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        outline: none;
+        transition: all .2s;
+    }
+    .pay-input:focus {
+        border-color: #38BDF8;
+        box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+    }
+    .pay-input::placeholder {
+        color: #475569;
+    }
+
+    .pay-btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 14px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all .3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    .pay-btn-primary {
+        background: linear-gradient(135deg, #38BDF8, #818CF8);
+        color: #0F172A;
+        box-shadow: 0 8px 24px rgba(56,189,248,.3);
+    }
+    .pay-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(56,189,248,.4);
+    }
+    .pay-btn-primary:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .pay-btn-login {
+        background: rgba(255,255,255,.08);
+        color: #F1F5F9;
+        border: 1px solid rgba(255,255,255,.12);
+    }
+    .pay-btn-login:hover {
+        background: rgba(255,255,255,.12);
+    }
+
+    /* ── Spinner ── */
+    .pay-spinner {
+        width: 22px;
+        height: 22px;
+        border: 2px solid rgba(15,23,42,.2);
+        border-top-color: #0F172A;
+        border-radius: 50%;
+        animation: pay-spin .6s linear infinite;
+        display: inline-block;
+    }
+    @keyframes pay-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ── Security Badge ── */
+    .pay-security {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #64748B;
+        margin-top: 24px;
+    }
+    .pay-security i {
+        color: #34D399;
+    }
+
+    /* ── Powered By ── */
+    .pay-powered {
+        text-align: center;
+        font-size: 11px;
+        color: #475569;
+        margin-top: 4px;
+    }
+    .pay-powered a {
+        color: #38BDF8;
+        text-decoration: none;
+    }
+
+    /* ── Toast ── */
+    .pay-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 14px 20px;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 13px;
+        box-shadow: 0 12px 40px rgba(0,0,0,.5);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: pay-slideIn .3s ease;
+        max-width: 380px;
+    }
+    @keyframes pay-slideIn {
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    .pay-toast-success {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+    .pay-toast-error {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 500px) {
+        .pay-card {
+            padding: 24px 20px;
+        }
+        .pay-amount-display {
+            font-size: 32px;
+        }
+    }
+</style>
+
+<div class="pay-container">
+    <!-- Logo -->
+    <div class="pay-logo">
+        <div class="pay-logo-text">TransAfrik<span>Pay</span></div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="pay-card">
+        {% if payment_request %}
+            <!-- Receiver Avatar -->
+            <div class="pay-avatar">
+                {{ receiver.fullname[0] | upper if receiver and receiver.fullname else '?' }}
+            </div>
+            <div class="pay-receiver-name">
+                {{ receiver.fullname if receiver else 'Utilisateur TransAfrik' }}
+            </div>
+            <div class="pay-receiver-username">
+                @{{ receiver.username if receiver else payment_request.receiver_id }}
+            </div>
+
+            <!-- Expired State -->
+            {% if payment_request.status == 'EXPIRED' %}
+            <div class="pay-status pay-status-expired">
+                <i class="fa-solid fa-clock"></i>
+                Cette demande de paiement a expiré.
+            </div>
+            {% endif %}
+
+            <!-- Paid State -->
+            {% if payment_request.status == 'PAID' %}
+            <div class="pay-status pay-status-paid">
+                <i class="fa-solid fa-circle-check"></i>
+                Cette demande a déjà été payée.
+            </div>
+            {% endif %}
+
+            <!-- Active Payment Request -->
+            {% if payment_request.status == 'PENDING' %}
+            <div class="pay-amount-display">
+                {{ payment_request.amount }} {{ payment_request.currency }}
+            </div>
+            {% if payment_request.description %}
+            <div class="pay-description">
+                {{ payment_request.description }}
+            </div>
+            {% endif %}
+            <div class="pay-expiry" id="expiryCountdown">
+                <i class="fa-solid fa-hourglass-half"></i>
+                <span>Expire le {{ payment_request.expires_at.strftime('%d/%m/%Y à %H:%M') if payment_request.expires_at else '--' }}</span>
+            </div>
+
+            {% if current_user.is_authenticated %}
+                <!-- Logged-in user: Direct Payment Form -->
+                {% if current_user.id != payment_request.receiver_id %}
+                <form id="payForm" onsubmit="handlePay(event)">
+                    <div class="pay-form-group" style="text-align:center;">
+                        <div style="font-size:13px; color:#64748B; margin-bottom:8px;">
+                            Connecté en tant que <strong style="color:#F1F5F9;">{{ current_user.fullname }}</strong>
+                        </div>
+                        <div style="font-size:13px; color:#64748B;">
+                            Solde disponible : <strong style="color:#34D399;">{{ current_user.balance }} {{ payment_request.currency }}</strong>
+                        </div>
+                    </div>
+                    <div class="pay-form-group">
+                        <label class="pay-label">Code PIN (4 chiffres)</label>
+                        <input type="password" class="pay-input" id="pinInput"
+                               placeholder="••••" maxlength="4" inputmode="numeric" autocomplete="off"
+                               style="text-align:center; font-size:20px; letter-spacing:8px;">
+                    </div>
+                    <button type="submit" class="pay-btn pay-btn-primary" id="payBtn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Payer {{ payment_request.amount }} {{ payment_request.currency }}
+                    </button>
+                    <div id="payLoader" style="display:none; margin-top:12px;">
+                        <span class="pay-spinner"></span> Traitement en cours...
+                    </div>
+                </form>
+                {% else %}
+                <div class="pay-status pay-status-expired" style="margin-top:16px;">
+                    <i class="fa-solid fa-ban"></i>
+                    Vous ne pouvez pas vous payer vous-même.
+                </div>
+                {% endif %}
+            {% else %}
+                <!-- Not logged in: Prompt to login or register -->
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size:14px; color:#94A3B8;">
+                        Connectez-vous pour payer cette demande.
+                    </div>
+                    <a href="{{ url_for('login') }}?next={{ request.path }}" class="pay-btn pay-btn-primary" style="text-decoration:none;">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        Se connecter
+                    </a>
+                    <a href="{{ url_for('register') }}" class="pay-btn pay-btn-login" style="text-decoration:none;">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Créer un compte
+                    </a>
+                </div>
+            {% endif %}
+            {% endif %}
+
+        {% else %}
+            <!-- No payment request found -->
+            <div class="pay-status pay-status-expired">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Demande de paiement introuvable ou expirée.
+            </div>
+            <a href="{{ url_for('index') }}" class="pay-btn pay-btn-login" style="text-decoration:none;">
+                <i class="fa-solid fa-house"></i>
+                Retour à l'accueil
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Security info -->
+    <div class="pay-security">
+        <i class="fa-solid fa-shield-halved"></i>
+        Transaction sécurisée par TransAfrik
+    </div>
+
+    <!-- Powered by -->
+    <div class="pay-powered">
+        Propulsé par <a href="https://transafrik.org">TransAfrik</a>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="payToastContainer"></div>
+
+<script>
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('payToastContainer');
+        const toast = document.createElement('div');
+        toast.className = `pay-toast pay-toast-${type}`;
+        const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+        toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity .3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    async function handlePay(event) {
+        event.preventDefault();
+
+        const pin = document.getElementById('pinInput').value.trim();
+        if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+            showToast('Veuillez entrer votre code PIN à 4 chiffres.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('payBtn');
+        const loader = document.getElementById('payLoader');
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        loader.style.display = 'block';
+
+        try {
+            const res = await fetch('/api/receive/pay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    request_code: '{{ payment_request.request_code }}',
+                    amount: {{ payment_request.amount }},
+                    currency: '{{ payment_request.currency }}',
+                    pin: pin,
+                }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('Paiement effectué avec succès ! Redirection...', 'success');
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("dashboard") }}';
+                }, 2000);
+            } else {
+                showToast(data.message || 'Erreur lors du paiement.', 'error');
+            }
+        } catch (err) {
+            showToast('Erreur réseau. Veuillez réessayer.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            loader.style.display = 'none';
+        }
+    }
+
+    // Countdown timer
+    {% if payment_request and payment_request.status == 'PENDING' and payment_request.expires_at %}
+    (function() {
+        function updateCountdown() {
+            const expiresAt = new Date('{{ payment_request.expires_at.isoformat() }}');
+            const now = new Date();
+            const diff = expiresAt - now;
+
+            const el = document.getElementById('expiryCountdown');
+            if (!el) return;
+
+            if (diff <= 0) {
+                el.innerHTML = '<i class="fa-solid fa-clock"></i> <span>Expirée</span>';
+                el.style.color = '#F87171';
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            el.innerHTML = `<i class="fa-solid fa-hourglass-half"></i>
+                <span>Expire dans ${hours}h ${minutes}m ${seconds}s</span>`;
+
+            if (diff < 3600000) {
+                el.style.color = '#F87171';
+            }
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    })();
+    {% endif %}
+</script>
+{% endblock %}

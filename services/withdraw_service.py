@@ -19,7 +19,7 @@ from models import db, User, Withdrawal, Transaction
 from services.soleaspay import withdraw as soleaspay_withdraw, convert_currency
 from services.fees import calculate_fee
 from services.email_service import _send_email as send_email
-from services.push_service import send_push_notification
+from services.push_service import send_push_to_user
 from config.operators import OPERATORS
 
 logger = logging.getLogger(__name__)
@@ -382,7 +382,7 @@ def _notify_withdrawal(user: User, withdrawal: Withdrawal, success: bool = True)
 
     # Push
     try:
-        send_push_notification(
+        send_push_to_user(
             user_id=user.id,
             title=subject,
             body=body_html.replace('<div style="font-family:Inter,Arial,sans-serif;max-width:500px;margin:0 auto;">', '')

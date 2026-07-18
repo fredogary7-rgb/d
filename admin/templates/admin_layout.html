@@ -324,6 +324,13 @@
             <i class="fa-solid fa-building-columns"></i> Retraits
         </a>
 
+        <a href="/admin/payment-requests" class="sidebar-link {% if page == 'payment_requests' or page == 'payment_requests_detail' %}active{% endif %}">
+            <i class="fa-solid fa-hand-holding-dollar"></i> Demandes de paiement
+            {% if stats and stats.pending_payment_requests|default(0) > 0 %}
+            <span class="side-badge warn">{{ stats.pending_payment_requests }}</span>
+            {% endif %}
+        </a>
+
         <a href="/admin/support" class="sidebar-link {% if page == 'support' or page == 'support_detail' %}active{% endif %}">
             <i class="fa-solid fa-headset"></i> Support
             {% if stats and stats.open_tickets|default(0) > 0 %}
