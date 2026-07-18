@@ -1,7 +1,12 @@
-{% extends "index.html" %}
-{% block title %}Payer — TransAfrik{% endblock %}
-
-{% block content %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payer — TransAfrik</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     /* ════════════════════════════════════════════════════
        RECEIVE PAY PUBLIC PAGE — STYLES
@@ -285,6 +290,8 @@
         }
     }
 </style>
+</head>
+<body>
 
 <div class="pay-container">
     <!-- Logo -->
@@ -403,7 +410,7 @@
                 Paiement libre
             </div>
             <div class="pay-description">
-                Envoyez le montant de votre choix à {{ receiver.fullname }}.
+                Envoyez le montant de votre choix a {{ receiver.fullname }}.
             </div>
 
             {% if current_user.is_authenticated %}
@@ -411,7 +418,7 @@
                 <form id="payForm" onsubmit="handleFreePay(event)">
                     <div class="pay-form-group" style="text-align:center;">
                         <div style="font-size:13px; color:#64748B; margin-bottom:8px;">
-                            Connecté en tant que <strong style="color:#F1F5F9;">{{ current_user.fullname }}</strong>
+                            Connecte en tant que <strong style="color:#F1F5F9;">{{ current_user.fullname }}</strong>
                         </div>
                         <div style="font-size:13px; color:#64748B;">
                             Solde disponible : <strong style="color:#34D399;">{{ current_user.balance }} {{ current_user.currency or 'XOF' }}</strong>
@@ -440,13 +447,13 @@
                 {% else %}
                 <div class="pay-status pay-status-expired" style="margin-top:16px;">
                     <i class="fa-solid fa-ban"></i>
-                    Vous ne pouvez pas vous payer vous-même.
+                    Vous ne pouvez pas vous payer vous-meme.
                 </div>
                 {% endif %}
             {% else %}
                 <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
                     <div style="font-size:14px; color:#94A3B8;">
-                        Connectez-vous pour envoyer de l'argent à {{ receiver.fullname }}.
+                        Connectez-vous pour envoyer de l'argent a {{ receiver.fullname }}.
                     </div>
                     <a href="{{ url_for('login') }}?next={{ request.path }}" class="pay-btn pay-btn-primary" style="text-decoration:none;">
                         <i class="fa-solid fa-right-to-bracket"></i>
@@ -454,7 +461,7 @@
                     </a>
                     <a href="{{ url_for('register') }}" class="pay-btn pay-btn-login" style="text-decoration:none;">
                         <i class="fa-solid fa-user-plus"></i>
-                        Créer un compte
+                        Creer un compte
                     </a>
                 </div>
             {% endif %}
@@ -467,18 +474,18 @@
             </div>
             <a href="{{ url_for('index') }}" class="pay-btn pay-btn-login" style="text-decoration:none;">
                 <i class="fa-solid fa-house"></i>
-                Retour à l'accueil
+                Retour a l'accueil
             </a>
 
         {% else %}
             <!-- No payment request found and no receiver -->
             <div class="pay-status pay-status-expired">
                 <i class="fa-solid fa-circle-exclamation"></i>
-                Demande de paiement introuvable ou expirée.
+                Demande de paiement introuvable ou expiree.
             </div>
             <a href="{{ url_for('index') }}" class="pay-btn pay-btn-login" style="text-decoration:none;">
                 <i class="fa-solid fa-house"></i>
-                Retour à l'accueil
+                Retour a l'accueil
             </a>
         {% endif %}
     </div>
@@ -486,12 +493,12 @@
     <!-- Security info -->
     <div class="pay-security">
         <i class="fa-solid fa-shield-halved"></i>
-        Transaction sécurisée par TransAfrik
+        Transaction securisee par TransAfrik
     </div>
 
     <!-- Powered by -->
     <div class="pay-powered">
-        Propulsé par <a href="https://transafrik.org">TransAfrik</a>
+        Propulse par <a href="https://transafrik.org">TransAfrik</a>
     </div>
 </div>
 
@@ -499,91 +506,150 @@
 <div id="payToastContainer"></div>
 
 <script>
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('payToastContainer');
-        const toast = document.createElement('div');
-        toast.className = `pay-toast pay-toast-${type}`;
-        const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
-        toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+    function showToast(message, type) {
+        type = type || 'success';
+        var container = document.getElementById('payToastContainer');
+        var toast = document.createElement('div');
+        toast.className = 'pay-toast pay-toast-' + type;
+        var icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+        toast.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + message;
         container.appendChild(toast);
-        setTimeout(() => {
+        setTimeout(function() {
             toast.style.opacity = '0';
             toast.style.transition = 'opacity .3s';
-            setTimeout(() => toast.remove(), 300);
+            setTimeout(function() { toast.remove(); }, 300);
         }, 4000);
     }
 
-    async function handlePay(event) {
+    function handlePay(event) {
         event.preventDefault();
 
-        const pin = document.getElementById('pinInput').value.trim();
+        var pin = document.getElementById('pinInput').value.trim();
         if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
-            showToast('Veuillez entrer votre code PIN à 4 chiffres.', 'error');
+            showToast('Veuillez entrer votre code PIN a 4 chiffres.', 'error');
             return;
         }
 
-        const btn = document.getElementById('payBtn');
-        const loader = document.getElementById('payLoader');
+        var btn = document.getElementById('payBtn');
+        var loader = document.getElementById('payLoader');
         btn.disabled = true;
         btn.style.opacity = '0.6';
         loader.style.display = 'block';
 
-        try {
-            const res = await fetch('/api/receive/pay', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    request_code: '{{ payment_request.request_code }}',
-                    amount: {{ payment_request.amount }},
-                    currency: '{{ payment_request.currency }}',
-                    pin: pin,
-                }),
-            });
-            const data = await res.json();
-
+        fetch('/api/receive/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                request_code: '{{ payment_request.request_code }}',
+                amount: {{ payment_request.amount }},
+                currency: '{{ payment_request.currency }}',
+                pin: pin
+            })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
             if (data.success) {
-                showToast('Paiement effectué avec succès ! Redirection...', 'success');
-                setTimeout(() => {
+                showToast('Paiement effectue avec succes ! Redirection...', 'success');
+                setTimeout(function() {
                     window.location.href = '{{ url_for("dashboard") }}';
                 }, 2000);
             } else {
                 showToast(data.message || 'Erreur lors du paiement.', 'error');
             }
-        } catch (err) {
-            showToast('Erreur réseau. Veuillez réessayer.', 'error');
-        } finally {
+        })
+        .catch(function(err) {
+            showToast('Erreur reseau. Veuillez reessayer.', 'error');
+        })
+        .finally(function() {
             btn.disabled = false;
             btn.style.opacity = '1';
             loader.style.display = 'none';
-        }
+        });
+
+        return false;
     }
 
-    // Countdown timer
+    function handleFreePay(event) {
+        event.preventDefault();
+
+        var pin = document.getElementById('pinInput').value.trim();
+        var amount = document.getElementById('freeAmountInput').value.trim();
+
+        if (!amount || parseInt(amount) < 500) {
+            showToast('Veuillez entrer un montant valide (minimum 500).', 'error');
+            return;
+        }
+
+        if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+            showToast('Veuillez entrer votre code PIN a 4 chiffres.', 'error');
+            return;
+        }
+
+        var btn = document.getElementById('payBtn');
+        var loader = document.getElementById('payLoader');
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        loader.style.display = 'block';
+
+        fetch('/api/receive/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                request_code: '',
+                amount: parseInt(amount),
+                currency: 'XOF',
+                receiver_id: {{ receiver.id if receiver else 0 }},
+                pin: pin
+            })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                showToast('Paiement effectue avec succes ! Redirection...', 'success');
+                setTimeout(function() {
+                    window.location.href = '{{ url_for("dashboard") }}';
+                }, 2000);
+            } else {
+                showToast(data.message || 'Erreur lors du paiement.', 'error');
+            }
+        })
+        .catch(function(err) {
+            showToast('Erreur reseau. Veuillez reessayer.', 'error');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            loader.style.display = 'none';
+        });
+
+        return false;
+    }
+
+    // Countdown timer (only for active payment requests)
     {% if payment_request and payment_request.status == 'PENDING' and payment_request.expires_at %}
     (function() {
-        function updateCountdown() {
-            const expiresAt = new Date('{{ payment_request.expires_at.isoformat() }}');
-            const now = new Date();
-            const diff = expiresAt - now;
+        var countdownEl = document.getElementById('expiryCountdown');
+        if (!countdownEl) return;
 
-            const el = document.getElementById('expiryCountdown');
-            if (!el) return;
+        function updateCountdown() {
+            var expiresAt = new Date('{{ payment_request.expires_at.isoformat() }}');
+            var now = new Date();
+            var diff = expiresAt - now;
 
             if (diff <= 0) {
-                el.innerHTML = '<i class="fa-solid fa-clock"></i> <span>Expirée</span>';
-                el.style.color = '#F87171';
+                countdownEl.innerHTML = '<i class="fa-solid fa-clock"></i> <span>Expiree</span>';
+                countdownEl.style.color = '#F87171';
                 return;
             }
 
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            var hours = Math.floor(diff / (1000 * 60 * 60));
+            var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-            el.innerHTML = `<i class="fa-solid fa-hourglass-half"></i>
-                <span>Expire dans ${hours}h ${minutes}m ${seconds}s</span>`;
+            countdownEl.innerHTML = '<i class="fa-solid fa-hourglass-half"></i><span>Expire dans ' + hours + 'h ' + minutes + 'm ' + seconds + 's</span>';
 
             if (diff < 3600000) {
-                el.style.color = '#F87171';
+                countdownEl.style.color = '#F87171';
             }
         }
 
@@ -592,4 +658,5 @@
     })();
     {% endif %}
 </script>
-{% endblock %}
+</body>
+</html>
