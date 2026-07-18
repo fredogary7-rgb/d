@@ -487,11 +487,68 @@ def generate_vapid_keys() -> dict:
     }
 
 
+def _extract_raw_ec_point(spki_b64: str) -> str:
+    """Extrait le point EC brut non compressé (65 octets = 04||X||Y)
+    depuis une clé publique SPKI DER encodée en base64url.
+    
+    Le navigateur a besoin du point brut pour pushManager.subscribe(),
+    alors que pywebpush et le stockage utilisent le format SPKI.
+    """
+    from cryptography.hazmat.primitives.serialization import (
+        Encoding,
+        PublicFormat,
+        NoEncryption,
+        load_der_public_key,
+    )
+    from base64 import urlsafe_b64decode, urlsafe_b64encode
+
+    # Ajouter le padding base64 manquant
+    padding = -len(spki_b64) % 4
+    spki_b64_padded = spki_b64 + ("=" * padding)
+
+    try:
+        der_bytes = urlsafe_b64decode(spki_b64_padded)
+    except Exception as e:
+        push_logger.error(f"VAPID | Impossible de décoder la clé SPKI: {e}")
+        return ""
+
+    try:
+        public_key = load_der_public_key(der_bytes)
+    except Exception as e:
+        push_logger.error(f"VAPID | Impossible de charger la clé publique DER: {e}")
+        return ""
+
+    # Exporter le point brut non compressé (X962 UncompressedPoint)
+    raw_bytes = public_key.public_bytes(
+        encoding=Encoding.X962,
+        format=PublicFormat.UncompressedPoint,
+    )
+
+    raw_b64 = urlsafe_b64encode(raw_bytes).rstrip(b"=").decode("ascii")
+    push_logger.info(
+        f"VAPID | Point brut extrait: {raw_b64[:20]}... "
+        f"({len(raw_bytes)} octets)"
+    )
+    return raw_b64
+
+
 def get_public_key_for_frontend() -> str:
-    """Retourne la clé publique VAPID encodée (sans padding) pour le frontend JS."""
+    """Retourne la clé publique VAPID pour le frontend JS.
+    
+    Format : point EC brut non compressé (65 octets) encodé en base64url sans padding.
+    C'est le format attendu par pushManager.subscribe({applicationServerKey: ...}).
+    """
     pk = _get_vapid_public_key()
     if not pk:
         push_logger.warning("VAPID_PUBLIC_KEY non configurée")
         return ""
-    # pywebpush attend une clé en base64 urlsafe sans padding
-    return pk
+
+    # La clé stockée est au format SPKI DER base64url
+    # Le navigateur a besoin du point brut non compressé
+    raw_point = _extract_raw_ec_point(pk)
+    if not raw_point:
+        push_logger.error("VAPID | Échec de l'extraction du point brut")
+        # Fallback : retourner la clé SPKI (ne fonctionnera pas avec le navigateur)
+        return pk
+
+    return raw_point
