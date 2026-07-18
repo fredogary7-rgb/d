@@ -8,7 +8,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription, Withdrawal
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription, Withdrawal, PaymentRequest, TransactionReceive
+from services.receive_service import (
+    create_payment_request, cancel_payment_request, get_payment_request_by_code,
+    get_user_payment_requests, get_recent_received_payments,
+    generate_pay_qrcode, search_user_for_payment,
+    expire_old_requests, process_receive_payment,
+)
 from services.email_service import send_otp_email
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
@@ -2840,6 +2846,199 @@ def push_send_test():
     )
     return jsonify(result)
 
+
+# ══════════════════════════════════════════════════════════════════════════
+# RECEIVE MONEY — DEMANDE DE PAIEMENT
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/receive')
+@login_required
+def receive_page():
+    """Page de demande de paiement — créer un QR code / lien de paiement."""
+    recent_payments = get_recent_received_payments(current_user.id, limit=5)
+    return render_template('receive_money.html',
+                           user=current_user,
+                           recent_payments=recent_payments,
+                           country_flags=COUNTRY_FLAGS,
+                           country_names=COUNTRY_NAMES)
+
+
+@app.route('/api/receive/create', methods=['POST'])
+@login_required
+def api_create_payment_request():
+    """Crée une demande de paiement."""
+    data = request.get_json(silent=True) or {}
+    amount = int(data.get('amount', 0))
+    currency = data.get('currency', 'XOF').upper()
+    description = data.get('description', '').strip()
+    expiry_hours = int(data.get('expiry_hours', 48))
+
+    if amount <= 0:
+        return jsonify({'success': False, 'message': 'Montant invalide.'}), 400
+
+    success, payment_request, error = create_payment_request(
+        user=current_user,
+        amount=amount,
+        currency=currency,
+        description=description,
+        expiry_hours=expiry_hours,
+    )
+
+    if not success:
+        return jsonify({'success': False, 'message': error}), 400
+
+    return jsonify({
+        'success': True,
+        'message': 'Demande de paiement créée avec succès.',
+        'request': payment_request.to_dict(),
+    })
+
+
+@app.route('/api/receive/cancel', methods=['POST'])
+@login_required
+def api_cancel_payment_request():
+    """Annule une demande de paiement."""
+    data = request.get_json(silent=True) or {}
+    request_code = data.get('request_code', '').strip()
+
+    if not request_code:
+        return jsonify({'success': False, 'message': 'Code de demande requis.'}), 400
+
+    success, error = cancel_payment_request(current_user.id, request_code)
+    if not success:
+        return jsonify({'success': False, 'message': error}), 400
+
+    return jsonify({'success': True, 'message': 'Demande annulée.'})
+
+
+@app.route('/api/receive/list')
+@login_required
+def api_payment_requests_list():
+    """Liste les demandes de paiement de l'utilisateur."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    result = get_user_payment_requests(current_user.id, page=page, per_page=per_page)
+    return jsonify({'success': True, **result})
+
+
+@app.route('/api/receive/recent-payments')
+@login_required
+def api_recent_received_payments():
+    """Paiements récents reçus."""
+    limit = request.args.get('limit', 10, type=int)
+    payments = get_recent_received_payments(current_user.id, limit=limit)
+    return jsonify({'success': True, 'payments': payments})
+
+
+@app.route('/receive/qr/<request_code>')
+@login_required
+def receive_qr_page(request_code):
+    """Affiche le QR code d'une demande de paiement."""
+    pr = get_payment_request_by_code(request_code)
+    if not pr or pr.receiver_id != current_user.id:
+        flash('Demande introuvable.', 'error')
+        return redirect(url_for('receive_page'))
+    return render_template('receive_money.html',
+                           user=current_user,
+                           payment_request=pr,
+                           show_qr=True,
+                           country_flags=COUNTRY_FLAGS,
+                           country_names=COUNTRY_NAMES)
+
+
+@app.route('/request/<request_code>')
+def public_payment_request_page(request_code):
+    """Page publique pour payer une demande (accessible sans login)."""
+    pr = get_payment_request_by_code(request_code)
+    if not pr:
+        flash('Demande de paiement introuvable ou expirée.', 'error')
+        return redirect(url_for('index'))
+
+    # Vérifier si expirée
+    if pr.status == 'EXPIRED' or (pr.expires_at and pr.expires_at < datetime.utcnow()):
+        if pr.status == 'PENDING':
+            pr.status = 'EXPIRED'
+            pr.updated_at = datetime.utcnow()
+            db.session.commit()
+        flash('Cette demande de paiement a expiré.', 'warning')
+        return redirect(url_for('index'))
+
+    if pr.status == 'PAID':
+        flash('Cette demande de paiement a déjà été payée.', 'info')
+        return redirect(url_for('index'))
+
+    receiver = User.query.get(pr.receiver_id)
+    return render_template('receive_pay.html',
+                           payment_request=pr,
+                           receiver=receiver)
+
+
+@app.route('/api/receive/pay', methods=['POST'])
+@login_required
+def api_receive_pay():
+    """Payer une demande de paiement."""
+    data = request.get_json(silent=True) or {}
+    request_code = data.get('request_code', '').strip()
+    amount = int(data.get('amount', 0))
+    currency = data.get('currency', 'XOF').upper()
+
+    if not request_code:
+        return jsonify({'success': False, 'message': 'Code de demande requis.'}), 400
+
+    if amount <= 0:
+        return jsonify({'success': False, 'message': 'Montant invalide.'}), 400
+
+    pr = get_payment_request_by_code(request_code)
+    if not pr:
+        return jsonify({'success': False, 'message': 'Demande introuvable.'}), 404
+
+    if pr.receiver_id == current_user.id:
+        return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous payer vous-même.'}), 400
+
+    # Vérifier le solde
+    if current_user.balance < amount:
+        return jsonify({
+            'success': False,
+            'message': f'Solde insuffisant. Votre solde est de {current_user.balance} {currency}.',
+        }), 400
+
+    success, tx, error = process_receive_payment(
+        request_code=request_code,
+        sender_id=current_user.id,
+        amount=amount,
+        currency=currency,
+    )
+
+    if not success:
+        return jsonify({'success': False, 'message': error}), 400
+
+    return jsonify({
+        'success': True,
+        'message': 'Paiement effectué avec succès !',
+        'transaction': tx.to_dict(),
+    })
+
+
+@app.route('/api/receive/search')
+@login_required
+def api_receive_search_user():
+    """Recherche un utilisateur pour un paiement."""
+    q = request.args.get('q', '').strip()
+    if not q or len(q) < 2:
+        return jsonify({'success': False, 'message': 'Recherche trop courte.'}), 400
+
+    result = search_user_for_payment(q)
+    if not result:
+        return jsonify({'success': False, 'message': 'Aucun utilisateur trouvé.'}), 404
+
+    # Ne pas renvoyer l'utilisateur courant
+    if result['id'] == current_user.id:
+        return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous payer vous-même.'}), 400
+
+    return jsonify({'success': True, 'user': result})
+
+
+# ══════════════════════════════════════════════════════════════════════════
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

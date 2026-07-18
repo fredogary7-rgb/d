@@ -554,6 +554,92 @@ class PushSubscription(db.Model):
         return f'<PushSubscription {self.id} user={self.user_id} platform={self.platform}>'
 
 
+class PaymentRequest(db.Model):
+    """Demande de paiement — permet à un utilisateur de demander un paiement à un tiers."""
+
+    __tablename__ = 'payment_requests'
+
+    STATUS_CHOICES = ['PENDING', 'PAID', 'EXPIRED', 'CANCELLED']
+
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    request_code = db.Column(db.String(12), unique=True, nullable=False, index=True)
+    sender_id = db.Column(db.Integer, nullable=True)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    amount = db.Column(db.Integer, nullable=False)
+    currency = db.Column(db.String(10), nullable=False, default='XOF')
+    description = db.Column(db.String(500), nullable=True)
+    status = db.Column(db.String(20), nullable=False, default='PENDING', index=True)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    payment_link = db.Column(db.String(500), nullable=True)
+    qr_data = db.Column(db.Text, nullable=True)
+    payment_reference = db.Column(db.String(64), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    paid_at = db.Column(db.DateTime, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    receiver = db.relationship('User', backref=db.backref('payment_requests', lazy='dynamic'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'uuid': self.uuid,
+            'request_code': self.request_code,
+            'sender_id': self.sender_id,
+            'receiver_id': self.receiver_id,
+            'amount': self.amount,
+            'currency': self.currency,
+            'description': self.description,
+            'status': self.status,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'payment_link': self.payment_link,
+            'qr_data': self.qr_data,
+            'payment_reference': self.payment_reference,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'paid_at': self.paid_at.isoformat() if self.paid_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    def __repr__(self):
+        return f'<PaymentRequest {self.request_code} {self.status}>'
+
+
+class TransactionReceive(db.Model):
+    """Transaction reçue via PaymentRequest — historisation des paiements reçus."""
+
+    __tablename__ = 'transaction_receives'
+
+    id = db.Column(db.Integer, primary_key=True)
+    payment_request_id = db.Column(db.Integer, db.ForeignKey('payment_requests.id'), nullable=True, index=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    amount = db.Column(db.Integer, nullable=False)
+    currency = db.Column(db.String(10), nullable=False, default='XOF')
+    status = db.Column(db.String(20), nullable=False, default='completed', index=True)
+    reference = db.Column(db.String(64), unique=True, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    payment_request = db.relationship('PaymentRequest', backref=db.backref('transactions', lazy='dynamic'))
+    sender = db.relationship('User', foreign_keys=[sender_id], backref=db.backref('payments_sent_receive', lazy='dynamic'))
+    receiver = db.relationship('User', foreign_keys=[receiver_id], backref=db.backref('payments_received', lazy='dynamic'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'payment_request_id': self.payment_request_id,
+            'sender_id': self.sender_id,
+            'receiver_id': self.receiver_id,
+            'amount': self.amount,
+            'currency': self.currency,
+            'status': self.status,
+            'reference': self.reference,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+    def __repr__(self):
+        return f'<TransactionReceive {self.id} {self.amount} {self.currency}>'
+
+
 class OtpCode(db.Model):
     """Code OTP pour vérification par email via Resend (inscription, connexion, reset mdp)."""
 

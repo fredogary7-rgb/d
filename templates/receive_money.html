@@ -1,0 +1,886 @@
+{% extends "dashboard.html" %}
+{% block title %}Recevoir de l'argent — TransAfrik{% endblock %}
+
+{% block dashboard_content %}
+<style>
+    /* ═══════════════════════════════════════════════════════════
+       RECEIVE MONEY PAGE — STYLES
+       ═══════════════════════════════════════════════════════════ */
+    .receive-container {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .receive-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .receive-header h1 {
+        font-size: 28px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .receive-header h1 i {
+        color: var(--blue);
+        font-size: 28px;
+    }
+
+    .receive-grid {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 28px;
+    }
+
+    @media (max-width: 968px) {
+        .receive-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ── Card ── */
+    .r-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        box-shadow: var(--shadow);
+        transition: all var(--transition);
+    }
+
+    .r-card-title {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .r-card-title i {
+        color: var(--blue);
+        font-size: 19px;
+    }
+
+    /* ── Form ── */
+    .r-form-group {
+        margin-bottom: 18px;
+    }
+    .r-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--text-3);
+        margin-bottom: 6px;
+    }
+    .r-input, .r-select, .r-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        transition: all .2s;
+        outline: none;
+    }
+    .r-input:focus, .r-select:focus, .r-textarea:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px var(--blue-glow);
+    }
+    .r-textarea {
+        resize: vertical;
+        min-height: 70px;
+    }
+    .r-input-amount {
+        font-size: 28px;
+        font-weight: 800;
+        text-align: center;
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: -.02em;
+        padding: 18px;
+    }
+    .r-currency-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--blue-light);
+        color: var(--blue);
+        font-weight: 700;
+        font-size: 13px;
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
+
+    .r-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all var(--transition);
+    }
+    .r-btn-primary {
+        background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+        color: #fff;
+        box-shadow: 0 4px 16px var(--blue-glow);
+    }
+    .r-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px var(--blue-glow);
+    }
+    .r-btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-2);
+    }
+    .r-btn-outline:hover {
+        background: var(--surface-hover);
+    }
+    .r-btn-danger {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+    .r-btn-danger:hover {
+        background: #FECACA;
+    }
+    .r-btn-full {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* ── QR Code Display ── */
+    .qr-display {
+        text-align: center;
+    }
+    .qr-display img {
+        width: 220px;
+        height: 220px;
+        border-radius: var(--radius);
+        border: 2px solid var(--border);
+        background: #fff;
+    }
+    .qr-code-value {
+        font-family: 'Courier New', monospace;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: .1em;
+        margin: 16px 0 8px;
+        color: var(--blue);
+        user-select: all;
+    }
+    .qr-link {
+        font-size: 12px;
+        color: var(--text-3);
+        word-break: break-all;
+        margin-bottom: 16px;
+    }
+    .qr-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* ── Request Card ── */
+    .request-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        margin-bottom: 10px;
+        transition: all .2s;
+        background: var(--bg);
+    }
+    .request-item:hover {
+        border-color: var(--blue);
+        box-shadow: var(--shadow-sm);
+    }
+    .request-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .request-amount {
+        font-size: 16px;
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
+    }
+    .request-code {
+        font-size: 12px;
+        font-family: 'Courier New', monospace;
+        color: var(--text-3);
+    }
+    .request-date {
+        font-size: 11px;
+        color: var(--text-4);
+    }
+    .request-status {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .status-pending {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+    .status-paid {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+    .status-expired {
+        background: #F3F4F6;
+        color: #6B7280;
+    }
+    .status-cancelled {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    /* ── Recent Payments ── */
+    .payment-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .payment-item:last-child {
+        border-bottom: none;
+    }
+    .payment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--blue), var(--green));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+    .payment-info {
+        flex: 1;
+    }
+    .payment-name {
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .payment-date {
+        font-size: 11px;
+        color: var(--text-4);
+    }
+    .payment-amount {
+        font-weight: 700;
+        color: var(--green-dark);
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-3);
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+        display: block;
+        opacity: .4;
+    }
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    /* ── Share Card ── */
+    .share-card {
+        background: linear-gradient(135deg, var(--blue-light), var(--green-light));
+        border: 1px solid rgba(37,99,235,.15);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        text-align: center;
+    }
+    .share-card h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .share-card p {
+        font-size: 13px;
+        color: var(--text-2);
+        margin-bottom: 16px;
+    }
+    .share-preview {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #fff;
+        padding: 10px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .share-preview:hover {
+        box-shadow: var(--shadow);
+    }
+    .share-preview i {
+        color: var(--blue);
+    }
+
+    /* ── Tabs ── */
+    .r-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        margin-bottom: 20px;
+    }
+    .r-tab {
+        flex: 1;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        background: transparent;
+        color: var(--text-3);
+        transition: all .2s;
+    }
+    .r-tab.active {
+        background: var(--surface);
+        color: var(--blue);
+        box-shadow: var(--shadow-sm);
+    }
+    .r-tab:hover:not(.active) {
+        color: var(--text-2);
+    }
+
+    .r-tab-content {
+        display: none;
+    }
+    .r-tab-content.active {
+        display: block;
+    }
+
+    /* ── Loader ── */
+    .r-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255,255,255,.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: r-spin .6s linear infinite;
+        display: inline-block;
+    }
+    @keyframes r-spin {
+        to { transform: rotate(360deg); }
+    }
+    .r-spinner-dark {
+        border-color: rgba(0,0,0,.1);
+        border-top-color: var(--blue);
+    }
+
+    /* ── Toast ── */
+    .r-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 14px 20px;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 13px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: r-slideIn .3s ease;
+        max-width: 380px;
+    }
+    @keyframes r-slideIn {
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    .r-toast-success {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+    .r-toast-error {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+        .receive-grid {
+            grid-template-columns: 1fr;
+        }
+        .r-input-amount {
+            font-size: 22px;
+        }
+    }
+</style>
+
+<div class="receive-container">
+    <!-- Header -->
+    <div class="receive-header">
+        <h1>
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            Recevoir de l'argent
+        </h1>
+        <span class="r-currency-badge">
+            <i class="fa-solid fa-coins"></i> {{ user.currency }}
+        </span>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Main Grid -->
+    <div class="receive-grid">
+        <!-- LEFT COLUMN -->
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+            <!-- Create Request Card -->
+            <div class="r-card">
+                <div class="r-tabs">
+                    <button class="r-tab active" data-tab="create">Créer une demande</button>
+                    <button class="r-tab" data-tab="history">Historique</button>
+                </div>
+
+                <!-- Tab: Create -->
+                <div class="r-tab-content active" id="tab-create">
+                    <div class="r-form-group">
+                        <label class="r-label">Montant ({{ user.currency }})</label>
+                        <input type="number" class="r-input r-input-amount" id="amountInput"
+                               placeholder="0" min="100" step="100" value="5000">
+                    </div>
+
+                    <div class="r-form-group">
+                        <label class="r-label">Description (optionnelle)</label>
+                        <input type="text" class="r-input" id="descriptionInput"
+                               placeholder="Ex: Remboursement, Cadeau, Facture...">
+                    </div>
+
+                    <div class="r-form-group">
+                        <label class="r-label">Expire après</label>
+                        <select class="r-select" id="expirySelect">
+                            <option value="1">1 heure</option>
+                            <option value="6">6 heures</option>
+                            <option value="24">24 heures</option>
+                            <option value="48" selected>48 heures</option>
+                            <option value="72">3 jours</option>
+                            <option value="168">7 jours</option>
+                        </select>
+                    </div>
+
+                    <button class="r-btn r-btn-primary r-btn-full" id="createRequestBtn"
+                            onclick="createPaymentRequest()">
+                        <i class="fa-solid fa-qrcode"></i>
+                        Générer la demande de paiement
+                    </button>
+                    <div id="createLoader" style="display:none; text-align:center; margin-top:12px;">
+                        <span class="r-spinner r-spinner-dark"></span> Création en cours...
+                    </div>
+                </div>
+
+                <!-- Tab: History -->
+                <div class="r-tab-content" id="tab-history">
+                    <div id="historyList">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <p>Chargement...</p>
+                        </div>
+                    </div>
+                    <div style="text-align:center; margin-top: 16px;">
+                        <button class="r-btn r-btn-outline r-btn-full" id="loadMoreBtn"
+                                style="display:none;" onclick="loadMoreRequests()">
+                            Voir plus
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code Result Card (hidden by default) -->
+            <div class="r-card qr-display" id="qrResultCard" style="display:none;">
+                <div class="r-card-title">
+                    <i class="fa-solid fa-qrcode"></i>
+                    Votre demande de paiement
+                </div>
+                <div id="qrImageContainer">
+                    <img src="" alt="QR Code" id="qrImage">
+                </div>
+                <div class="qr-code-value" id="qrCodeValue">------</div>
+                <div class="qr-link" id="qrLinkValue"></div>
+                <p style="font-size:14px; color:var(--text-2); margin: 8px 0;" id="qrAmountDisplay"></p>
+
+                <div class="qr-actions">
+                    <button class="r-btn r-btn-primary" onclick="copyPaymentLink()">
+                        <i class="fa-solid fa-copy"></i> Copier le lien
+                    </button>
+                    <button class="r-btn r-btn-outline" onclick="sharePaymentLink()">
+                        <i class="fa-solid fa-share-nodes"></i> Partager
+                    </button>
+                    <button class="r-btn r-btn-danger" onclick="cancelCurrentRequest()" id="cancelRequestBtn">
+                        <i class="fa-solid fa-xmark"></i> Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+            <!-- Share Card -->
+            <div class="share-card">
+                <i class="fa-solid fa-paper-plane" style="font-size: 36px; color: var(--blue); margin-bottom: 8px;"></i>
+                <h3>Partagez votre lien de paiement</h3>
+                <p>Vos amis peuvent vous payer en un clic via votre lien TransAfrik.</p>
+                <div class="share-preview" onclick="navigator.clipboard.writeText('https://transafrik.org/pay/@{{ user.username }}'); showToast('Lien copié !', 'success')">
+                    <i class="fa-solid fa-link"></i>
+                    transafrik.org/pay/@{{ user.username }}
+                </div>
+            </div>
+
+            <!-- Recent Received Payments -->
+            <div class="r-card">
+                <div class="r-card-title">
+                    <i class="fa-solid fa-clock"></i>
+                    Paiements récents reçus
+                </div>
+                <div id="recentPaymentsList">
+                    {% if recent_payments %}
+                        {% for payment in recent_payments %}
+                        <div class="payment-item">
+                            <div class="payment-avatar">
+                                {{ payment.sender_name[0] | upper if payment.sender_name else '?' }}
+                            </div>
+                            <div class="payment-info">
+                                <div class="payment-name">{{ payment.sender_name }}</div>
+                                <div class="payment-date">{{ payment.created_at[:10] if payment.created_at else '' }}</div>
+                            </div>
+                            <div class="payment-amount">
+                                +{{ "%.0f"|format(payment.amount) }} {{ payment.currency }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fa-solid fa-inbox"></i>
+                            <p>Aucun paiement reçu pour le moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ═══════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════
+    let currentRequest = null;
+    let historyPage = 1;
+    let historyTotalPages = 1;
+    let currentTab = 'create';
+
+    // ═══════════════════════════════════════════════════════
+    // TOAST
+    // ═══════════════════════════════════════════════════════
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `r-toast r-toast-${type}`;
+        const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+        toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity .3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // TABS
+    // ═══════════════════════════════════════════════════════
+    document.querySelectorAll('.r-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.r-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const tabId = this.dataset.tab;
+            document.querySelectorAll('.r-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            currentTab = tabId;
+            if (tabId === 'history') {
+                loadHistory();
+            }
+        });
+    });
+
+    // ═══════════════════════════════════════════════════════
+    // CREATE PAYMENT REQUEST
+    // ═══════════════════════════════════════════════════════
+    async function createPaymentRequest() {
+        const amount = parseInt(document.getElementById('amountInput').value) || 0;
+        const description = document.getElementById('descriptionInput').value.trim();
+        const expiryHours = parseInt(document.getElementById('expirySelect').value) || 48;
+
+        if (amount < 100) {
+            showToast('Le montant minimum est de 100 {{ user.currency }}.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('createRequestBtn');
+        const loader = document.getElementById('createLoader');
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        loader.style.display = 'block';
+
+        try {
+            const res = await fetch('/api/receive/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: amount,
+                    currency: '{{ user.currency }}',
+                    description: description,
+                    expiry_hours: expiryHours,
+                }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                currentRequest = data.request;
+                showQRCode(data.request);
+                showToast('Demande de paiement créée !', 'success');
+            } else {
+                showToast(data.message || 'Erreur lors de la création.', 'error');
+            }
+        } catch (err) {
+            showToast('Erreur réseau. Veuillez réessayer.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            loader.style.display = 'none';
+        }
+    }
+
+    function showQRCode(requestData) {
+        const card = document.getElementById('qrResultCard');
+        card.style.display = 'block';
+
+        document.getElementById('qrImage').src = requestData.qr_data || '';
+        document.getElementById('qrCodeValue').innerText = requestData.request_code;
+        document.getElementById('qrLinkValue').innerText = requestData.payment_link;
+        document.getElementById('qrAmountDisplay').innerHTML =
+            `<strong>Montant :</strong> ${requestData.amount} ${requestData.currency}` +
+            (requestData.description ? `<br><strong>Description :</strong> ${requestData.description}` : '');
+
+        document.getElementById('cancelRequestBtn').onclick = () => cancelRequest(requestData.request_code);
+
+        // Scroll to QR
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // COPY / SHARE
+    // ═══════════════════════════════════════════════════════
+    function copyPaymentLink() {
+        if (!currentRequest) return;
+        const link = currentRequest.payment_link;
+        navigator.clipboard.writeText(link).then(() => {
+            showToast('Lien copié dans le presse-papier !', 'success');
+        }).catch(() => {
+            // Fallback
+            const input = document.createElement('textarea');
+            input.value = link;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showToast('Lien copié !', 'success');
+        });
+    }
+
+    function sharePaymentLink() {
+        if (!currentRequest) return;
+        const link = currentRequest.payment_link;
+        const text = `Pouvez-vous me payer ${currentRequest.amount} ${currentRequest.currency} via TransAfrik ? ${link}`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Demande de paiement TransAfrik',
+                text: text,
+                url: link,
+            }).catch(() => {});
+        } else {
+            copyPaymentLink();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // CANCEL REQUEST
+    // ═══════════════════════════════════════════════════════
+    async function cancelRequest(requestCode) {
+        if (!confirm('Voulez-vous vraiment annuler cette demande de paiement ?')) return;
+
+        try {
+            const res = await fetch('/api/receive/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ request_code: requestCode }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('Demande annulée.', 'success');
+                document.getElementById('qrResultCard').style.display = 'none';
+                currentRequest = null;
+                if (currentTab === 'history') {
+                    loadHistory();
+                }
+            } else {
+                showToast(data.message || 'Erreur.', 'error');
+            }
+        } catch (err) {
+            showToast('Erreur réseau.', 'error');
+        }
+    }
+
+    function cancelCurrentRequest() {
+        if (currentRequest) {
+            cancelRequest(currentRequest.request_code);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // HISTORY
+    // ═══════════════════════════════════════════════════════
+    async function loadHistory(page = 1) {
+        historyPage = page;
+        const container = document.getElementById('historyList');
+        container.innerHTML = '<div class="empty-state"><p>Chargement...</p></div>';
+
+        try {
+            const res = await fetch(`/api/receive/list?page=${page}&per_page=10`);
+            const data = await res.json();
+
+            if (!data.success) {
+                container.innerHTML = '<div class="empty-state"><p>Erreur de chargement.</p></div>';
+                return;
+            }
+
+            historyTotalPages = data.pages;
+
+            if (data.requests.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p>Aucune demande de paiement.</p>
+                </div>`;
+                document.getElementById('loadMoreBtn').style.display = 'none';
+                return;
+            }
+
+            const statusLabels = {
+                'PENDING': { class: 'status-pending', label: 'En attente' },
+                'PAID': { class: 'status-paid', label: 'Payée' },
+                'EXPIRED': { class: 'status-expired', label: 'Expirée' },
+                'CANCELLED': { class: 'status-cancelled', label: 'Annulée' },
+            };
+
+            let html = '';
+            data.requests.forEach(r => {
+                const st = statusLabels[r.status] || { class: 'status-pending', label: r.status };
+                html += `
+                <div class="request-item">
+                    <div class="request-info">
+                        <div class="request-amount">${r.amount} ${r.currency}</div>
+                        <div class="request-code">Code: ${r.request_code}</div>
+                        <div class="request-date">${r.created_at ? r.created_at.slice(0, 16).replace('T', ' ') : ''}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span class="request-status ${st.class}">${st.label}</span>
+                        ${r.status === 'PENDING' ? `
+                        <button class="r-btn r-btn-outline" style="padding:6px 10px;font-size:11px;"
+                                onclick="cancelRequest('${r.request_code}')">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>` : ''}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // Show/hide load more
+            document.getElementById('loadMoreBtn').style.display =
+                historyPage < historyTotalPages ? 'inline-flex' : 'none';
+
+        } catch (err) {
+            container.innerHTML = '<div class="empty-state"><p>Erreur réseau.</p></div>';
+        }
+    }
+
+    function loadMoreRequests() {
+        loadHistory(historyPage + 1);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // REFRESH RECENT PAYMENTS (polling)
+    // ═══════════════════════════════════════════════════════
+    async function refreshRecentPayments() {
+        try {
+            const res = await fetch('/api/receive/recent-payments?limit=5');
+            const data = await res.json();
+            if (data.success && data.payments.length > 0) {
+                let html = '';
+                data.payments.forEach(p => {
+                    const initial = p.sender_name ? p.sender_name.charAt(0).toUpperCase() : '?';
+                    html += `
+                    <div class="payment-item">
+                        <div class="payment-avatar">${initial}</div>
+                        <div class="payment-info">
+                            <div class="payment-name">${p.sender_name}</div>
+                            <div class="payment-date">${p.created_at ? p.created_at.slice(0, 10) : ''}</div>
+                        </div>
+                        <div class="payment-amount">+${p.amount} ${p.currency}</div>
+                    </div>`;
+                });
+                document.getElementById('recentPaymentsList').innerHTML = html;
+            }
+        } catch (err) {}
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', () => {
+        // Refresh every 30s
+        setInterval(refreshRecentPayments, 30000);
+    });
+</script>
+{% endblock %}
