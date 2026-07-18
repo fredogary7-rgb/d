@@ -298,7 +298,6 @@ def credit_user(user_id):
         amount=amount,
         currency=user.currency or 'XOF',
         status='success',
-        description=reason,
         recipient_name=user.fullname,
         recipient_phone=user.phone,
         recipient_country=user.country
@@ -337,7 +336,6 @@ def debit_user(user_id):
         amount=amount,
         currency=user.currency or 'XOF',
         status='success',
-        description=reason,
         recipient_name=user.fullname,
         recipient_phone=user.phone,
         recipient_country=user.country
@@ -1154,11 +1152,28 @@ def api_push_subscriptions():
 @admin_required
 def api_push_send():
     """Envoyer une notification Push à tous les utilisateurs (broadcast)."""
-    from services.push_service import send_push_to_all
+    from services.push_service import send_push_to_all, get_all_active_subscriptions
     data = request.get_json(silent=True) or {}
     title = data.get('title', 'TransAfrik')
     body = data.get('body', 'Nouvelle notification de TransAfrik.')
     url = data.get('url', '/')
+
+    # Create user-facing Notification entries for unique users
+    subs = get_all_active_subscriptions()
+    notified_user_ids = set()
+    for sub in subs:
+        if sub.user_id not in notified_user_ids:
+            notified_user_ids.add(sub.user_id)
+            notif = Notification(
+                user_id=sub.user_id,
+                title=title,
+                message=body,
+                category='system',
+                link=url,
+            )
+            db.session.add(notif)
+    db.session.commit()
+
     result = send_push_to_all(title=title, body=body, url=url)
     return jsonify(result)
 
