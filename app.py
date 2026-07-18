@@ -8,13 +8,14 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription, Withdrawal, PaymentRequest, TransactionReceive
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription, Withdrawal, PaymentRequest, TransactionReceive, Notification
 from services.receive_service import (
     create_payment_request, cancel_payment_request, get_payment_request_by_code,
     get_user_payment_requests, get_recent_received_payments,
     generate_pay_qrcode, search_user_for_payment,
-    expire_old_requests, process_receive_payment,
+    expire_old_requests, process_receive_payment, process_free_payment,
 )
+from services.push_service import send_push_to_user
 from services.email_service import send_otp_email
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
@@ -2585,13 +2586,91 @@ def api_kyc_status():
         'kyc': kyc.to_dict(),
     })
 
+# ==================== NOTIFICATIONS ====================
+
+@app.route('/notifications')
+@login_required
+def notifications_page():
+    """Page du centre de notifications."""
+    notifications = Notification.query.filter_by(user_id=current_user.id)\
+        .order_by(Notification.created_at.desc())\
+        .limit(100).all()
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    return render_template(
+        'notifications.html',
+        user=current_user,
+        notifications=notifications,
+        unread_count=unread_count,
+    )
+
+
+@app.route('/notifications/read/<int:notification_id>', methods=['POST'])
+@login_required
+def notifications_read_one(notification_id):
+    """Marque une notification comme lue."""
+    notification = Notification.query.filter_by(id=notification_id, user_id=current_user.id).first()
+    if not notification:
+        return jsonify({'success': False, 'message': 'Notification introuvable.'}), 404
+
+    if not notification.is_read:
+        notification.is_read = True
+        notification.read_at = datetime.utcnow()
+        db.session.commit()
+
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    return jsonify({'success': True, 'unread_count': unread_count})
+
+
+@app.route('/notifications/read-all', methods=['POST'])
+@login_required
+def notifications_read_all():
+    """Marque toutes les notifications de l'utilisateur comme lues."""
+    now = datetime.utcnow()
+    Notification.query.filter_by(user_id=current_user.id, is_read=False).update({
+        'is_read': True,
+        'read_at': now,
+    })
+    db.session.commit()
+    return jsonify({'success': True, 'unread_count': 0})
+
+
+@app.route('/notifications/delete/<int:notification_id>', methods=['DELETE'])
+@login_required
+def notifications_delete_one(notification_id):
+    """Supprime une notification."""
+    notification = Notification.query.filter_by(id=notification_id, user_id=current_user.id).first()
+    if not notification:
+        return jsonify({'success': False, 'message': 'Notification introuvable.'}), 404
+
+    db.session.delete(notification)
+    db.session.commit()
+
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    return jsonify({'success': True, 'unread_count': unread_count})
+
+
+@app.route('/api/notifications')
+@login_required
+def api_notifications():
+    """API : retourne les notifications récentes et le nombre de non lues."""
+    notifications = Notification.query.filter_by(user_id=current_user.id)\
+        .order_by(Notification.created_at.desc())\
+        .limit(50).all()
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+
+    return jsonify({
+        'success': True,
+        'unread_count': unread_count,
+        'notifications': [n.to_dict() for n in notifications],
+    })
+
+
 @app.context_processor
 def inject_dashboard_globals():
     if current_user.is_authenticated:
-        unread_notifications = 0
-
+        unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
         return dict(
-            unread_notifications=unread_notifications,
+            unread_notifications=unread_count,
             country_flags=COUNTRY_FLAGS,
             country_names=COUNTRY_NAMES,
         )
@@ -3011,6 +3090,9 @@ def pay_username(username):
     return render_template('receive_pay.html',
                            payment_request=None,
                            receiver=receiver)
+
+
+@app.route('/api/receive/pay', methods=['POST'])
 @login_required
 def api_receive_pay():
     """Payer une demande de paiement."""
@@ -3048,6 +3130,77 @@ def api_receive_pay():
 
     if not success:
         return jsonify({'success': False, 'message': error}), 400
+
+    # Envoyer notification push au receveur
+    try:
+        receiver_name = tx.receiver.fullname if tx.receiver else 'Utilisateur'
+        send_push_to_user(
+            user_id=tx.receiver_id,
+            title='Nouveau paiement reçu ! 💸',
+            body=f'{current_user.fullname} vous a envoyé {amount} {currency}.',
+            url='/dashboard',
+            tag='receive-payment',
+            data={'transaction_ref': tx.reference, 'amount': amount, 'currency': currency},
+        )
+    except Exception as push_err:
+        app.logger.warning(f'[PUSH] Échec notification paiement: {push_err}')
+
+    return jsonify({
+        'success': True,
+        'message': 'Paiement effectué avec succès !',
+        'transaction': tx.to_dict(),
+    })
+
+
+@app.route('/api/pay-to-receiver', methods=['POST'])
+@login_required
+def api_pay_to_receiver():
+    """Paiement libre vers un utilisateur (sans demande de paiement)."""
+    data = request.get_json(silent=True) or {}
+    amount = int(data.get('amount', 0))
+    currency = data.get('currency', 'XOF').upper()
+    receiver_id = int(data.get('receiver_id', 0))
+
+    if not receiver_id:
+        return jsonify({'success': False, 'message': 'Destinataire requis.'}), 400
+
+    if amount <= 0:
+        return jsonify({'success': False, 'message': 'Montant invalide.'}), 400
+
+    if receiver_id == current_user.id:
+        return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous payer vous-même.'}), 400
+
+    # Vérifier le solde
+    if current_user.balance < amount:
+        return jsonify({
+            'success': False,
+            'message': f'Solde insuffisant. Votre solde est de {current_user.balance} {currency}.',
+        }), 400
+
+    success, tx, error = process_free_payment(
+        sender_id=current_user.id,
+        receiver_id=receiver_id,
+        amount=amount,
+        currency=currency,
+    )
+
+    if not success:
+        return jsonify({'success': False, 'message': error}), 400
+
+    # Envoyer notification push au receveur
+    try:
+        receiver = User.query.get(receiver_id)
+        receiver_name = receiver.fullname if receiver else 'Utilisateur'
+        send_push_to_user(
+            user_id=receiver_id,
+            title='Nouveau paiement reçu ! 💸',
+            body=f'{current_user.fullname} vous a envoyé {amount} {currency}.',
+            url='/dashboard',
+            tag='receive-payment',
+            data={'transaction_ref': tx.reference, 'amount': amount, 'currency': currency},
+        )
+    except Exception as push_err:
+        app.logger.warning(f'[PUSH] Échec notification paiement libre: {push_err}')
 
     return jsonify({
         'success': True,

@@ -313,6 +313,7 @@
     console.log(LOG_PREFIX, TAG, '   Permission actuelle:', Notification.permission);
 
     _pushRegistration = registration;
+    _pushSetupDone = true;
 
     // Vérifier si les notifications sont supportées
     if (!('Notification' in window) || !('PushManager' in window)) {
@@ -324,44 +325,102 @@
     if (Notification.permission === 'granted') {
       console.log(LOG_PREFIX, TAG, '✅ Permission déjà accordée → subscribe immédiat');
       subscribeToPushWithLogs(registration);
-      _pushSetupDone = true;
       return;
     }
 
     // Étape 2 : Si refusée → ne rien faire
     if (Notification.permission === 'denied') {
       console.warn(LOG_PREFIX, TAG, '🚫 Permission refusée — abandon');
-      _pushSetupDone = true;
       return;
     }
 
-    // Étape 3 : Permission "default" — demander après interaction utilisateur
-    console.log(LOG_PREFIX, TAG, '⏳ Permission "default" — attente interaction utilisateur...');
-    console.log(LOG_PREFIX, TAG, '   ➡️  Cliquez n\'importe où sur la page pour déclencher la demande');
+    // Étape 3 : Permission "default" → afficher une bannière explicite
+    //            (pas de handler click fragile sur le document !)
+    console.log(LOG_PREFIX, TAG, '⏳ Permission "default" → bannière visible après 3 secondes...');
+    setTimeout(() => showPushPermissionBanner(registration), 3000);
+  }
 
-    // On va demander sur le premier clic sur la page
-    const permissionHandler = function askOnce() {
-      console.log(LOG_PREFIX, TAG, '🖱️  Clic détecté — demande de permission Notification...');
+  /**
+   * Affiche une bannière/bouton explicite pour demander la permission
+   * de notification. S'affiche uniquement sur les pages authentifiées.
+   */
+  function showPushPermissionBanner(registration) {
+    // Ne pas afficher si déjà en cours ou si permission déjà accordée/refusée
+    if (sessionStorage.getItem('push_banner_shown')) {
+      console.log(LOG_PREFIX, TAG, '⏩ Bannière déjà montrée cette session');
+      return;
+    }
+    if (Notification.permission !== 'default') {
+      console.log(LOG_PREFIX, TAG, '⏩ Permission déjà ' + Notification.permission + ' — pas de bannière');
+      return;
+    }
+    // Vérifier qu'on est sur une page authentifiée
+    const isAuthPage = document.querySelector('.topbar-profile') !== null
+                    || document.querySelector('.sidebar') !== null
+                    || document.querySelector('.balance-card') !== null
+                    || document.querySelector('.mobile-bottom-nav') !== null;
+    if (!isAuthPage) {
+      console.log(LOG_PREFIX, TAG, '⏩ Page non authentifiée — bannière différée');
+      return;
+    }
+
+    console.log(LOG_PREFIX, TAG, '📢 Affichage bannière "Activer les notifications"...');
+    sessionStorage.setItem('push_banner_shown', '1');
+
+    const banner = document.createElement('div');
+    banner.id = 'push-permission-banner';
+    banner.innerHTML = `
+      <div style="
+        position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:99998;
+        background:linear-gradient(135deg,#1E3A8A,#2563EB);color:#fff;
+        padding:16px 24px;border-radius:18px;
+        font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+        display:flex;align-items:center;gap:14px;
+        box-shadow:0 16px 48px rgba(37,99,235,.4);
+        animation:pushSlideUp 0.5s ease;max-width:92vw;flex-wrap:wrap;justify-content:center;
+      ">
+        <span><i class="fa-solid fa-bell" style="margin-right:8px"></i>Activer les notifications</span>
+        <span style="font-weight:400;font-size:12px;opacity:.85">Restez informé de vos transferts</span>
+        <button id="push-allow-btn" style="
+          padding:10px 20px;background:#fff;color:#2563EB;
+          border:none;border-radius:10px;font-weight:700;font-size:13px;
+          cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;
+          white-space:nowrap;
+        ">Activer</button>
+        <button id="push-dismiss-btn" style="
+          background:none;border:none;color:rgba(255,255,255,.7);
+          cursor:pointer;font-size:18px;padding:4px;
+        "><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <style>
+        @keyframes pushSlideUp{from{opacity:0;transform:translateX(-50%) translateY(40px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+      </style>
+    `;
+
+    document.body.appendChild(banner);
+
+    document.getElementById('push-allow-btn').addEventListener('click', () => {
+      console.log(LOG_PREFIX, TAG, '🖱️  Bouton "Activer" cliqué — demande de permission...');
+      banner.remove();
 
       Notification.requestPermission().then(permission => {
         console.log(LOG_PREFIX, TAG, '📋 Résultat permission:', permission);
 
         if (permission === 'granted') {
-          console.log(LOG_PREFIX, TAG, '✅ Permission accordée — subscribe');
+          console.log(LOG_PREFIX, TAG, '✅ Permission accordée — lancement subscribe...');
           subscribeToPushWithLogs(_pushRegistration || registration);
         } else if (permission === 'denied') {
           console.warn(LOG_PREFIX, TAG, '🚫 Permission refusée par l\'utilisateur');
         } else {
-          console.log(LOG_PREFIX, TAG, '⏸️  Permission "default" — utilisateur a ignoré');
+          console.log(LOG_PREFIX, TAG, '⏸️  Permission "default" — utilisateur a ignoré (fermé la popup)');
         }
       });
+    });
 
-      document.removeEventListener('click', permissionHandler);
-    };
-
-    document.addEventListener('click', permissionHandler, { once: true });
-    _pushSetupDone = true;
-    console.log(LOG_PREFIX, TAG, '⏳ En attente du premier clic utilisateur...');
+    document.getElementById('push-dismiss-btn').addEventListener('click', () => {
+      console.log(LOG_PREFIX, TAG, '❌ Bannière fermée par l\'utilisateur');
+      banner.remove();
+    });
   }
 
   /**

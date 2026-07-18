@@ -591,11 +591,10 @@
         btn.style.opacity = '0.6';
         loader.style.display = 'block';
 
-        fetch('/api/receive/pay', {
+        fetch('/api/pay-to-receiver', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                request_code: '',
                 amount: parseInt(amount),
                 currency: 'XOF',
                 receiver_id: {{ receiver.id if receiver else 0 }},

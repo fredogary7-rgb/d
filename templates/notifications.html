@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications — TransAfrik</title>
+    {% include "_pwa_head.html" %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.25);
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.25);
+            --yellow: #F59E0B; --orange: #F97316; --orange-light: #FFEDD5;
+            --red: #EF4444; --red-light: #FEE2E2;
+            --purple: #8B5CF6; --purple-light: #EDE9FE;
+            --pink: #EC4899; --pink-light: #FCE7F3;
+            --cyan: #06B6D4; --cyan-light: #CFFAFE;
+            --gray: #6B7280; --gray-light: #F3F4F6;
+            --bg: #F1F5F9; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px;
+            --transition: .3s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w: 260px;
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
+            --border: #1E293B;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 20px rgba(0,0,0,.3); --shadow-md: 0 8px 30px rgba(0,0,0,.4); --shadow-lg: 0 16px 50px rgba(0,0,0,.5);
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden;max-width:100vw}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;max-width:100vw;width:100%;-webkit-font-smoothing:antialiased;transition:background .5s,color .5s;line-height:1.6;min-height:100vh}
+        a{text-decoration:none;color:inherit}
+        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        img{max-width:100%;height:auto}
+        .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+        /* ===== TOP BAR ===== */
+        .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
+        .topbar-left{display:flex;align-items:center;gap:16px}
+        .topbar-logo{display:flex;align-items:center;gap:10px}
+        .topbar-logo img{width:38px;height:38px;border-radius:10px}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-right{display:flex;align-items:center;gap:16px}
+        .topbar-icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all var(--transition);color:var(--text-3)}
+        .topbar-icon-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
+        .topbar-icon-btn .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px}
+        .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
+        .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
+        .topbar-profile-role{font-size:10px;color:var(--text-4)}
+
+        /* ===== SIDEBAR ===== */
+        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
+        .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s;position:relative}
+        .sidebar-link:hover{background:var(--surface-hover);color:var(--text)}
+        .sidebar-link.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+        .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
+        .sidebar-link .badge-dot{position:absolute;top:50%;right:14px;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:#EF4444}
+        .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px)}
+
+        /* ===== PAGE HEADER ===== */
+        .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:16px}
+        .page-header-left h1{font-size:28px;font-weight:800;color:var(--text);margin-bottom:4px}
+        .page-header-left p{font-size:14px;color:var(--text-3)}
+        .page-header-right{display:flex;align-items:center;gap:12px}
+        .unread-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;background:var(--blue-light);color:var(--blue)}
+        .unread-badge i{margin-right:2px}
+        .btn-read-all{padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;gap:8px}
+        .btn-read-all:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);border-color:var(--blue);color:var(--blue)}
+
+        /* ===== NOTIFICATIONS LIST ===== */
+        .notifications-list{display:flex;flex-direction:column;gap:10px}
+        .notification-card{display:flex;align-items:flex-start;gap:16px;padding:20px 24px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);transition:all .3s;position:relative;overflow:hidden;cursor:pointer;animation:notifSlideIn .4s ease}
+        .notification-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+        .notification-card.unread{background:linear-gradient(135deg,var(--surface),var(--blue-light));border-color:rgba(37,99,235,.15)}
+        .notification-card.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue);border-radius:0 4px 4px 0}
+        .notification-card.read{opacity:.7}
+        .notification-card.read:hover{opacity:1}
+        .notification-card.removing{animation:notifSlideOut .35s ease forwards}
+
+        .notif-icon-wrapper{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+        .notif-icon-payment_received{background:var(--green-light);color:var(--green)}
+        .notif-icon-payment_sent{background:var(--blue-light);color:var(--blue)}
+        .notif-icon-withdrawal{background:var(--orange-light);color:var(--orange)}
+        .notif-icon-kyc{background:var(--purple-light);color:var(--purple)}
+        .notif-icon-login{background:var(--gray-light);color:var(--gray)}
+        .notif-icon-security{background:var(--red-light);color:var(--red)}
+        .notif-icon-promo{background:var(--pink-light);color:var(--pink)}
+        .notif-icon-support{background:var(--cyan-light);color:var(--cyan)}
+        .notif-icon-deposit{background:var(--green-light);color:var(--green)}
+        .notif-icon-system{background:var(--gray-light);color:var(--gray)}
+
+        .notif-body{flex:1;min-width:0}
+        .notif-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+        .notif-title .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite}
+        @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+        .notif-description{font-size:13px;color:var(--text-3);line-height:1.5}
+        .notif-meta{display:flex;align-items:center;gap:12px;margin-top:8px}
+        .notif-date{font-size:11px;color:var(--text-4);display:flex;align-items:center;gap:4px}
+        .notif-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+        .notif-action-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;color:var(--text-3)}
+        .notif-action-btn:hover{box-shadow:var(--shadow-sm)}
+        .notif-action-btn.mark-read:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue)}
+        .notif-action-btn.delete:hover{background:var(--red-light);color:var(--red);border-color:var(--red)}
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;text-align:center}
+        .empty-illustration{width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,var(--blue-light),var(--green-light),var(--orange-light));display:flex;align-items:center;justify-content:center;margin-bottom:32px;animation:float 4s ease-in-out infinite}
+        .empty-illustration i{font-size:64px;color:var(--blue);opacity:.6}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        .empty-state h2{font-size:22px;font-weight:700;margin-bottom:8px;color:var(--text)}
+        .empty-state p{font-size:14px;color:var(--text-3);max-width:360px;line-height:1.6}
+
+        /* ===== TOAST ===== */
+        .toast-fixed{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:9999;padding:14px 24px;border-radius:14px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.2);pointer-events:none;opacity:0;transition:opacity .3s,bottom .3s}
+        .toast-fixed.show{opacity:1;bottom:48px}
+
+        /* KEYFRAMES */
+        @keyframes notifSlideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes notifSlideOut{to{opacity:0;transform:translateX(60px);max-height:0;padding:0 24px;margin:0;border-width:0}}
+
+        /* RESPONSIVE */
+        @media(max-width:1024px){
+            .sidebar{display:none}
+            .main-content{margin-left:0;padding:16px}
+            .page-header-left h1{font-size:22px}
+            .notification-card{padding:16px;gap:12px}
+            .notif-icon-wrapper{width:40px;height:40px;font-size:16px;border-radius:10px}
+            .notif-actions{flex-direction:column}
+        }
+        @media(max-width:640px){
+            .page-header{flex-direction:column}
+            .page-header-right{width:100%;justify-content:space-between}
+            .notification-card{flex-wrap:wrap}
+            .notif-actions{flex-direction:row}
+            .empty-illustration{width:140px;height:140px}
+            .empty-illustration i{font-size:48px}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+    <div class="topbar-left">
+        <div class="topbar-logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" onerror="this.style.display='none'">
+            <span>TransAfrik</span>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <a href="{{ url_for('notifications_page') }}" class="topbar-icon-btn" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <span class="badge" id="topbarUnreadCount" style="{% if unread_count == 0 %}display:none{% endif %}">{{ unread_count }}</span>
+        </a>
+        <div class="topbar-profile" id="profileMenu" onclick="window.location.href='{{ url_for('profile') }}'">
+            <div class="topbar-profile-avatar">{{ user.first_name|upper|truncate(1,True,'') }}{% if user.fullname.strip().split()|length > 1 %}{{ user.fullname.strip().split()[1]|upper|truncate(1,True,'') }}{% endif %}</div>
+            <div>
+                <div class="topbar-profile-name">{{ user.fullname }}</div>
+                <div class="topbar-profile-role">{{ user.country }}</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+        <a href="{{ url_for('send_money') }}" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer</a>
+        <a href="{{ url_for('deposit_page') }}" class="sidebar-link"><i class="fa-solid fa-wallet"></i> Dépôt</a>
+        <a href="{{ url_for('withdraw_page') }}" class="sidebar-link"><i class="fa-solid fa-building-columns"></i> Retrait</a>
+        <a href="/receive" class="sidebar-link"><i class="fa-solid fa-arrow-down-wide-short"></i> Recevoir</a>
+        <a href="{{ url_for('history') }}" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <div class="sidebar-section-title">Services</div>
+        <a href="{{ url_for('beneficiaries_page') }}" class="sidebar-link"><i class="fa-solid fa-user-group"></i> Mes bénéficiaires</a>
+        <a href="{{ url_for('fees_calculator') }}" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
+        <a href="{{ url_for('api_converter') }}" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
+        <a href="{{ url_for('scan_page') }}" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> Scanner QR Code</a>
+        <div class="sidebar-section-title">Compte</div>
+        <a href="{{ url_for('notifications_page') }}" class="sidebar-link active"><i class="fa-solid fa-bell"></i> Notifications{% if unread_count > 0 %}<span class="badge-dot"></span>{% endif %}</a>
+        <a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fa-solid fa-user-circle"></i> Mon profil</a>
+        <div class="sidebar-section-title">Paramètres</div>
+        <a href="{{ url_for('kyc_page') }}" class="sidebar-link"><i class="fa-solid fa-user-check"></i> Vérification KYC</a>
+        <a href="{{ url_for('settings_page') }}" class="sidebar-link"><i class="fa-solid fa-gear"></i> Paramètres</a>
+        <a href="{{ url_for('support_page') }}" class="sidebar-link"><i class="fa-solid fa-headset"></i> Support</a>
+        <a href="{{ url_for('logout') }}" class="sidebar-link"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1>Notifications</h1>
+            <p>Toutes les activités de votre compte</p>
+        </div>
+        <div class="page-header-right">
+            <div class="unread-badge" id="unreadBadge">
+                <i class="fa-solid fa-circle"></i>
+                <span id="unreadCountText">{{ unread_count }} non lue{% if unread_count != 1 %}s{% endif %}</span>
+            </div>
+            <button class="btn-read-all" id="btnReadAll" onclick="markAllRead()" {% if unread_count == 0 %}disabled style="opacity:0.5;cursor:not-allowed"{% endif %}>
+                <i class="fa-solid fa-check-double"></i> Tout marquer comme lu
+            </button>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS LIST -->
+    <div class="notifications-list" id="notificationsList">
+        {% if notifications %}
+            {% for notification in notifications %}
+            <div class="notification-card {% if not notification.is_read %}unread{% else %}read{% endif %}" 
+                 id="notif-{{ notification.id }}"
+                 data-id="{{ notification.id }}"
+                 data-read="{{ 'true' if notification.is_read else 'false' }}">
+                <div class="notif-icon-wrapper notif-icon-{{ notification.category }}">
+                    <i class="fa-solid {{ notification.icon }}"></i>
+                </div>
+                <div class="notif-body" onclick="markRead('{{ notification.id }}')">
+                    <div class="notif-title">
+                        {{ notification.title }}
+                        {% if not notification.is_read %}<span class="dot"></span>{% endif %}
+                    </div>
+                    <div class="notif-description">{{ notification.message }}</div>
+                    <div class="notif-meta">
+                        <span class="notif-date">
+                            <i class="fa-regular fa-clock"></i> {{ notification.date_label }}
+                        </span>
+                    </div>
+                </div>
+                <div class="notif-actions">
+                    {% if not notification.is_read %}
+                    <button class="notif-action-btn mark-read" title="Marquer comme lu" onclick="markRead('{{ notification.id }}')">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                    {% endif %}
+                    <button class="notif-action-btn delete" title="Supprimer" onclick="deleteNotif('{{ notification.id }}')">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- EMPTY STATE -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-illustration">
+                    <i class="fa-regular fa-bell"></i>
+                </div>
+                <h2>Aucune notification</h2>
+                <p>Vous recevrez ici toutes les activités importantes de votre compte. Les transferts, dépôts, retraits et mises à jour de sécurité apparaîtront automatiquement.</p>
+            </div>
+        {% endif %}
+    </div>
+</main>
+
+<!-- ===== TOAST ===== -->
+<div class="toast-fixed" id="toastFixed"></div>
+
+<script>
+const LOG_PREFIX = '[NOTIFICATIONS]';
+
+let _pollInterval = null;
+let _lastUnread = {{ unread_count }};
+
+/* ============================================================
+   MARQUER UNE NOTIFICATION COMME LUE
+   ============================================================ */
+async function markRead(notifId) {
+    const card = document.getElementById('notif-' + notifId);
+    if (!card) return;
+
+    // Optimistic UI
+    card.classList.remove('unread');
+    card.classList.add('read');
+    const dot = card.querySelector('.dot');
+    if (dot) dot.remove();
+    const markBtn = card.querySelector('.mark-read');
+    if (markBtn) markBtn.remove();
+
+    try {
+        const res = await fetch('/notifications/read/' + notifId, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            updateCounts(data.unread_count);
+        }
+    } catch (err) {
+        console.error(LOG_PREFIX, 'Erreur markRead:', err.message);
+        // Revert
+        card.classList.add('unread');
+        card.classList.remove('read');
+    }
+}
+
+/* ============================================================
+   SUPPRIMER UNE NOTIFICATION
+   ============================================================ */
+async function deleteNotif(notifId) {
+    const card = document.getElementById('notif-' + notifId);
+    if (!card) return;
+
+    if (!confirm('Supprimer cette notification ?')) return;
+
+    card.classList.add('removing');
+
+    try {
+        const res = await fetch('/notifications/delete/' + notifId, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            setTimeout(() => {
+                card.remove();
+                updateCounts(data.unread_count);
+                checkEmptyState();
+            }, 350);
+        } else {
+            card.classList.remove('removing');
+        }
+    } catch (err) {
+        console.error(LOG_PREFIX, 'Erreur deleteNotif:', err.message);
+        card.classList.remove('removing');
+    }
+}
+
+/* ============================================================
+   TOUT MARQUER COMME LU
+   ============================================================ */
+async function markAllRead() {
+    const unreadCards = document.querySelectorAll('.notification-card.unread');
+    if (unreadCards.length === 0) return;
+
+    if (!confirm('Marquer toutes les notifications comme lues ?')) return;
+
+    try {
+        const res = await fetch('/notifications/read-all', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            unreadCards.forEach(card => {
+                card.classList.remove('unread');
+                card.classList.add('read');
+                const dot = card.querySelector('.dot');
+                if (dot) dot.remove();
+                const markBtn = card.querySelector('.mark-read');
+                if (markBtn) markBtn.remove();
+            });
+            updateCounts(0);
+            // Disable button
+            const btn = document.getElementById('btnReadAll');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        }
+    } catch (err) {
+        console.error(LOG_PREFIX, 'Erreur markAllRead:', err.message);
+    }
+}
+
+/* ============================================================
+   METTRE À JOUR LES COMPTEURS
+   ============================================================ */
+function updateCounts(unreadCount) {
+    _lastUnread = unreadCount;
+
+    const unreadText = document.getElementById('unreadCountText');
+    const topbarBadge = document.getElementById('topbarUnreadCount');
+
+    if (unreadText) {
+        unreadText.textContent = unreadCount + ' non lue' + (unreadCount !== 1 ? 's' : '');
+        if (unreadCount === 0) {
+            document.getElementById('unreadBadge').style.display = 'none';
+        } else {
+            document.getElementById('unreadBadge').style.display = 'inline-flex';
+        }
+    }
+    if (topbarBadge) {
+        topbarBadge.textContent = unreadCount;
+        topbarBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+
+    // Also update sidebar badge
+    const sidebarLink = document.querySelector('.sidebar-link.active');
+    if (sidebarLink) {
+        const dot = sidebarLink.querySelector('.badge-dot');
+        if (unreadCount === 0 && dot) dot.remove();
+        if (unreadCount > 0 && !dot) {
+            const newDot = document.createElement('span');
+            newDot.className = 'badge-dot';
+            sidebarLink.appendChild(newDot);
+        }
+    }
+}
+
+/* ============================================================
+   VÉRIFIER L'ÉTAT VIDE
+   ============================================================ */
+function checkEmptyState() {
+    const list = document.getElementById('notificationsList');
+    const cards = list.querySelectorAll('.notification-card');
+    if (cards.length === 0 && !document.getElementById('emptyState')) {
+        const emptyHTML = `
+            <div class="empty-state" id="emptyState">
+                <div class="empty-illustration">
+                    <i class="fa-regular fa-bell"></i>
+                </div>
+                <h2>Aucune notification</h2>
+                <p>Vous recevrez ici toutes les activités importantes de votre compte.</p>
+            </div>`;
+        list.innerHTML = emptyHTML;
+    }
+}
+
+/* ============================================================
+   POLLING — Actualisation automatique toutes les 30 secondes
+   ============================================================ */
+async function pollNotifications() {
+    try {
+        const res = await fetch('/api/notifications');
+        const data = await res.json();
+
+        if (!data.success) return;
+
+        const newCount = data.unread_count;
+        console.log(LOG_PREFIX, '🔔 Poll — unread:', newCount, '(précédent:', _lastUnread, ')');
+
+        // Si le nombre a changé, recharger la liste
+        if (newCount !== _lastUnread) {
+            console.log(LOG_PREFIX, '📢 Changement détecté — rechargement...');
+            await reloadNotifications(data.notifications, newCount);
+        } else {
+            console.log(LOG_PREFIX, '✅ Aucun changement');
+        }
+    } catch (err) {
+        console.error(LOG_PREFIX, '❌ Erreur poll:', err.message);
+    }
+}
+
+async function reloadNotifications(notifications, unreadCount) {
+    const list = document.getElementById('notificationsList');
+
+    if (!notifications || notifications.length === 0) {
+        list.innerHTML = `
+            <div class="empty-state" id="emptyState">
+                <div class="empty-illustration">
+                    <i class="fa-regular fa-bell"></i>
+                </div>
+                <h2>Aucune notification</h2>
+                <p>Vous recevrez ici toutes les activités importantes de votre compte.</p>
+            </div>`;
+        updateCounts(0);
+        const btn = document.getElementById('btnReadAll');
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        return;
+    }
+
+    // Construire le HTML des nouvelles notifications
+    const iconsMap = {
+        'payment_received': 'fa-arrow-down-wide-short',
+        'payment_sent': 'fa-paper-plane',
+        'withdrawal': 'fa-building-columns',
+        'deposit': 'fa-wallet',
+        'kyc': 'fa-user-check',
+        'login': 'fa-right-to-bracket',
+        'security': 'fa-shield-halved',
+        'promo': 'fa-gift',
+        'support': 'fa-headset',
+        'system': 'fa-gear'
+    };
+
+    let html = '';
+    notifications.forEach(n => {
+        const icon = iconsMap[n.category] || 'fa-bell';
+        const isRead = n.is_read;
+        html += `
+            <div class="notification-card ${isRead ? 'read' : 'unread'}" 
+                 id="notif-${n.id}"
+                 data-id="${n.id}"
+                 data-read="${isRead}"
+                 style="animation: notifSlideIn 0.4s ease">
+                <div class="notif-icon-wrapper notif-icon-${n.category}">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="notif-body" onclick="markRead('${n.id}')">
+                    <div class="notif-title">
+                        ${n.title}
+                        ${!isRead ? '<span class="dot"></span>' : ''}
+                    </div>
+                    <div class="notif-description">${n.message}</div>
+                    <div class="notif-meta">
+                        <span class="notif-date">
+                            <i class="fa-regular fa-clock"></i> ${n.date_label}
+                        </span>
+                    </div>
+                </div>
+                <div class="notif-actions">
+                    ${!isRead ? `<button class="notif-action-btn mark-read" title="Marquer comme lu" onclick="markRead('${n.id}')"><i class="fa-solid fa-check"></i></button>` : ''}
+                    <button class="notif-action-btn delete" title="Supprimer" onclick="deleteNotif('${n.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>`;
+    });
+
+    list.innerHTML = html;
+    updateCounts(unreadCount);
+
+    // Activer/désactiver le bouton "Tout marquer comme lu"
+    const btn = document.getElementById('btnReadAll');
+    if (unreadCount === 0) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+    } else {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    }
+}
+
+function showToast(message, color) {
+    const toast = document.getElementById('toastFixed');
+    toast.textContent = message;
+    toast.style.background = color || 'var(--green)';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ============================================================
+   THEME
+   ============================================================ */
+const savedTheme = localStorage.getItem('transafrik-theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    console.log(LOG_PREFIX, '🚀 Page Notifications chargée — unread:', _lastUnread);
+
+    // Démarrer le polling toutes les 30 secondes
+    if (_pollInterval) clearInterval(_pollInterval);
+    _pollInterval = setInterval(pollNotifications, 30000);
+    console.log(LOG_PREFIX, '⏱️  Polling démarré (toutes les 30s)');
+});
+
+// Nettoyer l'intervalle quand on quitte la page
+window.addEventListener('beforeunload', () => {
+    if (_pollInterval) clearInterval(_pollInterval);
+});
+</script>
+
+</body>
+</html>

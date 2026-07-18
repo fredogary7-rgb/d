@@ -106,8 +106,8 @@ class User(db.Model, UserMixin):
 
     @property
     def unread_notifications(self):
-        """Count of unread notifications (placeholder – will use a future Notification model)."""
-        return 0
+        """Count of unread notifications."""
+        return Notification.query.filter_by(user_id=self.id, is_read=False).count()
 
     def recent_transactions(self, limit=5):
         return self.transactions.order_by(Transaction.created_at.desc()).limit(limit).all()
@@ -769,6 +769,104 @@ class SupportTicket(db.Model):
 
     def __repr__(self):
         return f'<SupportTicket {self.ticket_number} {self.status}>'
+
+
+class Notification(db.Model):
+    """Notification utilisateur — centre de notifications."""
+
+    __tablename__ = 'notifications'
+
+    CATEGORIES = [
+        'payment_received',
+        'payment_sent',
+        'withdrawal',
+        'deposit',
+        'kyc',
+        'login',
+        'security',
+        'promo',
+        'support',
+        'system',
+    ]
+
+    ICONS_MAP = {
+        'payment_received': 'fa-arrow-down-wide-short',
+        'payment_sent': 'fa-paper-plane',
+        'withdrawal': 'fa-building-columns',
+        'deposit': 'fa-wallet',
+        'kyc': 'fa-user-check',
+        'login': 'fa-right-to-bracket',
+        'security': 'fa-shield-halved',
+        'promo': 'fa-gift',
+        'support': 'fa-headset',
+        'system': 'fa-gear',
+    }
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    title = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(30), nullable=False, default='system', index=True)
+    is_read = db.Column(db.Boolean, default=False, index=True)
+    read_at = db.Column(db.DateTime, nullable=True)
+    link = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    # Relation
+    user = db.relationship('User', backref=db.backref('notifications', lazy='dynamic'))
+
+    @property
+    def icon(self):
+        return self.ICONS_MAP.get(self.category, 'fa-bell')
+
+    @property
+    def date_label(self):
+        """Retourne un label lisible pour la date (Aujourd'hui, Hier, etc.)."""
+        now = datetime.utcnow()
+        delta = now - (self.read_at or self.created_at)
+        days = delta.days
+
+        if days == 0:
+            secs = delta.total_seconds()
+            if secs < 60:
+                return "À l'instant"
+            elif secs < 3600:
+                mins = int(secs // 60)
+                return f"Il y a {mins} minute{'s' if mins > 1 else ''}"
+            elif secs < 7200:
+                return "Il y a 1 heure"
+            elif secs < 86400:
+                return f"Il y a {int(secs // 3600)} heures"
+            else:
+                return "Aujourd'hui"
+        elif days == 1:
+            return "Hier"
+        elif days <= 30:
+            return f"Il y a {days} jours"
+        elif days <= 365:
+            months = days // 30
+            return f"Il y a {months} mois"
+        else:
+            years = days // 365
+            return f"Il y a {years} an{'s' if years > 1 else ''}"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'message': self.message,
+            'category': self.category,
+            'icon': self.icon,
+            'is_read': self.is_read,
+            'read_at': self.read_at.isoformat() if self.read_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'date_label': self.date_label,
+            'link': self.link,
+        }
+
+    def __repr__(self):
+        return f'<Notification {self.id} user={self.user_id} category={self.category} read={self.is_read}>'
 
 
 class SupportMessage(db.Model):

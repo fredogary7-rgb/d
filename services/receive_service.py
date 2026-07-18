@@ -350,6 +350,68 @@ def process_receive_payment(
 
 
 # ═══════════════════════════════════════════════════════════
+# TRAITEMENT DE PAIEMENT LIBRE (PAY LINK)
+# ═══════════════════════════════════════════════════════════
+
+def process_free_payment(
+    sender_id: int,
+    receiver_id: int,
+    amount: int,
+    currency: str = "XOF",
+) -> Tuple[bool, Optional[TransactionReceive], Optional[str]]:
+    """Traite un paiement libre (sans demande préalable) vers un utilisateur.
+
+    Args:
+        sender_id: ID de l'utilisateur qui paie
+        receiver_id: ID de l'utilisateur qui reçoit
+        amount: Montant payé en unités mineures
+        currency: Devise
+
+    Returns:
+        Tuple (success, transaction_or_None, error_message_or_None)
+    """
+    if sender_id == receiver_id:
+        return False, None, "Vous ne pouvez pas vous payer vous-même."
+
+    if amount <= 0:
+        return False, None, "Le montant doit être supérieur à 0."
+
+    # Vérifier les utilisateurs
+    sender = User.query.get(sender_id)
+    receiver = User.query.get(receiver_id)
+
+    if not sender or not receiver:
+        return False, None, "Utilisateur introuvable."
+
+    if sender.balance < amount:
+        return False, None, f"Solde insuffisant. Votre solde est de {sender.balance} {currency}."
+
+    # Créer la transaction
+    reference = generate_receive_reference()
+    tx = TransactionReceive(
+        payment_request_id=None,
+        sender_id=sender_id,
+        receiver_id=receiver_id,
+        amount=amount,
+        currency=currency,
+        status="completed",
+        reference=reference,
+        description=f"Paiement libre de {sender.fullname or sender.username} à {receiver.fullname or receiver.username}",
+    )
+    db.session.add(tx)
+
+    # Créditer le receveur
+    receiver.balance = (receiver.balance or 0) + amount
+
+    # Débiter le payeur
+    sender.balance = sender.balance - amount
+
+    db.session.commit()
+
+    return True, tx, None
+
+
+# ═══════════════════════════════════════════════════════════
 # RECHERCHE D'UTILISATEUR
 # ═══════════════════════════════════════════════════════════
 
@@ -357,31 +419,34 @@ def search_user_for_payment(query: str) -> Optional[Dict[str, Any]]:
     """Recherche un utilisateur pour un paiement par username, email, téléphone ou UUID.
 
     Args:
-        query: Terme de recherche
+        query: Terme de recherche (ex: username, email partiel, phone, UUID)
 
     Returns:
         Dictionnaire utilisateur si trouvé, None sinon
     """
+    # 1) Chercher par username (partie avant @) — prioritaire
     user = User.query.filter(
-        db.or_(
-            User.email.ilike(f"%{query}%"),
-            User.phone.ilike(f"%{query}%"),
-            User.qr_identifier == query,
-        )
+        User.email.ilike(f"{query}@%")
     ).first()
 
+    # 2) Chercher par QR identifier (UUID) — exact match
     if not user:
-        # Chercher par username (partie avant @)
-        user = User.query.filter(
-            User.email.ilike(f"{query}@%")
-        ).first()
+        user = User.query.filter(User.qr_identifier == query).first()
+
+    # 3) Chercher par phone partiel
+    if not user:
+        user = User.query.filter(User.phone.ilike(f"%{query}%")).first()
+
+    # 4) Chercher par email partiel (fallback large)
+    if not user:
+        user = User.query.filter(User.email.ilike(f"%{query}%")).first()
 
     if not user:
         return None
 
     return {
         "id": user.id,
-        "fullname": user.fullname,
+        "fullname": user.fullname or "Utilisateur",
         "username": user.username,
         "email": user.email,
         "phone": user.phone,
