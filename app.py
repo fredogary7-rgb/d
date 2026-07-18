@@ -76,6 +76,10 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 db.init_app(app)
 
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db.session.remove()
+
 # Register admin blueprint
 app.register_blueprint(admin_bp)
 
@@ -97,7 +101,10 @@ login_manager.login_message_category = 'info'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    try:
+        return db.session.get(User, int(user_id))
+    except Exception:
+        return None
 
 # Create tables
 with app.app_context():
