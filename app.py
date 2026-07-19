@@ -609,11 +609,9 @@ def api_withdraw_fees():
     currency = data.get('currency', 'XOF').upper()
     operator_id = int(data.get('operator_id', 0))
 
-    op_info = None
-    for key, op in OPERATORS.items():
-        if op['id'] == operator_id:
-            op_info = op
-            break
+    from config.operators import get_operator_by_id
+
+    op_info = get_operator_by_id(operator_id)
 
     if not op_info:
         return jsonify({'success': False, 'message': 'Opérateur invalide.'}), 400
