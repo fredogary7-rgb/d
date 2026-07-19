@@ -423,6 +423,7 @@
   width: 100%;
   box-sizing: border-box;
   color: var(--text-2);
+  overflow-x: hidden;
 }
 
 /* HEADER */
@@ -959,13 +960,15 @@
   border: 1px solid var(--border);
   border-radius: var(--sup-radius);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: var(--shadow-sm);
+  max-width: 100%;
 }
 
 .support-tickets-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 700px;
+  min-width: 600px;
 }
 
 .support-tickets-table th,
@@ -1441,6 +1444,17 @@ a.support-contact-value:hover {
 @media (max-width: 768px) {
   .support-page {
     padding: 4px 0 40px;
+    overflow-x: hidden;
+  }
+
+  .support-tickets-table {
+    min-width: 500px;
+    font-size: 0.75rem;
+  }
+
+  .support-tickets-table th,
+  .support-tickets-table td {
+    padding: 8px 10px;
   }
 
   .support-header {

@@ -13,6 +13,7 @@ from admin import admin_bp
 from admin.models import AdminLog, AdminUser, PlatformNotification, SystemConfig, UserNotification
 from models import (Beneficiary, Notification, PaymentRequest, SupportMessage, SupportTicket,
                     Transaction, TransactionReceive, User, PushSubscription, db)
+from services.push_service import send_push_to_user
 
 
 # ── Decorator ──────────────────────────────────────────────────────────────
@@ -261,6 +262,13 @@ def toggle_user(user_id):
         'new_status': str(user.is_active)
     })
     db.session.commit()
+    try:
+        if user.is_active:
+            send_push_to_user(user.id, "✅ Compte réactivé", "Votre compte TransAfrik a été réactivé par l'administrateur.", url="/dashboard")
+        else:
+            send_push_to_user(user.id, "⚠️ Compte suspendu", "Votre compte TransAfrik a été suspendu. Contactez le support pour plus d'informations.", url="/support")
+    except Exception:
+        pass
     flash(f'Utilisateur {"activé" if user.is_active else "suspendu"} avec succès.', 'success')
     return redirect(url_for('admin.users'))
 
@@ -273,6 +281,10 @@ def soft_delete_user(user_id):
     user.is_deleted = True
     log_action(admin, 'user_delete', 'user', user.id, {'user_email': user.email})
     db.session.commit()
+    try:
+        send_push_to_user(user.id, "❌ Compte supprimé", "Votre compte TransAfrik a été supprimé par l'administrateur.", url="/")
+    except Exception:
+        pass
     flash('Utilisateur supprimé avec succès.', 'success')
     return redirect(url_for('admin.users'))
 
@@ -309,6 +321,10 @@ def credit_user(user_id):
         'user_email': user.email
     })
     db.session.commit()
+    try:
+        send_push_to_user(user.id, "💰 Compte crédité", f"Votre compte a été crédité de {amount:,.0f} {user.currency or 'XOF'} par l'administrateur.", url="/dashboard")
+    except Exception:
+        pass
     flash(f'Compte crédité de {amount:,.0f} {user.currency or "XOF"}.', 'success')
     return redirect(url_for('admin.user_detail', user_id=user_id))
 
@@ -347,6 +363,10 @@ def debit_user(user_id):
         'user_email': user.email
     })
     db.session.commit()
+    try:
+        send_push_to_user(user.id, "💸 Compte débité", f"Votre compte a été débité de {amount:,.0f} {user.currency or 'XOF'} par l'administrateur.", url="/dashboard")
+    except Exception:
+        pass
     flash(f'Compte débité de {amount:,.0f} {user.currency or "XOF"}.', 'success')
     return redirect(url_for('admin.user_detail', user_id=user_id))
 
@@ -364,6 +384,10 @@ def reset_user_password(user_id):
     user.password_hash = generate_password_hash(new_password)
     log_action(admin, 'user_password_reset', 'user', user.id, {'user_email': user.email})
     db.session.commit()
+    try:
+        send_push_to_user(user.id, "🔑 Mot de passe réinitialisé", "Votre mot de passe a été réinitialisé par l'administrateur. Utilisez votre nouveau mot de passe pour vous connecter.", url="/connexion")
+    except Exception:
+        pass
     flash(f'Mot de passe réinitialisé pour {user.email}.', 'success')
     return redirect(url_for('admin.user_detail', user_id=user_id))
 
@@ -405,6 +429,10 @@ def kyc_approve(user_id):
     user.kyc_status = 'verified'
     log_action(admin, 'kyc_approve', 'user', user.id, {'user_email': user.email})
     db.session.commit()
+    try:
+        send_push_to_user(user.id, "✅ KYC approuvé", "Votre vérification d'identité a été approuvée. Toutes les fonctionnalités sont désormais débloquées !", url="/dashboard")
+    except Exception:
+        pass
     flash('KYC approuvé avec succès.', 'success')
     return redirect(url_for('admin.kyc'))
 
@@ -421,6 +449,11 @@ def kyc_reject(user_id):
         'note': note
     })
     db.session.commit()
+    try:
+        reason_text = f" : {note}" if note else ""
+        send_push_to_user(user.id, "❌ KYC refusé", f"Votre vérification d'identité a été refusée{reason_text}. Veuillez soumettre de nouveaux documents.", url="/kyc")
+    except Exception:
+        pass
     flash('KYC refusé.', 'warning')
     return redirect(url_for('admin.kyc'))
 
