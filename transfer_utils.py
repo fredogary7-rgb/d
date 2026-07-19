@@ -1,55 +1,88 @@
 """
 Utilitaires pour les transferts d'argent.
 
-Fonctions pures, sans dépendance Flask ni base de données.
+Délègue le calcul des frais au moteur avancé services/fees.py
+(tranches, pays, opérateurs, VIP, promos).
 """
 
-# Configuration des frais — sera déplacée en base de données ou fichier .env plus tard
-FEE_PERCENTAGE = 1.0       # 1%
-FEE_MINIMUM = 100          # minimum 100 FCFA (en unités mineures)
-FEE_MAXIMUM = 10000        # plafond à 10 000 FCFA (optionnel, 0 = illimité)
+from services.fees import calculate_fee as _engine_calculate_fee
 
 
-def calculate_fees(amount: int) -> int:
+def calculate_fees(
+    amount: int,
+    sender_country: str = "",
+    receiver_country: str = "",
+    sender_operator: str = "",
+    receiver_operator: str = "",
+    promo_code: str = None,
+    user_tier: str = "standard",
+    user_id: int = None,
+) -> int:
     """
-    Calcule les frais de transfert.
-
-    Règle :
-        - 1% du montant
-        - Minimum 100 FCFA
-        - Plafond 10 000 FCFA (si FEE_MAXIMUM > 0)
+    Calcule les frais de transfert via le moteur avancé.
 
     Args:
-        amount: Montant en unités mineures (ex: 5000 = 5000 XOF).
+        amount:            Montant envoyé (unités mineures).
+        sender_country:    Code pays émetteur (ex: "TG").
+        receiver_country:  Code pays destinataire (ex: "BJ").
+        sender_operator:   Slug opérateur émetteur (ex: "tmoney").
+        receiver_operator: Slug opérateur destinataire (ex: "mtn").
+        promo_code:        Code promotionnel optionnel.
+        user_tier:         Tier utilisateur ("standard", "silver", "gold", "platinum").
+        user_id:           ID utilisateur pour frais personnalisés.
 
     Returns:
-        int: Frais arrondis à l'entier supérieur, en unités mineures.
+        int: Frais en unités mineures.
     """
-    import math
+    result = _engine_calculate_fee(
+        amount=amount,
+        sender_country=sender_country,
+        receiver_country=receiver_country,
+        sender_operator=sender_operator,
+        receiver_operator=receiver_operator,
+        promo_code=promo_code,
+        user_tier=user_tier,
+        user_id=user_id,
+    )
+    return result["fees"]
 
-    if amount <= 0:
-        return 0
 
-    fee = amount * FEE_PERCENTAGE / 100.0
-    fee = max(FEE_MINIMUM, fee)
-    if FEE_MAXIMUM > 0:
-        fee = min(FEE_MAXIMUM, fee)
-    fee = int(math.ceil(fee))
-
-    return fee
-
-
-def calculate_total(amount: int) -> int:
+def calculate_total(
+    amount: int,
+    sender_country: str = "",
+    receiver_country: str = "",
+    sender_operator: str = "",
+    receiver_operator: str = "",
+    promo_code: str = None,
+    user_tier: str = "standard",
+    user_id: int = None,
+) -> int:
     """
     Calcule le total à payer (montant + frais).
 
     Args:
-        amount: Montant en unités mineures.
+        amount:            Montant envoyé (unités mineures).
+        sender_country:    Code pays émetteur.
+        receiver_country:  Code pays destinataire.
+        sender_operator:   Slug opérateur émetteur.
+        receiver_operator: Slug opérateur destinataire.
+        promo_code:        Code promotionnel optionnel.
+        user_tier:         Tier utilisateur.
+        user_id:           ID utilisateur pour frais personnalisés.
 
     Returns:
         int: Total à payer.
     """
-    return amount + calculate_fees(amount)
+    return amount + calculate_fees(
+        amount=amount,
+        sender_country=sender_country,
+        receiver_country=receiver_country,
+        sender_operator=sender_operator,
+        receiver_operator=receiver_operator,
+        promo_code=promo_code,
+        user_tier=user_tier,
+        user_id=user_id,
+    )
 
 
 def format_currency(amount: int, currency: str = "XOF") -> str:

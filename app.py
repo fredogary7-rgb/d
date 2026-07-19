@@ -483,8 +483,24 @@ def send_money():
         if errors:
             return jsonify({'success': False, 'message': errors[0], 'errors': errors}), 400
 
-        fees = calculate_fees(amount)
-        total_amount = calculate_total(amount)
+        fees = calculate_fees(
+            amount,
+            sender_country=sender_country,
+            receiver_country=receiver_country,
+            sender_operator=sender_operator,
+            receiver_operator=receiver_operator,
+            user_tier=getattr(current_user, 'tier', 'standard'),
+            user_id=current_user.id,
+        )
+        total_amount = calculate_total(
+            amount,
+            sender_country=sender_country,
+            receiver_country=receiver_country,
+            sender_operator=sender_operator,
+            receiver_operator=receiver_operator,
+            user_tier=getattr(current_user, 'tier', 'standard'),
+            user_id=current_user.id,
+        )
 
         def clean_phone(num):
             return num.replace('+', '').replace(' ', '').replace('-', '').strip()
@@ -929,8 +945,26 @@ def profile_delete_account():
 def api_calculate_fees():
     data = request.get_json()
     amount = int(data.get('amount', 0))
-    fees = calculate_fees(amount)
-    total = calculate_total(amount)
+    fees = calculate_fees(
+        amount,
+        sender_country=data.get('sender_country', ''),
+        receiver_country=data.get('receiver_country', ''),
+        sender_operator=data.get('sender_operator', ''),
+        receiver_operator=data.get('receiver_operator', ''),
+        promo_code=data.get('promo_code'),
+        user_tier=getattr(current_user, 'tier', 'standard'),
+        user_id=current_user.id,
+    )
+    total = calculate_total(
+        amount,
+        sender_country=data.get('sender_country', ''),
+        receiver_country=data.get('receiver_country', ''),
+        sender_operator=data.get('sender_operator', ''),
+        receiver_operator=data.get('receiver_operator', ''),
+        promo_code=data.get('promo_code'),
+        user_tier=getattr(current_user, 'tier', 'standard'),
+        user_id=current_user.id,
+    )
     return jsonify({
         'amount': amount,
         'fees': fees,

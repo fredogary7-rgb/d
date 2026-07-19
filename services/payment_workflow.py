@@ -22,6 +22,7 @@ import logging
 from typing import Dict, Any, Optional
 
 from services.soleaspay import pay_in, withdraw, SOLEAS_WALLET
+from services.push_service import send_push_to_user
 from services.transfer_service import (
     mark_waiting_payment,
     mark_payment_processing,
@@ -383,6 +384,30 @@ def handle_withdraw_success(
 
     logger.info(f"Status    : COMPLETED 🎉")
     logger.info("=" * 60)
+
+    # ---- Notification push à l'expéditeur ----
+    try:
+        from models import db, Notification
+        send_push_to_user(
+            user_id=transfer.sender_user_id,
+            title="Transfert réussi ! 🎉",
+            body=f"Votre transfert de {transfer.amount:,} {transfer.currency} vers {transfer.receiver_name} a été effectué avec succès.",
+            url=f"/send-money/confirm?ref={transfer.reference}",
+            tag=f"transfer-{transfer.reference}",
+            data={"reference": transfer.reference, "amount": transfer.amount, "currency": transfer.currency},
+        )
+        # Notification in-app
+        notif = Notification(
+            user_id=transfer.sender_user_id,
+            title="Transfert réussi",
+            message=f"Votre transfert de {transfer.amount:,} {transfer.currency} vers {transfer.receiver_name} a été effectué avec succès.",
+            type="transfer_success",
+            data={"reference": transfer.reference},
+        )
+        db.session.add(notif)
+        db.session.commit()
+    except Exception as push_err:
+        logger.warning(f"[PUSH] Échec notification transfert réussi: {push_err}")
 
     return {
         "success": True,
