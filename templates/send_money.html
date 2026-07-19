@@ -137,6 +137,7 @@ const OP_SHORT = {tmoney:'TM',moov:'MV',mtn:'MTN',orange:'OR',wave:'WV',airtel:'
 let step=1;
 let selSenderCountry=null, selSenderOp=null, selReceiverCountry=null, selReceiverOp=null;
 let amount=0, senderPhone=USER_PHONE||'', receiverPhone='', receiverName='';
+let feesResult = null;  // {fees, total, receiver_gets} from API
 
 // ---- Pré-remplissage depuis les query params (scan QR) ----
 (function autoFillFromQR(){
@@ -220,18 +221,20 @@ function renderStep2(sc,nav){
 
 function renderStep3(sc,nav){
     const currency = selReceiverCountry?selReceiverCountry.currency:'XOF';
-    const fee = Math.ceil(amount*0.01);
-    const recv = amount - fee;
+    const currencySymbol = currency==='XAF'?'FCFA':currency==='CDF'?'FC':currency==='UGX'?'USh':currency==='ZMW'?'ZK':currency;
+    let fee = feesResult ? feesResult.fees : 0;
+    let recv = feesResult ? feesResult.receiver_gets : amount;
+    let total = feesResult ? feesResult.total : amount;
     sc.innerHTML=`
         <div class="sec"><div class="sl">Étape 3 sur 3</div>
         <div class="st"><div class="si"><i class="fa-solid fa-clipboard-check"></i></div> Résumé du transfert</div></div>
         <div class="summary"><div class="sh"><i class="fa-solid fa-circle-check"></i><h3>Prêt à envoyer</h3><p style="font-size:11px;color:var(--text-4)">Vérifiez les détails avant de continuer.</p></div>
         <div class="sr"><div class="srl"><i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl">Expéditeur</div><div class="srv">${selSenderCountry.flag} ${selSenderCountry.name} · ${selSenderOp.name} · ${senderPhone}</div></div></div><div></div></div>
         <div class="sr"><div class="srl"><i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i><div><div class="srlbl">Destinataire</div><div class="srv">${selReceiverCountry.flag} ${selReceiverCountry.name} · ${selReceiverOp.name} · ${receiverPhone}${receiverName?' ('+receiverName+')':''}</div></div></div><div></div></div>
-        <div class="sr"><div class="srl"><i class="fa-solid fa-paper-plane" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl">Vous envoyez</div></div></div><div class="sra send">${amount.toLocaleString('fr')} ${currency}</div></div>
-        <div class="sr"><div class="srl"><i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i><div><div class="srlbl">Frais (1%)</div></div></div><div class="sra fee">${fee.toLocaleString('fr')} ${currency}</div></div>
-        <div class="sr srhl"><div class="srl"><i class="fa-solid fa-circle-dollar" style="background:var(--green-light);color:var(--green)"></i><div><div class="srlbl">Bénéficiaire reçoit</div></div></div><div class="sra recv">${recv.toLocaleString('fr')} ${currency}</div></div>
-        <div class="sr"><div class="srl"><i class="fa-solid fa-cart-shopping" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl" style="font-size:11px;color:var(--text)">Total à payer</div></div></div><div class="sra total" style="color:var(--blue);font-size:18px;">${amount.toLocaleString('fr')} ${currency}</div></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-paper-plane" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl">Vous envoyez</div></div></div><div class="sra send">${amount.toLocaleString('fr')} ${currencySymbol}</div></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i><div><div class="srlbl">Frais</div></div></div><div class="sra fee">${fee.toLocaleString('fr')} ${currencySymbol}</div></div>
+        <div class="sr srhl"><div class="srl"><i class="fa-solid fa-circle-dollar" style="background:var(--green-light);color:var(--green)"></i><div><div class="srlbl">Bénéficiaire reçoit</div></div></div><div class="sra recv">${recv.toLocaleString('fr')} ${currencySymbol}</div></div>
+        <div class="sr"><div class="srl"><i class="fa-solid fa-cart-shopping" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="srlbl" style="font-size:11px;color:var(--text)">Total à payer</div></div></div><div class="sra total" style="color:var(--blue);font-size:18px;">${total.toLocaleString('fr')} ${currencySymbol}</div></div>
         <div style="text-align:center;padding:16px 0 0"><p style="font-size:10px;color:var(--text-4)"><i class="fa-solid fa-lock"></i> Paiement sécurisé via SoleasPay · Instantané</p></div></div>`;
     nav.innerHTML=`<button class="btno" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button><button class="btn" onclick="submitTransfer()"><i class="fa-solid fa-lock"></i> Confirmer le transfert</button>`;
 }
@@ -249,14 +252,40 @@ function onAmt(v){
     if(calc){if(amount>0){calc.style.display='block';calc.style.animation='none';calc.offsetHeight;calc.style.animation='scaleIn .4s ease-out'}else calc.style.display='none'}
     updateCalc();checkStep2();
 }
-function updateCalc(){
+async function updateCalc(){
     let currency=selReceiverCountry?selReceiverCountry.currency:'XOF';
-    let fee=Math.ceil(amount*0.01),recv=amount-fee;
+    let currencySymbol=currency==='XAF'?'FCFA':currency==='CDF'?'FC':currency==='UGX'?'USh':currency==='ZMW'?'ZK':currency;
     let el=id=>document.getElementById(id);
-    if(el('cvSend'))el('cvSend').textContent=amount.toLocaleString('fr')+' '+currency;
-    if(el('cvFee'))el('cvFee').textContent=fee.toLocaleString('fr')+' '+currency;
-    if(el('cvRecv'))el('cvRecv').textContent=recv.toLocaleString('fr')+' '+currency;
-    if(el('cvTotal'))el('cvTotal').textContent=amount.toLocaleString('fr')+' '+currency;
+    // Afficher "... calcul..." pendant le chargement
+    if(el('cvFee'))el('cvFee').textContent='...';
+    if(el('cvTotal'))el('cvTotal').textContent='...';
+    if(amount<=0)return;
+    try{
+        let res=await fetch('/api/calculate-fees',{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                amount,
+                sender_country:selSenderCountry?selSenderCountry.code:'',
+                receiver_country:selReceiverCountry?selReceiverCountry.code:'',
+                sender_operator:selSenderOp?selSenderOp.id:'',
+                receiver_operator:selReceiverOp?selReceiverOp.id:'',
+                promo_code:'',
+                user_tier:'standard'
+            })
+        });
+        let json=await res.json();
+        if(json.success&&json.data){
+            feesResult=json.data;
+        }else{
+            feesResult={fees:0,total:amount,receiver_gets:amount};
+        }
+    }catch(e){
+        feesResult={fees:0,total:amount,receiver_gets:amount};
+    }
+    if(el('cvSend'))el('cvSend').textContent=amount.toLocaleString('fr')+' '+currencySymbol;
+    if(el('cvFee'))el('cvFee').textContent=feesResult.fees.toLocaleString('fr')+' '+currencySymbol;
+    if(el('cvRecv'))el('cvRecv').textContent=feesResult.receiver_gets.toLocaleString('fr')+' '+currencySymbol;
+    if(el('cvTotal'))el('cvTotal').textContent=feesResult.total.toLocaleString('fr')+' '+currencySymbol;
 }
 function setPreset(v){amount=v;let inp=document.getElementById('amtInp');if(inp)inp.value=v;onAmt(v)}
 

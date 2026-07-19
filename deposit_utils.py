@@ -38,23 +38,25 @@ def get_deposit_operators_for_country(country_code: str) -> list[dict]:
 
 def calculate_deposit_fees(amount: float, currency: str = "XOF") -> dict:
     """
-    Calcule les frais de dépôt.
-    Règle : 1.5% du montant, minimum 100 unités, maximum 5000 unités.
+    Calcule les frais de dépôt via le moteur de frais unifié (services/fees.py).
     """
-    fee_rate = 0.015
-    min_fee = 100
-    max_fee = 5000
+    from services.fees import calculate_fee as _engine_calculate_fee
 
-    fee = amount * fee_rate
-    fee = max(min_fee, min(fee, max_fee))
-    fee = round(fee)
-
-    total = amount + fee
-
+    amount_minor = int(amount)
+    result = _engine_calculate_fee(
+        amount=amount_minor,
+        sender_country="",
+        receiver_country="",
+        sender_operator="",
+        receiver_operator="",
+        promo_code=None,
+        user_tier="standard",
+        user_id=None,
+    )
     return {
-        "amount": int(amount),
-        "fees": fee,
-        "total": total,
+        "amount": result["amount"],
+        "fees": result["fees"],
+        "total": result["total"],
         "currency": currency,
     }
 
