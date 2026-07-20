@@ -4,14 +4,15 @@ Client SoleasPay — Couche service bas niveau (aucune dépendance Flask).
 Toutes les requêtes HTTP vers l'API SoleasPay transitent par ce fichier.
 
 Endpoints :
-  - pay_in()    -> POST /api/agent/bills/v3    (Pay-In : collecter un paiement)
-  - withdraw()  -> POST /api/action/account/withdraw  (Payout : envoyer de l'argent)
+  - pay_in()        -> POST /api/agent/bills/v3       (Pay-In : collecter un paiement)
+  - obtenir_token() -> POST /api/action/auth           (obtention du Bearer token)
+  - withdraw()      -> POST /api/action/account/withdraw  (Payout : envoyer de l'argent)
 
 Configuration via variables d'environnement :
-  SOLEAS_API_KEY       : clé API (utilisée dans le header x-api-key pour pay_in)
-  SOLEAS_BEARER_TOKEN  : token Bearer pour les opérations de retrait
-  SOLEAS_WALLET        : numéro du wallet SoleasPay
-  SOLEAS_BASE_URL      : URL de base (défaut : https://soleaspay.com)
+  SOLEAS_API_KEY        : clé API publique (PUBLIC_API_KEY pour l'auth)
+  PRIVATE_SECRET_KEY    : clé secrète (utilisée avec PUBLIC_API_KEY pour /api/action/auth)
+  SOLEAS_WALLET         : numéro du wallet SoleasPay
+  SOLEAS_BASE_URL       : URL de base (défaut : https://soleaspay.com)
 """
 
 import os
@@ -36,10 +37,13 @@ if not logger.handlers:
 # ---------------------------------------------------------------------------
 # Configuration depuis l'environnement
 # ---------------------------------------------------------------------------
-SOLEAS_API_KEY = os.getenv("SOLEAS_API_KEY", "")
-SOLEAS_BEARER_TOKEN = os.getenv("SOLEAS_BEARER_TOKEN", "")
+SOLEAS_API_KEY = os.getenv("SOLEAS_API_KEY", "")                # PUBLIC_API_KEY
+PRIVATE_SECRET_KEY = os.getenv("PRIVATE_SECRET_KEY", "")         # clé secrète
 SOLEAS_WALLET = os.getenv("SOLEAS_WALLET", "")
 SOLEAS_BASE_URL = os.getenv("SOLEAS_BASE_URL", "https://soleaspay.com")
+
+# Cache du token (évite de rappeler /api/action/auth à chaque withdraw)
+_token_cache: Dict[str, Any] = {"access_token": None, "expires_at": 0}
 
 # ---------------------------------------------------------------------------
 # Pay-In : Collecter un paiement depuis un client Mobile Money
@@ -133,6 +137,77 @@ def pay_in(
 
 
 # ---------------------------------------------------------------------------
+# Authentification : obtention du token Bearer
+# ---------------------------------------------------------------------------
+
+def obtenir_token() -> str:
+    """Obtient un access_token via POST /api/action/auth.
+
+    Utilise PUBLIC_API_KEY (x-api-key) et PRIVATE_SECRET_KEY (x-private-key).
+
+    Returns:
+        str: access_token valide (jamais vide).
+
+    Raises:
+        RuntimeError: si les variables d'environnement sont manquantes,
+                      si l'API ne renvoie pas de access_token,
+                      ou si la requête échoue.
+    """
+    # ---- Vérification des variables d'environnement ----
+    if not SOLEAS_API_KEY:
+        raise RuntimeError(
+            "Impossible d'obtenir le token SoleasPay : "
+            "SOLEAS_API_KEY (PUBLIC_API_KEY) est vide. "
+            "Vérifiez la variable d'environnement SOLEAS_API_KEY."
+        )
+    if not PRIVATE_SECRET_KEY:
+        raise RuntimeError(
+            "Impossible d'obtenir le token SoleasPay : "
+            "PRIVATE_SECRET_KEY est vide. "
+            "Vérifiez la variable d'environnement PRIVATE_SECRET_KEY."
+        )
+
+    url = f"{SOLEAS_BASE_URL}/api/action/auth"
+    headers = {
+        "x-api-key": SOLEAS_API_KEY,
+        "x-private-key": PRIVATE_SECRET_KEY,
+        "Content-Type": "application/json",
+    }
+
+    logger.info("=" * 50)
+    logger.info("====== OBTENIR TOKEN ======")
+    logger.info(f"URL            : {url}")
+    logger.info(f"x-api-key      : {SOLEAS_API_KEY[:15]}... (len={len(SOLEAS_API_KEY)})")
+    logger.info(f"x-private-key  : {PRIVATE_SECRET_KEY[:15]}... (len={len(PRIVATE_SECRET_KEY)})")
+    logger.info("=" * 50)
+
+    try:
+        resp = requests.post(url, headers=headers, timeout=30)
+        logger.info(f"Status auth    : {resp.status_code}")
+        logger.info(f"Response auth  : {resp.text[:1000]}")
+
+        resp.raise_for_status()
+        data = resp.json()
+        logger.info(f"JSON parsé     : {json.dumps(data, indent=2)[:500]}")
+
+        access_token = data.get("access_token") or data.get("token") or data.get("data", {}).get("access_token")
+
+        if not access_token:
+            logger.error(f"Aucun access_token trouvé dans la réponse. Clés disponibles : {list(data.keys())}")
+            raise RuntimeError(
+                "Impossible d'obtenir le token SoleasPay : "
+                "access_token absent de la réponse de /api/action/auth."
+            )
+
+        logger.info(f"Token obtenu   : len={len(str(access_token))}, preview={str(access_token)[:10]}...")
+        return access_token
+
+    except requests.RequestException as e:
+        logger.error(f"Échec auth SoleasPay : {e}")
+        raise RuntimeError(f"Impossible d'obtenir le token SoleasPay : {e}") from e
+
+
+# ---------------------------------------------------------------------------
 # Withdraw / Payout : Envoyer de l'argent vers un bénéficiaire
 # ---------------------------------------------------------------------------
 
@@ -142,14 +217,13 @@ def withdraw(
     amount: float,
     currency: str = "",
 ) -> Dict[str, Any]:
-    """
-    Retire de l'argent du compte SoleasPay vers un compte bénéficiaire (Payout).
+    """Retire de l'argent du compte SoleasPay vers un compte bénéficiaire (Payout).
 
     POST /api/action/account/withdraw
     Headers :
-        Authorization   : Bearer {SOLEAS_BEARER_TOKEN}
+        Authorization   : Bearer {access_token} (obtenu via obtenir_token())
         operation       : 4
-        service         : ID du service (ex: 37 pour T-MONEY TG)
+        service         : ID du service
         Content-Type    : application/json
     Body :
         wallet          : Numéro du wallet bénéficiaire
@@ -159,10 +233,23 @@ def withdraw(
     Returns:
         dict: Réponse JSON de SoleasPay.
     """
+    # ---- Obtention dynamique du token ----
+    try:
+        token = obtenir_token()
+    except RuntimeError as e:
+        logger.error(f"Impossible d'appeler withdraw() : {e}")
+        return {"success": False, "message": str(e), "code": 0, "status": "ERROR"}
+
+    if not token:
+        logger.critical("obtenir_token() a retourné une chaîne vide — withdraw() annulé")
+        return {"success": False, "message": "Token d'authentification vide.", "code": 0, "status": "ERROR"}
+
+    logger.info(f"Token length for withdraw: {len(token)}")
+
     url = f"{SOLEAS_BASE_URL}/api/action/account/withdraw"
 
     headers = {
-        "Authorization": f"Bearer {SOLEAS_BEARER_TOKEN}",
+        "Authorization": f"Bearer {token}",
         "operation": "4",
         "service": str(service),
         "Content-Type": "application/json",
