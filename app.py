@@ -1041,9 +1041,18 @@ def _handle_payment_webhook(payload: dict):
       payload.data.external_reference = "DEP-20260720-9855A8" ou "E-123"
       payload.data.reference          = "MLS6a5e50b94b63eB" (interne SoleasPay)
     """
-    data = payload.get('data') if isinstance(payload.get('data'), dict) else {}
-    external_ref = data.get('external_reference') or payload.get('external_reference') or payload.get('order_id') or ''
-    internal_ref = data.get('reference') or ''
+    data_block = payload.get('data')
+    data = data_block if isinstance(data_block, dict) else {}
+    format_type = 'A (data wrapper)' if data else 'B (plat)'
+    webhook_logger.info(f'WEBHOOK PURCHASE format={format_type} payload_keys={list(payload.keys())[:10]}')
+    external_ref = (
+        data.get('external_reference')
+        or payload.get('externalRef')
+        or payload.get('external_reference')
+        or payload.get('order_id')
+        or ''
+    )
+    internal_ref = data.get('reference') or payload.get('internalRef') or ''
     transfer = get_transfer_by_reference(external_ref) if external_ref else None
 
     # ---- Fallback : chercher un Deposit par external_reference ----
@@ -1185,7 +1194,7 @@ def _handle_payment_webhook(payload: dict):
             f"Operation : PURCHASE\n"
             f"Status : SUCCESS\n"
             f"Reference : {transfer.reference}\n"
-            f"User : {transfer.user_id}\n"
+            f"User : {transfer.sender_user_id}\n"
             f"Result : COMPLETED"
         )
         return jsonify({
@@ -1203,7 +1212,7 @@ def _handle_payment_webhook(payload: dict):
             f"Operation : PURCHASE\n"
             f"Status : FAILED\n"
             f"Reference : {transfer.reference}\n"
-            f"User : {transfer.user_id}\n"
+            f"User : {transfer.sender_user_id}\n"
             f"Result : FAILED"
         )
         return jsonify({
@@ -1232,6 +1241,10 @@ def _handle_withdraw_webhook(payload: dict):
 
     On cherche d'abord un Withdrawal, puis un Transfer (ancien flux).
     """
+    data_block = payload.get('data')
+    data = data_block if isinstance(data_block, dict) else {}
+    format_type = 'A (data wrapper)' if data else 'B (plat)'
+    webhook_logger.info(f'WEBHOOK WITHDRAW format={format_type} payload_keys={list(payload.keys())[:10]}')
     data = payload.get('data', {})
     if isinstance(data, list) and len(data) > 0:
         soleas_ref = data[0].get('reference') or ''
@@ -1341,7 +1354,7 @@ def _handle_withdraw_webhook(payload: dict):
             f"Operation : WITHDRAW\n"
             f"Status : SUCCESS\n"
             f"Reference : {transfer.reference}\n"
-            f"User : {transfer.user_id}\n"
+            f"User : {transfer.sender_user_id}\n"
             f"Result : COMPLETED"
         )
         return jsonify({
@@ -1357,7 +1370,7 @@ def _handle_withdraw_webhook(payload: dict):
             f"Operation : WITHDRAW\n"
             f"Status : FAILED\n"
             f"Reference : {transfer.reference}\n"
-            f"User : {transfer.user_id}\n"
+            f"User : {transfer.sender_user_id}\n"
             f"Result : FAILED"
         )
         return jsonify({
