@@ -153,57 +153,115 @@ def obtenir_token() -> str:
                       si l'API ne renvoie pas de access_token,
                       ou si la requête échoue.
     """
-    # ---- Vérification des variables d'environnement ----
-    if not SOLEAS_API_KEY:
+    # ---- Chargement et nettoyage des variables d'environnement ----
+    raw_api_key = os.getenv("SOLEAS_API_KEY", "")
+    raw_private_key = os.getenv("PRIVATE_SECRET_KEY", "")
+
+    # Strip pour éliminer espaces, \n, \r, caractères invisibles
+    api_key = raw_api_key.strip() if raw_api_key else ""
+    private_key = raw_private_key.strip() if raw_private_key else ""
+
+    # ---- Logs de diagnostic (sans afficher les clés en entier) ----
+    logger.info("=" * 70)
+    logger.info("====== DIAGNOSTIC AUTH SOLEASPAY ======")
+    logger.info(f"SOLEAS_API_KEY     : vide={not bool(raw_api_key)}, "
+                f"len_raw={len(raw_api_key)}, len_stripped={len(api_key)}")
+    if api_key:
+        logger.info(f"  premiers car.   : {repr(api_key[:8])}")
+        logger.info(f"  derniers car.   : {repr(api_key[-8:])}")
+        logger.info(f"  contient \\n     : {repr(chr(10)) in raw_api_key}")
+        logger.info(f"  contient \\r     : {repr(chr(13)) in raw_api_key}")
+        logger.info(f"  contient espace : {' ' in raw_api_key}")
+    logger.info(f"PRIVATE_SECRET_KEY : vide={not bool(raw_private_key)}, "
+                f"len_raw={len(raw_private_key)}, len_stripped={len(private_key)}")
+    if private_key:
+        logger.info(f"  premiers car.   : {repr(private_key[:8])}")
+        logger.info(f"  derniers car.   : {repr(private_key[-8:])}")
+        logger.info(f"  contient \\n     : {repr(chr(10)) in raw_private_key}")
+        logger.info(f"  contient \\r     : {repr(chr(13)) in raw_private_key}")
+        logger.info(f"  contient espace : {' ' in raw_private_key}")
+
+    # ---- Vérification ----
+    if not api_key:
         raise RuntimeError(
             "Impossible d'obtenir le token SoleasPay : "
-            "SOLEAS_API_KEY (PUBLIC_API_KEY) est vide. "
+            "SOLEAS_API_KEY est vide après nettoyage. "
             "Vérifiez la variable d'environnement SOLEAS_API_KEY."
         )
-    if not PRIVATE_SECRET_KEY:
+    if not private_key:
         raise RuntimeError(
             "Impossible d'obtenir le token SoleasPay : "
-            "PRIVATE_SECRET_KEY est vide. "
+            "PRIVATE_SECRET_KEY est vide après nettoyage. "
             "Vérifiez la variable d'environnement PRIVATE_SECRET_KEY."
         )
 
     url = f"{SOLEAS_BASE_URL}/api/action/auth"
     headers = {
-        "x-api-key": SOLEAS_API_KEY,
-        "x-private-key": PRIVATE_SECRET_KEY,
+        "x-api-key": api_key,
+        "x-private-key": private_key,
         "Content-Type": "application/json",
     }
 
-    logger.info("=" * 50)
-    logger.info("====== OBTENIR TOKEN ======")
-    logger.info(f"URL            : {url}")
-    logger.info(f"x-api-key      : {SOLEAS_API_KEY[:15]}... (len={len(SOLEAS_API_KEY)})")
-    logger.info(f"x-private-key  : {PRIVATE_SECRET_KEY[:15]}... (len={len(PRIVATE_SECRET_KEY)})")
-    logger.info("=" * 50)
+    # ---- Log du payload HTTP réel ----
+    logger.info("--- Requête HTTP ---")
+    logger.info(f"URL             : {url}")
+    logger.info(f"Méthode         : POST")
+    logger.info(f"Headers envoyés :")
+    for k, v in headers.items():
+        if k.lower() in ("x-api-key", "x-private-key"):
+            logger.info(f"  {k}: {v[:10]}...{v[-6:]} (len={len(v)})")
+        else:
+            logger.info(f"  {k}: {v}")
+    logger.info(f"Body (JSON)     : (aucun — clés dans les headers uniquement)")
+    logger.info(f"Timeout         : 30s")
+    logger.info("=" * 70)
 
     try:
         resp = requests.post(url, headers=headers, timeout=30)
-        logger.info(f"Status auth    : {resp.status_code}")
-        logger.info(f"Response auth  : {resp.text[:1000]}")
+        logger.info(f"Status HTTP     : {resp.status_code}")
+        logger.info(f"Headers réponse : {dict(resp.headers)}")
+        logger.info(f"Body réponse    : {resp.text[:2000]}")
+
+        # Tenter de parser le JSON même si le statut n'est pas 2xx
+        try:
+            data = resp.json()
+            logger.info(f"JSON parsé      : {json.dumps(data, indent=2)[:1000]}")
+        except Exception:
+            data = {}
+            logger.info("La réponse n'est pas du JSON valide.")
+
+        # Si 401, c'est un problème de credentials — ne pas relancer
+        if resp.status_code == 401:
+            logger.critical(
+                "AUTH ÉCHOUÉE (401 Bad credentials) — causes possibles :\n"
+                "  1. L'API /api/action/auth attend les clés dans le body JSON\n"
+                "     (ex: {'public_key': '...', 'private_key': '...'}) et non dans les headers.\n"
+                "  2. Les identifiants fournis par SoleasPay sont incorrects ou révoqués.\n"
+                "  3. Le service 'retrait' (withdraw) n'est pas activé sur le compte SoleasPay.\n"
+                "  4. L'URL de base SOLEAS_BASE_URL pointe vers le mauvais environnement."
+            )
+            raise RuntimeError(
+                "Impossible d'obtenir le token SoleasPay : "
+                "l'API a répondu 401 Bad credentials. "
+                "Vérifiez les logs de diagnostic ci-dessus."
+            )
 
         resp.raise_for_status()
-        data = resp.json()
-        logger.info(f"JSON parsé     : {json.dumps(data, indent=2)[:500]}")
 
         access_token = data.get("access_token") or data.get("token") or data.get("data", {}).get("access_token")
 
         if not access_token:
-            logger.error(f"Aucun access_token trouvé dans la réponse. Clés disponibles : {list(data.keys())}")
+            logger.error(f"Aucun access_token trouvé. Clés disponibles : {list(data.keys())}")
             raise RuntimeError(
                 "Impossible d'obtenir le token SoleasPay : "
                 "access_token absent de la réponse de /api/action/auth."
             )
 
-        logger.info(f"Token obtenu   : len={len(str(access_token))}, preview={str(access_token)[:10]}...")
+        logger.info(f"Token obtenu    : len={len(str(access_token))}, preview={str(access_token)[:10]}...")
         return access_token
 
     except requests.RequestException as e:
-        logger.error(f"Échec auth SoleasPay : {e}")
+        logger.error(f"Échec requête auth : {e}")
         raise RuntimeError(f"Impossible d'obtenir le token SoleasPay : {e}") from e
 
 
