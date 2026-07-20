@@ -126,10 +126,10 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
     except (TypeError, ValueError):
         return {"success": False, "error": "Montant invalide."}
 
-    amount_minor = int(round(amount_display * 100))
+    amount_minor = int(amount_display)
     if amount_minor < MIN_WITHDRAWAL_AMOUNT:
         return {"success": False,
-                "error": f"Montant minimum : {MIN_WITHDRAWAL_AMOUNT / 100:.2f} {currency}."}
+                "error": f"Montant minimum : {MIN_WITHDRAWAL_AMOUNT} {currency}."}
 
     # ---- Validation 3 : Numéro ----
     phone = phone.replace(" ", "").replace("-", "").replace(".", "")
@@ -145,7 +145,7 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
             if conv.get("success", True) is False:
                 return {"success": False, "error": f"Conversion {currency} → {op_currency} impossible."}
             converted_display = float(conv.get("result", amount_display))
-            converted_minor = int(round(converted_display * 100))
+            converted_minor = int(converted_display)
         except Exception:
             return {"success": False, "error": f"Erreur de conversion {currency} → {op_currency}."}
     else:

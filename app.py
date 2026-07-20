@@ -996,18 +996,29 @@ ch = logging.StreamHandler()
 ch.setFormatter(logging.Formatter('[%(asctime)s] WEBHOOK | %(message)s'))
 webhook_logger.addHandler(ch)
 
-SOLEAS_WEBHOOK_SECRET = os.getenv('SOLEAS_WEBHOOK_SECRET', '')
+SOLEAS_WEBHOOK_SECRET = os.getenv('SOLEAS_WEBHOOK_SECRET', '')  # Clé privée SoleasPay (envoyée dans x-private-key)
 
 
-def _verify_webhook_signature(payload_body: bytes, signature_header: str) -> bool:
-    if not SOLEAS_WEBHOOK_SECRET:
-        webhook_logger.warning('SOLEAS_WEBHOOK_SECRET non configuré — signature ignorée')
+def _verify_webhook_signature(payload_body: bytes, private_key_header: str) -> bool:
+    """Vérifie que le header x-private-key correspond à la clé privée configurée.
+
+    SoleasPay envoie la clé privée directement dans le header x-private-key
+    (pas de signature HMAC). On compare en temps constant pour éviter les
+    attaques par timing.
+
+    Ordre de priorité pour la clé attendue :
+      1. SOLEAS_WEBHOOK_SECRET (si défini)
+      2. PRIVATE_SECRET_KEY (fallback — format SP_...)
+    """
+    expected_key = SOLEAS_WEBHOOK_SECRET or os.getenv('PRIVATE_SECRET_KEY', '')
+    if not expected_key:
+        webhook_logger.warning('Aucune clé privée configurée (SOLEAS_WEBHOOK_SECRET ou PRIVATE_SECRET_KEY) — signature ignorée')
         return True
-    if not signature_header:
-        webhook_logger.warning('Signature manquante dans le header')
+    if not private_key_header:
+        webhook_logger.warning('Header x-private-key manquant — webhook rejeté')
         return False
-    computed = hmac.new(SOLEAS_WEBHOOK_SECRET.encode('utf-8'), payload_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(computed, signature_header)
+    # Comparaison en temps constant de la clé privée
+    return hmac.compare_digest(expected_key.encode('utf-8'), private_key_header.encode('utf-8'))
 
 
 def _log_webhook(webhook_type: str, reference: str, status: str, payload: dict):
@@ -1169,6 +1180,8 @@ def _handle_withdraw_webhook(payload: dict):
 @app.route('/webhook/soleaspay', methods=['POST'])
 def webhook_soleaspay():
     """Webhook unifié SoleasPay — route unique pour PURCHASE et WITHDRAW."""
+    # Diagnostic : afficher tous les headers reçus
+    print(dict(request.headers))
     signature = request.headers.get('x-private-key', '')
     raw_body = request.get_data()
     if not _verify_webhook_signature(raw_body, signature):
@@ -1515,6 +1528,8 @@ def api_deposit_status(reference):
 
 @app.route('/webhook/soleaspay/deposit', methods=['POST'])
 def webhook_deposit():
+    # Diagnostic : afficher tous les headers reçus
+    print(dict(request.headers))
     signature = request.headers.get('x-private-key', '')
     raw_body = request.get_data()
     if not _verify_webhook_signature(raw_body, signature):
