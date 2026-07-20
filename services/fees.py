@@ -204,7 +204,7 @@ def _apply_operator_modifier(
     """
     Applique un modificateur multiplicatif par opérateur (ex: "1.1x").
     """
-    for op_slug in (receiver_operator.lower(), sender_operator.lower()):
+    for op_slug in ((receiver_operator or "").lower(), (sender_operator or "").lower()):
         if not op_slug:
             continue
         op_override = OPERATOR_FEE_OVERRIDES.get(op_slug, {})

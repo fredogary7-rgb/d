@@ -259,7 +259,8 @@ def _calculate_withdrawal_fee(amount: int, sender_country: str,
             "receiver_gets": amount,
             "total": amount + result.get("fees", 0),
         }
-    except Exception:
+    except Exception as e:
+        logger.error(f"[WITHDRAW_FEE] Erreur calcul frais: {e}", exc_info=True)
         return {"fees": 0, "receiver_gets": amount, "total": amount}
 
 
