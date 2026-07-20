@@ -1226,12 +1226,11 @@ def _handle_payment_webhook(payload: dict):
 def _handle_withdraw_webhook(payload: dict):
     """Logique de traitement d'un webhook WITHDRAW.
 
-    Format réel SoleasPay :
-      payload.data.reference          = "MLS6a5e51204207eP" → withdrawal.withdraw_reference
-      payload.data.external_reference = "ofwe5nbCQ9x853WrTDub" → ref interne SoleasPay
+    SoleasPay envoie deux formats :
+      A) Avec "data" wrapper : data.reference / data.external_reference
+      B) Format plat         : internalRef / externalRef
 
-    On cherche d'abord par data.reference (withdraw_reference), puis
-    par data.external_reference, puis fallback sur Transfer.
+    On cherche d'abord un Withdrawal, puis un Transfer (ancien flux).
     """
     data = payload.get('data', {})
     if isinstance(data, list) and len(data) > 0:
@@ -1244,6 +1243,12 @@ def _handle_withdraw_webhook(payload: dict):
         soleas_ref = ''
         external_ref = ''
 
+    # ---- Format B : plat (internalRef/externalRef en top-level) ----
+    if not soleas_ref:
+        soleas_ref = payload.get('internalRef') or payload.get('reference') or ''
+    if not external_ref:
+        external_ref = payload.get('externalRef') or payload.get('external_reference') or ''
+
     display_ref = soleas_ref or external_ref
     _log_webhook('WITHDRAW', display_ref, payload.get('status', 'UNKNOWN'), payload)
 
@@ -1255,14 +1260,20 @@ def _handle_withdraw_webhook(payload: dict):
         f"ExternalRef : {external_ref}"
     )
 
-    # ---- 1. Chercher un Withdrawal par withdraw_reference (= data.reference) ----
+    # ---- 1. Chercher un Withdrawal par withdraw_reference ou withdraw_external_reference ----
     withdrawal = None
     if soleas_ref:
-        withdrawal = Withdrawal.query.filter_by(withdraw_reference=soleas_ref).first()
+        withdrawal = Withdrawal.query.filter(
+            (Withdrawal.withdraw_reference == soleas_ref) |
+            (Withdrawal.withdraw_external_reference == soleas_ref)
+        ).first()
 
     # ---- 2. Fallback : chercher par external_reference ----
     if not withdrawal and external_ref:
-        withdrawal = Withdrawal.query.filter_by(external_reference=external_ref).first()
+        withdrawal = Withdrawal.query.filter(
+            (Withdrawal.withdraw_reference == external_ref) |
+            (Withdrawal.withdraw_external_reference == external_ref)
+        ).first()
 
     if withdrawal:
         webhook_logger.info(f"Withdrawal trouvé: id={withdrawal.id} withdraw_ref={withdrawal.withdraw_reference} status={withdrawal.status}")
@@ -1291,7 +1302,25 @@ def _handle_withdraw_webhook(payload: dict):
         })
 
     # ---- 3. Fallback : chercher un Transfer (ancien flux) ----
-    transfer = get_transfer_by_reference(display_ref) if display_ref else None
+    transfer = None
+    if display_ref:
+        transfer = Transfer.query.filter(
+            (Transfer.reference == display_ref) |
+            (Transfer.withdraw_reference == display_ref) |
+            (Transfer.withdraw_external_reference == display_ref)
+        ).first()
+    if not transfer and soleas_ref:
+        transfer = Transfer.query.filter(
+            (Transfer.reference == soleas_ref) |
+            (Transfer.withdraw_reference == soleas_ref) |
+            (Transfer.withdraw_external_reference == soleas_ref)
+        ).first()
+    if not transfer and external_ref:
+        transfer = Transfer.query.filter(
+            (Transfer.reference == external_ref) |
+            (Transfer.withdraw_reference == external_ref) |
+            (Transfer.withdraw_external_reference == external_ref)
+        ).first()
     if not transfer:
         webhook_logger.warning(f'Aucun Withdrawal ni Transfer trouvé pour reference={display_ref}')
         return jsonify({'success': False, 'message': 'Aucune entité trouvée pour cette référence.'}), 404
