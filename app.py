@@ -1169,7 +1169,7 @@ def _handle_withdraw_webhook(payload: dict):
 @app.route('/webhook/soleaspay', methods=['POST'])
 def webhook_soleaspay():
     """Webhook unifié SoleasPay — route unique pour PURCHASE et WITHDRAW."""
-    signature = request.headers.get('x-private-key', '')
+    signature = request.headers.get('X-SoleasPay-Signature', '')
     raw_body = request.get_data()
     if not _verify_webhook_signature(raw_body, signature):
         webhook_logger.warning('Signature invalide — webhook rejeté')
@@ -1515,7 +1515,7 @@ def api_deposit_status(reference):
 
 @app.route('/webhook/soleaspay/deposit', methods=['POST'])
 def webhook_deposit():
-    signature = request.headers.get('x-private-key', '')
+    signature = request.headers.get('X-SoleasPay-Signature', '')
     raw_body = request.get_data()
     if not _verify_webhook_signature(raw_body, signature):
         webhook_logger.warning('Signature invalide — webhook dépôt rejeté')
