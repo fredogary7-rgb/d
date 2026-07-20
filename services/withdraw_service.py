@@ -234,8 +234,13 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
             external_reference=external_ref,
         )
         withdrawal.response_payload = json.dumps(resp)
-        withdrawal.withdraw_reference = resp.get("reference", "")
-        withdrawal.external_reference = resp.get("external_reference", "")
+        # Extraire depuis data.reference (structure réelle SoleasPay)
+        data_block = resp.get("data", {}) or {}
+        withdrawal.withdraw_reference = data_block.get("reference", "") or resp.get("reference", "")
+        # Ne pas écraser notre external_reference si l'API renvoie null
+        api_external = data_block.get("external_reference", "") or resp.get("external_reference", "")
+        if api_external:
+            withdrawal.external_reference = api_external
 
         if resp.get("success", True) is False or resp.get("status") in ("FAILED", "REJECTED", "CANCELLED", "ERROR"):
             _handle_failed_withdrawal(withdrawal, user, txn, resp)

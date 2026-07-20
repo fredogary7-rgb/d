@@ -1001,25 +1001,30 @@ SOLEAS_WEBHOOK_SECRET = os.getenv('SOLEAS_WEBHOOK_SECRET', '')  # Clé privée S
 
 
 def _verify_webhook_signature(payload_body: bytes, private_key_header: str) -> bool:
-    """Vérifie que le header x-private-key correspond à la clé privée configurée.
+    """Vérifie que le header x-private-key correspond à une clé autorisée.
 
-    SoleasPay envoie la clé privée directement dans le header x-private-key
-    (pas de signature HMAC). On compare en temps constant pour éviter les
-    attaques par timing.
-
-    Ordre de priorité pour la clé attendue :
-      1. SOLEAS_WEBHOOK_SECRET (si défini)
-      2. PRIVATE_SECRET_KEY (fallback — format SP_...)
+    SoleasPay envoie la clé privée dans le header x-private-key.
+    Plusieurs clés sont acceptées (SoleasPay utilise des clés différentes selon l'environnement).
     """
-    expected_key = SOLEAS_WEBHOOK_SECRET or os.getenv('PRIVATE_SECRET_KEY', '')
-    if not expected_key:
-        webhook_logger.warning('Aucune clé privée configurée (SOLEAS_WEBHOOK_SECRET ou PRIVATE_SECRET_KEY) — signature ignorée')
+    keys = [SOLEAS_WEBHOOK_SECRET] if SOLEAS_WEBHOOK_SECRET else []
+    extra = os.getenv('SOLEAS_EXTRA_KEYS', '')
+    if extra:
+        keys.extend(k.strip() for k in extra.split(',') if k.strip())
+
+    if not keys:
+        webhook_logger.warning('Aucune clé privée configurée — webhook accepté sans vérification')
         return True
     if not private_key_header:
         webhook_logger.warning('Header x-private-key manquant — webhook rejeté')
         return False
-    # Comparaison en temps constant de la clé privée
-    return hmac.compare_digest(expected_key.encode('utf-8'), private_key_header.encode('utf-8'))
+
+    for key in keys:
+        if hmac.compare_digest(key.encode('utf-8'), private_key_header.encode('utf-8')):
+            webhook_logger.info(f'Signature webhook validée (clé {key[:8]}...)')
+            return True
+
+    webhook_logger.warning(f'Signature invalide : header={private_key_header[:16]}... ne correspond à aucune clé autorisée')
+    return False
 
 
 def _log_webhook(webhook_type: str, reference: str, status: str, payload: dict):
@@ -1030,9 +1035,22 @@ def _log_webhook(webhook_type: str, reference: str, status: str, payload: dict):
 # ==================== WEBHOOKS SOLEASPAY ====================
 
 def _handle_payment_webhook(payload: dict):
-    """Logique de traitement d'un webhook PURCHASE (Pay-In)."""
-    external_ref = payload.get('external_reference') or payload.get('order_id') or ''
+    """Logique de traitement d'un webhook PURCHASE (Pay-In / Dépôt).
+
+    Format réel SoleasPay :
+      payload.data.external_reference = "DEP-20260720-9855A8" ou "E-123"
+      payload.data.reference          = "MLS6a5e50b94b63eB" (interne SoleasPay)
+    """
+    data = payload.get('data') if isinstance(payload.get('data'), dict) else {}
+    external_ref = data.get('external_reference') or payload.get('external_reference') or payload.get('order_id') or ''
+    internal_ref = data.get('reference') or ''
     transfer = get_transfer_by_reference(external_ref) if external_ref else None
+
+    # ---- Fallback : chercher un Deposit par external_reference ----
+    deposit = None
+    if not transfer and external_ref:
+        deposit = Deposit.query.filter_by(reference=external_ref).first()
+
     _log_webhook('PURCHASE', external_ref, payload.get('status', 'UNKNOWN'), payload)
 
     webhook_logger.info(
@@ -1041,6 +1059,44 @@ def _handle_payment_webhook(payload: dict):
         f"Status : {payload.get('status', 'UNKNOWN')}\n"
         f"Reference : {external_ref}"
     )
+
+    # ---- Traiter un Deposit si trouvé ----
+    if deposit and not transfer:
+        if deposit.status != 'PAYMENT_PROCESSING':
+            return jsonify({'success': True, 'message': f'Dépôt déjà traité (statut={deposit.status})'})
+
+        if is_payment_success(payload):
+            deposit.webhook_payload = payload
+            deposit.status = 'COMPLETED'
+            deposit.status_message = 'Dépôt confirmé — portefeuille crédité.'
+            deposit.user.balance = (deposit.user.balance or 0) + deposit.amount
+            tx = Transaction(
+                user_id=deposit.user_id,
+                type='deposit',
+                amount=deposit.amount,
+                currency=deposit.currency,
+                fee=deposit.fees,
+                status='success',
+                recipient_name=deposit.user.fullname,
+                recipient_phone=deposit.phone,
+                recipient_country=deposit.country,
+                recipient_operator=deposit.operator,
+            )
+            db.session.add(tx)
+            db.session.commit()
+            webhook_logger.info(f'Dépôt COMPLETED via webhook unifié: {deposit.reference}, montant={deposit.amount}')
+            return jsonify({'success': True, 'message': 'Dépôt confirmé', 'status': 'COMPLETED'})
+        elif is_payment_failed(payload):
+            deposit.webhook_payload = payload
+            deposit.status = 'FAILED'
+            deposit.status_message = payload.get('message', 'Échec du dépôt')
+            db.session.commit()
+            webhook_logger.info(f'Dépôt FAILED via webhook unifié: {deposit.reference}')
+            return jsonify({'success': False, 'message': 'Dépôt échoué', 'status': 'FAILED'})
+        else:
+            deposit.webhook_payload = payload
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Statut inconnu, payload enregistré'})
 
     if not transfer:
         webhook_logger.warning(f'Transfer introuvable pour external_reference={external_ref}')
@@ -1105,30 +1161,46 @@ def _handle_payment_webhook(payload: dict):
 def _handle_withdraw_webhook(payload: dict):
     """Logique de traitement d'un webhook WITHDRAW.
 
-    Recherche d'abord un Withdrawal (nouveau flux direct) par external_reference,
-    puis un Transfer (ancien flux) par reference/external_reference.
+    Format réel SoleasPay :
+      payload.data.reference          = "MLS6a5e51204207eP" → withdrawal.withdraw_reference
+      payload.data.external_reference = "ofwe5nbCQ9x853WrTDub" → ref interne SoleasPay
+
+    On cherche d'abord par data.reference (withdraw_reference), puis
+    par data.external_reference, puis fallback sur Transfer.
     """
     data = payload.get('data', {})
     if isinstance(data, list) and len(data) > 0:
-        ref = data[0].get('external_reference') or data[0].get('reference') or ''
+        soleas_ref = data[0].get('reference') or ''
+        external_ref = data[0].get('external_reference') or ''
     elif isinstance(data, dict):
-        ref = data.get('external_reference') or data.get('reference') or ''
+        soleas_ref = data.get('reference') or ''
+        external_ref = data.get('external_reference') or ''
     else:
-        ref = ''
+        soleas_ref = ''
+        external_ref = ''
 
-    _log_webhook('WITHDRAW', ref, payload.get('status', 'UNKNOWN'), payload)
+    display_ref = soleas_ref or external_ref
+    _log_webhook('WITHDRAW', display_ref, payload.get('status', 'UNKNOWN'), payload)
 
     webhook_logger.info(
         f"WEBHOOK RECEIVED\n"
         f"Operation : WITHDRAW\n"
         f"Status : {payload.get('status', 'UNKNOWN')}\n"
-        f"Reference : {ref}"
+        f"SoleasRef : {soleas_ref}\n"
+        f"ExternalRef : {external_ref}"
     )
 
-    # ---- 1. Chercher un Withdrawal par external_reference (nouveau flux) ----
-    withdrawal = Withdrawal.query.filter_by(external_reference=ref).first() if ref else None
+    # ---- 1. Chercher un Withdrawal par withdraw_reference (= data.reference) ----
+    withdrawal = None
+    if soleas_ref:
+        withdrawal = Withdrawal.query.filter_by(withdraw_reference=soleas_ref).first()
+
+    # ---- 2. Fallback : chercher par external_reference ----
+    if not withdrawal and external_ref:
+        withdrawal = Withdrawal.query.filter_by(external_reference=external_ref).first()
+
     if withdrawal:
-        webhook_logger.info(f"Withdrawal trouvé: id={withdrawal.id} external_ref={ref} status={withdrawal.status}")
+        webhook_logger.info(f"Withdrawal trouvé: id={withdrawal.id} withdraw_ref={withdrawal.withdraw_reference} status={withdrawal.status}")
         if withdrawal.status not in ('WITHDRAW_PROCESSING', 'WAITING_WITHDRAW'):
             webhook_logger.info(f'Webhook ignoré (idempotent) : withdrawal déjà au statut {withdrawal.status}')
             return jsonify({
@@ -1143,20 +1215,20 @@ def _handle_withdraw_webhook(payload: dict):
             f"WEBHOOK RESULT\n"
             f"Operation : WITHDRAW\n"
             f"Status : {'SUCCESS' if success else 'FAILED'}\n"
-            f"ExternalRef : {withdrawal.external_reference}\n"
+            f"WithdrawRef : {withdrawal.withdraw_reference}\n"
             f"User : {withdrawal.user_id}"
         )
         return jsonify({
             'success': success,
             'message': 'Retrait traité avec succès' if success else 'Retrait échoué',
-            'external_reference': withdrawal.external_reference,
+            'withdraw_reference': withdrawal.withdraw_reference,
             'status': withdrawal.status,
         })
 
-    # ---- 2. Fallback : chercher un Transfer (ancien flux) ----
-    transfer = get_transfer_by_reference(ref) if ref else None
+    # ---- 3. Fallback : chercher un Transfer (ancien flux) ----
+    transfer = get_transfer_by_reference(display_ref) if display_ref else None
     if not transfer:
-        webhook_logger.warning(f'Aucun Withdrawal ni Transfer trouvé pour reference={ref}')
+        webhook_logger.warning(f'Aucun Withdrawal ni Transfer trouvé pour reference={display_ref}')
         return jsonify({'success': False, 'message': 'Aucune entité trouvée pour cette référence.'}), 404
 
     if transfer.status != 'WITHDRAW_PROCESSING':
@@ -1574,7 +1646,8 @@ def webhook_deposit():
     if not payload:
         return jsonify({'success': False, 'message': 'Payload invalide'}), 400
 
-    external_ref = payload.get('external_reference') or payload.get('order_id') or ''
+    data = payload.get('data') if isinstance(payload.get('data'), dict) else {}
+    external_ref = data.get('external_reference') or payload.get('external_reference') or payload.get('order_id') or ''
     deposit = Deposit.query.filter_by(reference=external_ref).first()
     _log_webhook('DEPOSIT', external_ref, payload.get('status', 'UNKNOWN'), payload)
 
