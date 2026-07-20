@@ -190,7 +190,59 @@ MODE_CONFIGS = [
         "body": lambda ak, pk: {"email": ak, "password": pk},
         "label": "BODY email + password",
     },
+    # Mode 7 : Basic Auth (Authorization: Basic base64(ak:pk))
+    {
+        "id": "basic_auth",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: None,
+        "label": "BASIC AUTH (Authorization header via _essayer)",
+    },
+    # Mode 8 : body client_id + client_secret
+    {
+        "id": "body_client_id_secret",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"client_id": ak, "client_secret": pk},
+        "label": "BODY client_id + client_secret",
+    },
+    # Mode 9 : body grant_type=client_credentials + client_id + client_secret
+    {
+        "id": "body_oauth2_client_credentials",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"grant_type": "client_credentials", "client_id": ak, "client_secret": pk},
+        "label": "BODY grant_type=client_credentials + client_id + client_secret",
+    },
+    # Mode 10 : body grant_type=password + username + password (OAuth2 Resource Owner)
+    {
+        "id": "body_oauth2_password",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"grant_type": "password", "username": ak, "password": pk},
+        "label": "BODY grant_type=password + username + password",
+    },
+    # Mode 11 : form-urlencoded grant_type=client_credentials
+    {
+        "id": "form_oauth2_client_credentials",
+        "headers": lambda ak, pk: {"Content-Type": "application/x-www-form-urlencoded"},
+        "body": lambda ak, pk: None,  # sera traité spécialement
+        "label": "FORM grant_type=client_credentials",
+    },
+    # Mode 12 : form-urlencoded grant_type=password
+    {
+        "id": "form_oauth2_password",
+        "headers": lambda ak, pk: {"Content-Type": "application/x-www-form-urlencoded"},
+        "body": lambda ak, pk: None,  # sera traité spécialement
+        "label": "FORM grant_type=password",
+    },
+    # Mode 13 : query param ?action=auth
+    {
+        "id": "query_action_auth",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: None,
+        "label": "QUERY ?action=auth (GET request)",
+    },
 ]
+
+
+import base64 as _base64
 
 
 def _essayer_auth(url: str, api_key: str, private_key: str, config: dict) -> Dict[str, Any]:
@@ -205,24 +257,63 @@ def _essayer_auth(url: str, api_key: str, private_key: str, config: dict) -> Dic
     Returns:
         dict: réponse JSON parsée (peut contenir code, message, access_token).
     """
+    import base64
+
     label = config["label"]
+    mode_id = config["id"]
     headers = config["headers"](api_key, private_key)
     body = config["body"](api_key, private_key)
 
     logger.info(f"[AUTH] {label}")
     logger.info(f"  URL            : {url}")
+
+    # ---- Gestion des modes spéciaux ----
+    # Basic Auth
+    if mode_id == "basic_auth":
+        credentials = f"{api_key}:{private_key}"
+        encoded = base64.b64encode(credentials.encode()).decode()
+        headers["Authorization"] = f"Basic {encoded}"
+        logger.info(f"  Header Authorization: Basic {encoded[:15]}... (len={len(encoded)})")
+
+    # Form-urlencoded
+    form_data = None
+    if mode_id in ("form_oauth2_client_credentials", "form_oauth2_password"):
+        if mode_id == "form_oauth2_client_credentials":
+            form_data = {"grant_type": "client_credentials", "client_id": api_key, "client_secret": private_key}
+        else:
+            form_data = {"grant_type": "password", "username": api_key, "password": private_key}
+        logger.info(f"  Form data      : grant_type={form_data['grant_type']}, "
+                    f"{'client_id' if 'client_id' in form_data else 'username'}={api_key[:10]}...")
+
+    # Query param GET
+    query_params = None
+    if mode_id == "query_action_auth":
+        query_params = {"action": "auth", "public_key": api_key, "private_key": private_key}
+        logger.info(f"  Query params   : action=auth, public_key={api_key[:10]}...")
+
+    # ---- Log headers ----
     for k, v in headers.items():
         if "key" in k.lower() or "secret" in k.lower() or "private" in k.lower():
             logger.info(f"  Header {k}: {v[:10]}...{v[-6:]} (len={len(v)})")
+        elif k.lower() == "authorization":
+            logger.info(f"  Header {k}: {v[:25]}... (len={len(v)})")
         else:
             logger.info(f"  Header {k}: {v}")
+
     if body:
         body_preview = {}
         for bk, bv in body.items():
             body_preview[bk] = f"{str(bv)[:10]}... (len={len(str(bv))})" if bk.lower() in ("private_key", "privatekey", "secret", "password", "api_secret", "key") else bv
         logger.info(f"  Body           : {json.dumps(body_preview)}")
 
-    resp = requests.post(url, headers=headers, json=body, timeout=30)
+    # ---- Envoyer la requête avec la bonne méthode ----
+    if mode_id == "query_action_auth":
+        resp = requests.get(url, params=query_params, headers=headers, timeout=30)
+    elif mode_id in ("form_oauth2_client_credentials", "form_oauth2_password"):
+        resp = requests.post(url, headers=headers, data=form_data, timeout=30)
+    else:
+        resp = requests.post(url, headers=headers, json=body, timeout=30)
+
     logger.info(f"  Status HTTP    : {resp.status_code}")
     logger.info(f"  Body réponse   : {resp.text[:500]}")
 
