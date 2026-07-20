@@ -141,98 +141,105 @@ def pay_in(
 # ---------------------------------------------------------------------------
 
 MODE_CONFIGS = [
-    # Mode 0 : headers x-api-key + x-private-key
+    # Mode 0 : ✅ FORMAT OFFICIEL SOLEASPAY — public_apikey + private_secretkey (body JSON)
+    {
+        "id": "body_public_apikey_private_secretkey",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"public_apikey": ak, "private_secretkey": pk},
+        "label": "✅ BODY public_apikey + private_secretkey (officiel)",
+    },
+    # Mode 1 : headers x-api-key + x-private-key
     {
         "id": "headers",
         "headers": lambda ak, pk: {"x-api-key": ak, "x-private-key": pk, "Content-Type": "application/json"},
         "body": lambda ak, pk: None,
         "label": "HEADERS x-api-key + x-private-key",
     },
-    # Mode 1 : body public_key + private_key
+    # Mode 2 : body public_key + private_key
     {
         "id": "body_public_private",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"public_key": ak, "private_key": pk},
         "label": "BODY public_key + private_key",
     },
-    # Mode 2 : body publicKey + privateKey (camelCase)
+    # Mode 3 : body publicKey + privateKey (camelCase)
     {
         "id": "body_camelcase",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"publicKey": ak, "privateKey": pk},
         "label": "BODY publicKey + privateKey",
     },
-    # Mode 3 : body key + secret
+    # Mode 4 : body key + secret
     {
         "id": "body_key_secret",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"key": ak, "secret": pk},
         "label": "BODY key + secret",
     },
-    # Mode 4 : body api_key + api_secret
+    # Mode 5 : body api_key + api_secret
     {
         "id": "body_api_key_secret",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"api_key": ak, "api_secret": pk},
         "label": "BODY api_key + api_secret",
     },
-    # Mode 5 : body username + password
+    # Mode 6 : body username + password
     {
         "id": "body_username_password",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"username": ak, "password": pk},
         "label": "BODY username + password",
     },
-    # Mode 6 : body email + password
+    # Mode 7 : body email + password
     {
         "id": "body_email_password",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"email": ak, "password": pk},
         "label": "BODY email + password",
     },
-    # Mode 7 : Basic Auth (Authorization: Basic base64(ak:pk))
+    # Mode 8 : Basic Auth (Authorization: Basic base64(ak:pk))
     {
         "id": "basic_auth",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: None,
-        "label": "BASIC AUTH (Authorization header via _essayer)",
+        "label": "BASIC AUTH (Authorization header)",
     },
-    # Mode 8 : body client_id + client_secret
+    # Mode 9 : body client_id + client_secret
     {
         "id": "body_client_id_secret",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"client_id": ak, "client_secret": pk},
         "label": "BODY client_id + client_secret",
     },
-    # Mode 9 : body grant_type=client_credentials + client_id + client_secret
+    # Mode 10 : body grant_type=client_credentials + client_id + client_secret
     {
         "id": "body_oauth2_client_credentials",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"grant_type": "client_credentials", "client_id": ak, "client_secret": pk},
         "label": "BODY grant_type=client_credentials + client_id + client_secret",
     },
-    # Mode 10 : body grant_type=password + username + password (OAuth2 Resource Owner)
+    # Mode 11 : body grant_type=password + username + password (OAuth2 Resource Owner)
     {
         "id": "body_oauth2_password",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
         "body": lambda ak, pk: {"grant_type": "password", "username": ak, "password": pk},
         "label": "BODY grant_type=password + username + password",
     },
-    # Mode 11 : form-urlencoded grant_type=client_credentials
+    # Mode 12 : form-urlencoded grant_type=client_credentials
     {
         "id": "form_oauth2_client_credentials",
         "headers": lambda ak, pk: {"Content-Type": "application/x-www-form-urlencoded"},
-        "body": lambda ak, pk: None,  # sera traité spécialement
+        "body": lambda ak, pk: None,
         "label": "FORM grant_type=client_credentials",
     },
-    # Mode 12 : form-urlencoded grant_type=password
+    # Mode 13 : form-urlencoded grant_type=password
     {
         "id": "form_oauth2_password",
         "headers": lambda ak, pk: {"Content-Type": "application/x-www-form-urlencoded"},
-        "body": lambda ak, pk: None,  # sera traité spécialement
+        "body": lambda ak, pk: None,
         "label": "FORM grant_type=password",
     },
-    # Mode 13 : query param ?action=auth
+    # Mode 14 : query param ?action=auth
     {
         "id": "query_action_auth",
         "headers": lambda ak, pk: {"Content-Type": "application/json"},
@@ -380,8 +387,8 @@ def obtenir_token() -> str:
         all_responses.append({"mode": config["label"], "response": data})
 
         token = (data.get("access_token") or data.get("token")
-                 or data.get("data", {}).get("access_token")
-                 or data.get("data", {}).get("token"))
+                 or (data.get("data") or {}).get("access_token")
+                 or (data.get("data") or {}).get("token"))
         if token:
             logger.info(f"✅ Auth réussie via {config['label']} ! Token len={len(str(token))}")
             return token
