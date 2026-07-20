@@ -69,13 +69,14 @@ def is_processing(response: Dict[str, Any]) -> bool:
 
 
 def is_payment_success(response: Dict[str, Any]) -> bool:
-    """Vérifie si la réponse SoleasPay indique un succès de paiement."""
+    """Vérifie si la réponse/webhook SoleasPay indique un succès."""
     if not isinstance(response, dict):
         return False
-    return (
-        response.get("success") is True
-        and response.get("code") in (200, 201)
-    )
+    # Webhooks SoleasPay : {"success": true, "status": "SUCCESS"} (pas de "code")
+    if response.get("success") is True and str(response.get("status", "")).upper() in ("SUCCESS", "COMPLETED", "APPROVED"):
+        return True
+    # Réponses API : {"success": true, "code": 200}
+    return response.get("success") is True and response.get("code") in (200, 201)
 
 
 def is_payment_failed(response: Dict[str, Any]) -> bool:

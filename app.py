@@ -1062,9 +1062,12 @@ def _handle_payment_webhook(payload: dict):
 
     # ---- Traiter un Deposit si trouvé ----
     if deposit and not transfer:
+        webhook_logger.info(f'Deposit trouvé: id={deposit.id} ref={deposit.reference} status={deposit.status} user={deposit.user_id}')
         if deposit.status != 'PAYMENT_PROCESSING':
+            webhook_logger.info(f'Deposit ignoré (idempotent) : statut={deposit.status} (attendu PAYMENT_PROCESSING)')
             return jsonify({'success': True, 'message': f'Dépôt déjà traité (statut={deposit.status})'})
 
+        webhook_logger.info(f'Deposit en PAYMENT_PROCESSING — traitement du statut {payload.get("status")}')
         if is_payment_success(payload):
             deposit.webhook_payload = payload
             deposit.status = 'COMPLETED'
