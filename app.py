@@ -1571,6 +1571,31 @@ def webhook_deposit():
         db.session.add(tx)
         db.session.commit()
         webhook_logger.info(f'Dépôt COMPLETED: {deposit.reference}, montant={deposit.amount}')
+
+        # ---- Notification push à l'utilisateur ----
+        try:
+            send_push_to_user(
+                user_id=deposit.user_id,
+                title="💰 Dépôt confirmé",
+                body=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a été crédité avec succès sur votre compte TransAfrik.",
+                url="/wallet",
+                tag=f"deposit-{deposit.reference}",
+                data={"reference": deposit.reference, "amount": deposit.amount, "currency": deposit.currency},
+            )
+            app.logger.info(f"PUSH | ENVOYÉE | Dépôt confirmé | user={deposit.user_id} | amount={deposit.amount}")
+            # Notification in-app
+            notif = Notification(
+                user_id=deposit.user_id,
+                title="Dépôt confirmé",
+                message=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a été crédité avec succès.",
+                type="deposit_success",
+                data={"reference": deposit.reference},
+            )
+            db.session.add(notif)
+            db.session.commit()
+        except Exception as push_err:
+            app.logger.warning(f"[PUSH] Échec notification dépôt: {push_err}")
+
         return jsonify({'success': True, 'message': 'Dépôt confirmé', 'status': 'COMPLETED'})
     elif is_payment_failed(payload):
         deposit.webhook_payload = payload
