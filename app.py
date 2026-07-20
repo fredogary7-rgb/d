@@ -617,38 +617,36 @@ def api_withdraw_fees():
         return jsonify({'success': False, 'message': 'Opérateur invalide.'}), 400
 
     op_currency = op_info.get('currency', 'XOF')
-    amount_minor = int(round(amount_display * 100))
 
     # Conversion si nécessaire
     exchange_rate = 1.0
-    converted_minor = amount_minor
+    amount_converted = amount_display
     if currency != op_currency:
         try:
             conv = convert_currency(amount_display, currency, op_currency)
             if not conv.get('success', True):
                 return jsonify({'success': False, 'message': f'Conversion {currency} → {op_currency} impossible.'}), 400
-            converted_display = float(conv.get('result', amount_display))
-            converted_minor = int(round(converted_display * 100))
-            exchange_rate = converted_minor / amount_minor if amount_minor > 0 else 1.0
+            amount_converted = float(conv.get('result', amount_display))
+            exchange_rate = amount_converted / amount_display if amount_display > 0 else 1.0
         except Exception:
             return jsonify({'success': False, 'message': 'Erreur de conversion.'}), 400
 
     fee_result = _calculate_withdrawal_fee(
-        amount=converted_minor,
+        amount=int(amount_converted),
         sender_country=current_user.country,
         receiver_country=op_info['country'],
         receiver_operator=op_info['slug'],
     )
     fees = fee_result['fees']
-    total_debited = converted_minor + fees
+    total_debited = int(amount_converted) + fees
 
     return jsonify({
         'success': True,
-        'amount': amount_minor,
-        'converted_amount': converted_minor,
+        'amount': amount_display,
+        'converted_amount': amount_converted,
         'fees': fees,
         'total_debited': total_debited,
-        'receiver_gets': converted_minor,
+        'receiver_gets': amount_converted,
         'currency': currency,
         'op_currency': op_currency,
         'exchange_rate': exchange_rate,

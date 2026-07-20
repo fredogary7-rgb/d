@@ -602,7 +602,7 @@ async function recalcFees() {
         document.getElementById('feeSenderAmount').textContent = amount.toFixed(2) + ' ' + selectedCurrency;
         if (data.exchange_rate !== 1.0 && data.currency !== data.op_currency) {
             document.getElementById('feeConversionRow').style.display = 'flex';
-            document.getElementById('feeConvertedAmount').textContent = (data.converted_amount / 100).toFixed(2) + ' ' + data.op_currency;
+            document.getElementById('feeConvertedAmount').textContent = data.converted_amount.toFixed(2) + ' ' + data.op_currency;
             var note = document.getElementById('feeNote');
             note.textContent = 'Taux : 1 ' + selectedCurrency + ' = ' + data.exchange_rate.toFixed(4) + ' ' + data.op_currency;
             note.innerHTML += ' <span class="exchange-badge">Conversion</span>';
@@ -611,8 +611,8 @@ async function recalcFees() {
             document.getElementById('feeNote').textContent = '';
         }
         var opCur = data.op_currency || selectedOperator.currency || selectedCurrency;
-        document.getElementById('feeAmount').textContent = (data.fees / 100).toFixed(2) + ' ' + opCur;
-        document.getElementById('feeReceiverGets').textContent = (data.converted_amount / 100).toFixed(2) + ' ' + opCur;
+        document.getElementById('feeAmount').textContent = data.fees.toFixed(2) + ' ' + opCur;
+        document.getElementById('feeReceiverGets').textContent = data.converted_amount.toFixed(2) + ' ' + opCur;
         $feeSummary.classList.add('visible');
         validateForm();
     } catch(e) {
@@ -638,8 +638,8 @@ $btnReview.addEventListener('click', function() {
     document.getElementById('sumRecipient').textContent = name + ' (' + phone + ')';
     document.getElementById('sumOperator').textContent = selectedOperator.name;
     document.getElementById('sumAmount').textContent = amount.toFixed(2) + ' ' + selectedCurrency;
-    document.getElementById('sumFees').textContent = (currentFees.fees / 100).toFixed(2) + ' ' + opCur;
-    document.getElementById('sumTotal').textContent = (currentFees.converted_amount / 100).toFixed(2) + ' ' + opCur;
+    document.getElementById('sumFees').textContent = currentFees.fees.toFixed(2) + ' ' + opCur;
+    document.getElementById('sumTotal').textContent = currentFees.converted_amount.toFixed(2) + ' ' + opCur;
     $confirmModal.classList.add('open');
     document.getElementById('step3').classList.add('active');
 });
