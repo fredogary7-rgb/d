@@ -54,7 +54,7 @@ w_payload = {
 raw2 = json.dumps(w_payload, separators=(',', ':')).encode('utf-8')
 sig2 = hmac.new(SECRET.encode('utf-8'), raw2, hashlib.sha256).hexdigest()
 r2 = requests.post(f'{BASE}/webhook/soleaspay/withdraw', data=raw2,
-                   headers={'X-SoleasPay-Signature': sig2, 'Content-Type': 'application/json'})
+                   headers={'x-private-key': sig2, 'Content-Type': 'application/json'})
 print(f"  HTTP {r2.status_code}")
 print(f"  {r2.json()}")
 
@@ -64,7 +64,7 @@ print(f"  transfer.status: {transfer.status}")
 # 4. DOUBLE webhook Withdraw (idempotence)
 print('\n--- STEP 4: DOUBLE Webhook Withdraw (idempotence) ---')
 r3 = requests.post(f'{BASE}/webhook/soleaspay/withdraw', data=raw2,
-                   headers={'X-SoleasPay-Signature': sig2, 'Content-Type': 'application/json'})
+                   headers={'x-private-key': sig2, 'Content-Type': 'application/json'})
 print(f"  HTTP {r3.status_code}")
 print(f"  {r3.json()}")
 
