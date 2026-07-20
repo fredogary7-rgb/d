@@ -1462,7 +1462,11 @@ def api_transfer_status(reference):
 def history():
     transfers = Transfer.query.filter_by(sender_user_id=current_user.id)
     pay_sent = TransactionReceive.query.filter_by(sender_id=current_user.id)
-    total_count = transfers.count() + pay_sent.count()
+    pay_recv = TransactionReceive.query.filter_by(receiver_id=current_user.id)
+    deposits = Deposit.query.filter_by(user_id=current_user.id)
+    withdrawals = Withdrawal.query.filter_by(user_id=current_user.id)
+
+    total_count = transfers.count() + pay_sent.count() + deposits.count() + withdrawals.count()
     total_amount = db.session.query(
         db.func.coalesce(db.func.sum(Transfer.total_amount), 0)
     ).filter(Transfer.sender_user_id == current_user.id).scalar()
@@ -1470,11 +1474,22 @@ def history():
         db.func.coalesce(db.func.sum(TransactionReceive.amount), 0)
     ).filter(TransactionReceive.sender_id == current_user.id).scalar()
     total_amount = (total_amount or 0) + (total_paid or 0)
-    completed_count = transfers.filter(Transfer.status == 'COMPLETED').count() + pay_sent.filter_by(status='completed').count()
-    pending_count = transfers.filter(
-        Transfer.status.in_(['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING',
-                             'PAYMENT_SUCCESS', 'WITHDRAW_PROCESSING'])
-    ).count()
+    completed_count = (
+        transfers.filter(Transfer.status == 'COMPLETED').count()
+        + pay_sent.filter_by(status='completed').count()
+        + pay_recv.filter_by(status='completed').count()
+        + deposits.filter_by(status='COMPLETED').count()
+        + withdrawals.filter_by(status='COMPLETED').count()
+    )
+    pending_count = (
+        transfers.filter(
+            Transfer.status.in_(['CREATED', 'WAITING_PAYMENT', 'PAYMENT_PROCESSING',
+                                 'PAYMENT_SUCCESS', 'WITHDRAW_PROCESSING'])
+        ).count()
+        + pay_sent.filter_by(status='pending').count()
+        + deposits.filter_by(status='PAYMENT_PROCESSING').count()
+        + withdrawals.filter_by(status='WITHDRAW_PROCESSING').count()
+    )
 
     return render_template('history.html',
                            user=current_user,
@@ -1518,21 +1533,59 @@ def api_history():
 
     t_list = t_query.order_by(Transfer.created_at.desc()).all()
 
-    # 2) Paiements libre (via pay link) — payeur
-    p_query = TransactionReceive.query.filter(TransactionReceive.sender_id == current_user.id)
+    # 2) Paiements libre (via pay link) — émis ou reçus
+    p_query_sent = TransactionReceive.query.filter(TransactionReceive.sender_id == current_user.id)
+    p_query_recv = TransactionReceive.query.filter(TransactionReceive.receiver_id == current_user.id)
 
     if filter_status and filter_status != 'ALL':
         if filter_status == 'COMPLETED':
-            p_query = p_query.filter(TransactionReceive.status == 'completed')
+            p_query_sent = p_query_sent.filter(TransactionReceive.status == 'completed')
+            p_query_recv = p_query_recv.filter(TransactionReceive.status == 'completed')
         elif filter_status in ('FAILED', 'CANCELLED', 'PENDING'):
-            p_query = p_query.filter(TransactionReceive.status == filter_status.lower())
-        # autres statuts n'affectent pas les TransactionReceive
+            p_query_sent = p_query_sent.filter(TransactionReceive.status == filter_status.lower())
+            p_query_recv = p_query_recv.filter(TransactionReceive.status == filter_status.lower())
 
     if search:
         search_term = f'%{search}%'
-        p_query = p_query.filter(TransactionReceive.reference.ilike(search_term))
+        p_query_sent = p_query_sent.filter(TransactionReceive.reference.ilike(search_term))
+        p_query_recv = p_query_recv.filter(TransactionReceive.reference.ilike(search_term))
 
-    p_list = p_query.order_by(TransactionReceive.created_at.desc()).all()
+    p_list = p_query_sent.order_by(TransactionReceive.created_at.desc()).all()
+    p_recv_list = p_query_recv.order_by(TransactionReceive.created_at.desc()).all()
+
+    # 3) Dépôts (Deposit)
+    d_query = Deposit.query.filter_by(user_id=current_user.id)
+
+    if filter_status and filter_status != 'ALL':
+        d_status_map = {'COMPLETED': 'COMPLETED', 'FAILED': 'FAILED', 'PENDING': 'PAYMENT_PROCESSING'}
+        mapped = d_status_map.get(filter_status)
+        if mapped:
+            d_query = d_query.filter_by(status=mapped)
+        elif filter_status == 'CANCELLED':
+            d_query = d_query.filter_by(status='CANCELLED')
+
+    if search:
+        search_term = f'%{search}%'
+        d_query = d_query.filter(Deposit.reference.ilike(search_term))
+
+    d_list = d_query.order_by(Deposit.created_at.desc()).all()
+
+    # 4) Retraits (Withdrawal)
+    w_query = Withdrawal.query.filter_by(user_id=current_user.id)
+
+    if filter_status and filter_status != 'ALL':
+        w_status_map = {'COMPLETED': 'COMPLETED', 'FAILED': 'FAILED', 'PENDING': 'WITHDRAW_PROCESSING'}
+        mapped = w_status_map.get(filter_status)
+        if mapped:
+            w_query = w_query.filter_by(status=mapped)
+        elif filter_status == 'CANCELLED':
+            w_query = w_query.filter_by(status='CANCELLED')
+
+    if search:
+        search_term = f'%{search}%'
+        w_query = w_query.filter(Withdrawal.reference.ilike(search_term))
+
+    w_list = w_query.order_by(Withdrawal.created_at.desc()).all()
 
     country_names = {
         'TG': 'Togo', 'BJ': 'B\u00e9nin', 'CM': 'Cameroun', 'CI': 'C\u00f4te d\'Ivoire',
@@ -1546,11 +1599,11 @@ def api_history():
         'ZM': '\U0001f1ff\U0001f1f2', 'SN': '\U0001f1f8\U0001f1f3',
     }
 
-    # 3) Fusionner les deux listes en dicts uniformes
     from models import User
 
     entries = []
 
+    # ---- Transferts ----
     for t in t_list:
         d = t.to_dict()
         d['type'] = 'transfer'
@@ -1563,10 +1616,11 @@ def api_history():
         d['total_amount'] = t.total_amount or 0
         entries.append(d)
 
+    # ---- Paiements émis (type=payment_sent) ----
     for p in p_list:
         receiver = User.query.get(p.receiver_id) if p.receiver_id else None
         d = {
-            'type': 'payment',
+            'type': 'payment_sent',
             'reference': p.reference or f'PAY-{p.id}',
             'created_at': p.created_at.isoformat() if p.created_at else None,
             'receiver_name': receiver.fullname if receiver else 'Utilisateur',
@@ -1583,10 +1637,77 @@ def api_history():
         }
         entries.append(d)
 
-    # 4) Trier par date décroissante
+    # ---- Paiements reçus (type=payment_received) ----
+    for p in p_recv_list:
+        sender = User.query.get(p.sender_id) if p.sender_id else None
+        d = {
+            'type': 'payment_received',
+            'reference': p.reference or f'PAY-{p.id}',
+            'created_at': p.created_at.isoformat() if p.created_at else None,
+            'receiver_name': current_user.fullname,
+            'receiver_phone': current_user.phone or '',
+            'receiver_country': '',
+            'receiver_country_name': '',
+            'receiver_country_flag': '\U0001f30d',
+            'receiver_operator': 'TransAfrik',
+            'sender_name': sender.fullname if sender else 'Utilisateur',
+            'sender_phone': getattr(sender, 'phone', '') or '',
+            'amount': p.amount,
+            'currency': p.currency or 'XOF',
+            'fees': 0,
+            'total_amount': p.amount,
+            'status': p.status.upper() if p.status else 'COMPLETED',
+        }
+        entries.append(d)
+
+    # ---- Dépôts ----
+    for dep in d_list:
+        dep_status = dep.status or 'UNKNOWN'
+        if dep_status == 'PAYMENT_PROCESSING':
+            dep_status = 'PENDING'
+        entries.append({
+            'type': 'deposit',
+            'reference': dep.reference,
+            'created_at': dep.created_at.isoformat() if dep.created_at else None,
+            'receiver_name': current_user.fullname,
+            'receiver_phone': current_user.phone or '',
+            'receiver_country': dep.country or '',
+            'receiver_country_name': country_names.get(dep.country, dep.country or ''),
+            'receiver_country_flag': country_flags.get(dep.country, '\U0001f30d'),
+            'receiver_operator': dep.operator or 'Mobile Money',
+            'amount': dep.amount,
+            'currency': dep.currency or 'XOF',
+            'fees': dep.fees or 0,
+            'total_amount': dep.total_amount or dep.amount,
+            'status': dep_status,
+        })
+
+    # ---- Retraits ----
+    for w in w_list:
+        w_status = w.status or 'UNKNOWN'
+        if w_status == 'WITHDRAW_PROCESSING':
+            w_status = 'PENDING'
+        entries.append({
+            'type': 'withdraw',
+            'reference': w.reference,
+            'created_at': w.created_at.isoformat() if w.created_at else None,
+            'receiver_name': w.recipient_name or 'Destinataire',
+            'receiver_phone': w.recipient_phone or '',
+            'receiver_country': w.recipient_country or '',
+            'receiver_country_name': country_names.get(w.recipient_country, w.recipient_country or ''),
+            'receiver_country_flag': country_flags.get(w.recipient_country, '\U0001f30d'),
+            'receiver_operator': w.recipient_operator or 'Mobile Money',
+            'amount': w.amount,
+            'currency': w.currency or 'XOF',
+            'fees': w.fees or 0,
+            'total_amount': w.total_debited or w.amount,
+            'status': w_status,
+        })
+
+    # Trier par date décroissante
     entries.sort(key=lambda x: x['created_at'] or '', reverse=True)
 
-    # 5) Pagination manuelle
+    # Pagination manuelle
     total = len(entries)
     pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
     page = max(1, min(page, pages))
