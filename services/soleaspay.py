@@ -140,41 +140,87 @@ def pay_in(
 # Authentification : obtention du token Bearer
 # ---------------------------------------------------------------------------
 
-def _essayer_auth(url: str, api_key: str, private_key: str, mode: str) -> Dict[str, Any]:
+MODE_CONFIGS = [
+    # Mode 0 : headers x-api-key + x-private-key
+    {
+        "id": "headers",
+        "headers": lambda ak, pk: {"x-api-key": ak, "x-private-key": pk, "Content-Type": "application/json"},
+        "body": lambda ak, pk: None,
+        "label": "HEADERS x-api-key + x-private-key",
+    },
+    # Mode 1 : body public_key + private_key
+    {
+        "id": "body_public_private",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"public_key": ak, "private_key": pk},
+        "label": "BODY public_key + private_key",
+    },
+    # Mode 2 : body publicKey + privateKey (camelCase)
+    {
+        "id": "body_camelcase",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"publicKey": ak, "privateKey": pk},
+        "label": "BODY publicKey + privateKey",
+    },
+    # Mode 3 : body key + secret
+    {
+        "id": "body_key_secret",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"key": ak, "secret": pk},
+        "label": "BODY key + secret",
+    },
+    # Mode 4 : body api_key + api_secret
+    {
+        "id": "body_api_key_secret",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"api_key": ak, "api_secret": pk},
+        "label": "BODY api_key + api_secret",
+    },
+    # Mode 5 : body username + password
+    {
+        "id": "body_username_password",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"username": ak, "password": pk},
+        "label": "BODY username + password",
+    },
+    # Mode 6 : body email + password
+    {
+        "id": "body_email_password",
+        "headers": lambda ak, pk: {"Content-Type": "application/json"},
+        "body": lambda ak, pk: {"email": ak, "password": pk},
+        "label": "BODY email + password",
+    },
+]
+
+
+def _essayer_auth(url: str, api_key: str, private_key: str, config: dict) -> Dict[str, Any]:
     """Essaie une authentification et retourne la réponse JSON parsée.
 
     Args:
         url: URL de l'endpoint /api/action/auth.
         api_key: clé publique (SOLEAS_API_KEY).
         private_key: clé privée (PRIVATE_SECRET_KEY).
-        mode: "headers" → clés dans x-api-key / x-private-key
-              "body"   → clés dans le JSON {public_key, private_key}
+        config: dict MODE_CONFIGS décrivant headers et body à utiliser.
 
     Returns:
         dict: réponse JSON parsée (peut contenir code, message, access_token).
     """
-    if mode == "headers":
-        headers = {
-            "x-api-key": api_key,
-            "x-private-key": private_key,
-            "Content-Type": "application/json",
-        }
-        body = None
-        logger.info(f"[AUTH via HEADERS] x-api-key + x-private-key")
-    else:
-        headers = {"Content-Type": "application/json"}
-        body = {"public_key": api_key, "private_key": private_key}
-        logger.info(f"[AUTH via BODY JSON] public_key + private_key")
+    label = config["label"]
+    headers = config["headers"](api_key, private_key)
+    body = config["body"](api_key, private_key)
 
+    logger.info(f"[AUTH] {label}")
     logger.info(f"  URL            : {url}")
     for k, v in headers.items():
-        if k.lower() in ("x-api-key", "x-private-key"):
+        if "key" in k.lower() or "secret" in k.lower() or "private" in k.lower():
             logger.info(f"  Header {k}: {v[:10]}...{v[-6:]} (len={len(v)})")
         else:
             logger.info(f"  Header {k}: {v}")
     if body:
-        logger.info(f"  Body JSON      : public_key={api_key[:10]}... (len={len(api_key)}), "
-                    f"private_key={private_key[:10]}... (len={len(private_key)})")
+        body_preview = {}
+        for bk, bv in body.items():
+            body_preview[bk] = f"{str(bv)[:10]}... (len={len(str(bv))})" if bk.lower() in ("private_key", "privatekey", "secret", "password", "api_secret", "key") else bv
+        logger.info(f"  Body           : {json.dumps(body_preview)}")
 
     resp = requests.post(url, headers=headers, json=body, timeout=30)
     logger.info(f"  Status HTTP    : {resp.status_code}")
@@ -230,55 +276,56 @@ def obtenir_token() -> str:
 
     url = f"{SOLEAS_BASE_URL}/api/action/auth"
 
-    # ---- Tentative 1 : clés dans les headers ----
-    logger.info("--- TENTATIVE 1 : headers (x-api-key, x-private-key) ---")
-    try:
-        data = _essayer_auth(url, api_key, private_key, mode="headers")
-    except requests.RequestException as e:
-        logger.error(f"Tentative 1 échouée (réseau) : {e}")
-        data = {"code": -1, "message": str(e)}
+    # ---- Essayer chaque mode de configuration ----
+    all_responses = []
+    for idx, config in enumerate(MODE_CONFIGS):
+        logger.info(f"--- TENTATIVE {idx + 1}/{len(MODE_CONFIGS)} : {config['label']} ---")
+        try:
+            data = _essayer_auth(url, api_key, private_key, config)
+        except requests.RequestException as e:
+            logger.error(f"Tentative {idx + 1} échouée (réseau) : {e}")
+            data = {"code": -1, "message": str(e)}
 
-    token = data.get("access_token") or data.get("token") or data.get("data", {}).get("access_token")
-    if token:
-        logger.info(f"✅ Auth réussie via headers ! Token len={len(str(token))}")
-        return token
+        all_responses.append({"mode": config["label"], "response": data})
 
-    # Détecter un 401 applicatif (HTTP 200 mais code:401 dans le JSON)
-    if data.get("code") == 401 or "Bad credentials" in str(data.get("message", "")):
-        logger.warning("⚠️  Tentative 1 : 401 Bad credentials (headers). "
-                       "L'API attend peut-être les clés dans le body JSON.")
-    else:
-        logger.warning(f"⚠️  Tentative 1 : pas de token. Réponse : {json.dumps(data)[:300]}")
+        token = (data.get("access_token") or data.get("token")
+                 or data.get("data", {}).get("access_token")
+                 or data.get("data", {}).get("token"))
+        if token:
+            logger.info(f"✅ Auth réussie via {config['label']} ! Token len={len(str(token))}")
+            return token
 
-    # ---- Tentative 2 : clés dans le body JSON ----
-    logger.info("--- TENTATIVE 2 : body JSON (public_key, private_key) ---")
-    try:
-        data2 = _essayer_auth(url, api_key, private_key, mode="body")
-    except requests.RequestException as e:
-        logger.error(f"Tentative 2 échouée (réseau) : {e}")
-        data2 = {"code": -1, "message": str(e)}
+        if data.get("code") == 401 or "Bad credentials" in str(data.get("message", "")):
+            logger.warning(f"⚠️  Tentative {idx + 1} : 401 Bad credentials ({config['label']}).")
+        else:
+            logger.warning(f"⚠️  Tentative {idx + 1} : pas de token. Réponse : {json.dumps(data)[:300]}")
 
-    token = data2.get("access_token") or data2.get("token") or data2.get("data", {}).get("access_token")
-    if token:
-        logger.info(f"✅ Auth réussie via body JSON ! Token len={len(str(token))}")
-        return token
+    # ---- Résumé de toutes les tentatives ----
+    logger.info("=" * 70)
+    logger.info("====== RÉSUMÉ DES TENTATIVES D'AUTH ======")
+    for entry in all_responses:
+        r = entry["response"]
+        sc = r.get("code", "?")
+        msg = r.get("message", r.get("_raw", ""))[:100]
+        logger.info(f"  {entry['mode']:50s} → code={sc} | {msg}")
+    logger.info("=" * 70)
 
-    if data2.get("code") == 401 or "Bad credentials" in str(data2.get("message", "")):
-        logger.warning("⚠️  Tentative 2 : 401 Bad credentials (body JSON).")
-
-    # ---- Échec des deux tentatives ----
+    # ---- Échec de toutes les tentatives ----
     logger.critical(
-        "AUTH ÉCHOUÉE après 2 tentatives — causes possibles :\n"
+        "AUTH ÉCHOUÉE après {n} tentatives — causes possibles :\n"
         "  1. Les identifiants SOLEAS_API_KEY / PRIVATE_SECRET_KEY sont incorrects.\n"
         "  2. Le service 'retrait' (withdraw) n'est pas activé sur le compte SoleasPay.\n"
-        "  3. L'API /api/action/auth utilise des noms de champs différents\n"
-        "     (pas public_key/private_key ni x-api-key/x-private-key).\n"
-        "  4. L'URL SOLEAS_BASE_URL est incorrecte."
+        "  3. L'API /api/action/auth utilise des noms de champs non testés.\n"
+        "  4. L'URL SOLEAS_BASE_URL est incorrecte.\n"
+        "  5. Le compte SoleasPay n'a pas accès à l'endpoint /api/action/auth.\n"
+        "     → Contactez le support SoleasPay pour activer le service Payout.".format(
+            n=len(MODE_CONFIGS)
+        )
     )
     raise RuntimeError(
         "Impossible d'obtenir le token SoleasPay : "
-        "échec de l'authentification après tentative headers + body JSON. "
-        "Vérifiez les logs pour le détail."
+        "échec de l'authentification après {n} tentatives. "
+        "Vérifiez les logs pour le détail.".format(n=len(MODE_CONFIGS))
     )
 
 
