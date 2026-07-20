@@ -140,10 +140,58 @@ def pay_in(
 # Authentification : obtention du token Bearer
 # ---------------------------------------------------------------------------
 
+def _essayer_auth(url: str, api_key: str, private_key: str, mode: str) -> Dict[str, Any]:
+    """Essaie une authentification et retourne la réponse JSON parsée.
+
+    Args:
+        url: URL de l'endpoint /api/action/auth.
+        api_key: clé publique (SOLEAS_API_KEY).
+        private_key: clé privée (PRIVATE_SECRET_KEY).
+        mode: "headers" → clés dans x-api-key / x-private-key
+              "body"   → clés dans le JSON {public_key, private_key}
+
+    Returns:
+        dict: réponse JSON parsée (peut contenir code, message, access_token).
+    """
+    if mode == "headers":
+        headers = {
+            "x-api-key": api_key,
+            "x-private-key": private_key,
+            "Content-Type": "application/json",
+        }
+        body = None
+        logger.info(f"[AUTH via HEADERS] x-api-key + x-private-key")
+    else:
+        headers = {"Content-Type": "application/json"}
+        body = {"public_key": api_key, "private_key": private_key}
+        logger.info(f"[AUTH via BODY JSON] public_key + private_key")
+
+    logger.info(f"  URL            : {url}")
+    for k, v in headers.items():
+        if k.lower() in ("x-api-key", "x-private-key"):
+            logger.info(f"  Header {k}: {v[:10]}...{v[-6:]} (len={len(v)})")
+        else:
+            logger.info(f"  Header {k}: {v}")
+    if body:
+        logger.info(f"  Body JSON      : public_key={api_key[:10]}... (len={len(api_key)}), "
+                    f"private_key={private_key[:10]}... (len={len(private_key)})")
+
+    resp = requests.post(url, headers=headers, json=body, timeout=30)
+    logger.info(f"  Status HTTP    : {resp.status_code}")
+    logger.info(f"  Body réponse   : {resp.text[:500]}")
+
+    try:
+        data = resp.json()
+    except Exception:
+        data = {"_raw": resp.text[:500]}
+    return data
+
+
 def obtenir_token() -> str:
     """Obtient un access_token via POST /api/action/auth.
 
-    Utilise PUBLIC_API_KEY (x-api-key) et PRIVATE_SECRET_KEY (x-private-key).
+    Utilise SOLEAS_API_KEY (public_key) et PRIVATE_SECRET_KEY (private_key).
+    Essaie d'abord les clés dans les headers, puis dans le body JSON si échec.
 
     Returns:
         str: access_token valide (jamais vide).
@@ -157,11 +205,10 @@ def obtenir_token() -> str:
     raw_api_key = os.getenv("SOLEAS_API_KEY", "")
     raw_private_key = os.getenv("PRIVATE_SECRET_KEY", "")
 
-    # Strip pour éliminer espaces, \n, \r, caractères invisibles
     api_key = raw_api_key.strip() if raw_api_key else ""
     private_key = raw_private_key.strip() if raw_private_key else ""
 
-    # ---- Logs de diagnostic (sans afficher les clés en entier) ----
+    # ---- Logs de diagnostic ----
     logger.info("=" * 70)
     logger.info("====== DIAGNOSTIC AUTH SOLEASPAY ======")
     logger.info(f"SOLEAS_API_KEY     : vide={not bool(raw_api_key)}, "
@@ -169,100 +216,70 @@ def obtenir_token() -> str:
     if api_key:
         logger.info(f"  premiers car.   : {repr(api_key[:8])}")
         logger.info(f"  derniers car.   : {repr(api_key[-8:])}")
-        logger.info(f"  contient \\n     : {repr(chr(10)) in raw_api_key}")
-        logger.info(f"  contient \\r     : {repr(chr(13)) in raw_api_key}")
-        logger.info(f"  contient espace : {' ' in raw_api_key}")
     logger.info(f"PRIVATE_SECRET_KEY : vide={not bool(raw_private_key)}, "
                 f"len_raw={len(raw_private_key)}, len_stripped={len(private_key)}")
     if private_key:
         logger.info(f"  premiers car.   : {repr(private_key[:8])}")
         logger.info(f"  derniers car.   : {repr(private_key[-8:])}")
-        logger.info(f"  contient \\n     : {repr(chr(10)) in raw_private_key}")
-        logger.info(f"  contient \\r     : {repr(chr(13)) in raw_private_key}")
-        logger.info(f"  contient espace : {' ' in raw_private_key}")
 
     # ---- Vérification ----
     if not api_key:
-        raise RuntimeError(
-            "Impossible d'obtenir le token SoleasPay : "
-            "SOLEAS_API_KEY est vide après nettoyage. "
-            "Vérifiez la variable d'environnement SOLEAS_API_KEY."
-        )
+        raise RuntimeError("SOLEAS_API_KEY est vide.")
     if not private_key:
-        raise RuntimeError(
-            "Impossible d'obtenir le token SoleasPay : "
-            "PRIVATE_SECRET_KEY est vide après nettoyage. "
-            "Vérifiez la variable d'environnement PRIVATE_SECRET_KEY."
-        )
+        raise RuntimeError("PRIVATE_SECRET_KEY est vide.")
 
     url = f"{SOLEAS_BASE_URL}/api/action/auth"
-    headers = {
-        "x-api-key": api_key,
-        "x-private-key": private_key,
-        "Content-Type": "application/json",
-    }
 
-    # ---- Log du payload HTTP réel ----
-    logger.info("--- Requête HTTP ---")
-    logger.info(f"URL             : {url}")
-    logger.info(f"Méthode         : POST")
-    logger.info(f"Headers envoyés :")
-    for k, v in headers.items():
-        if k.lower() in ("x-api-key", "x-private-key"):
-            logger.info(f"  {k}: {v[:10]}...{v[-6:]} (len={len(v)})")
-        else:
-            logger.info(f"  {k}: {v}")
-    logger.info(f"Body (JSON)     : (aucun — clés dans les headers uniquement)")
-    logger.info(f"Timeout         : 30s")
-    logger.info("=" * 70)
-
+    # ---- Tentative 1 : clés dans les headers ----
+    logger.info("--- TENTATIVE 1 : headers (x-api-key, x-private-key) ---")
     try:
-        resp = requests.post(url, headers=headers, timeout=30)
-        logger.info(f"Status HTTP     : {resp.status_code}")
-        logger.info(f"Headers réponse : {dict(resp.headers)}")
-        logger.info(f"Body réponse    : {resp.text[:2000]}")
-
-        # Tenter de parser le JSON même si le statut n'est pas 2xx
-        try:
-            data = resp.json()
-            logger.info(f"JSON parsé      : {json.dumps(data, indent=2)[:1000]}")
-        except Exception:
-            data = {}
-            logger.info("La réponse n'est pas du JSON valide.")
-
-        # Si 401, c'est un problème de credentials — ne pas relancer
-        if resp.status_code == 401:
-            logger.critical(
-                "AUTH ÉCHOUÉE (401 Bad credentials) — causes possibles :\n"
-                "  1. L'API /api/action/auth attend les clés dans le body JSON\n"
-                "     (ex: {'public_key': '...', 'private_key': '...'}) et non dans les headers.\n"
-                "  2. Les identifiants fournis par SoleasPay sont incorrects ou révoqués.\n"
-                "  3. Le service 'retrait' (withdraw) n'est pas activé sur le compte SoleasPay.\n"
-                "  4. L'URL de base SOLEAS_BASE_URL pointe vers le mauvais environnement."
-            )
-            raise RuntimeError(
-                "Impossible d'obtenir le token SoleasPay : "
-                "l'API a répondu 401 Bad credentials. "
-                "Vérifiez les logs de diagnostic ci-dessus."
-            )
-
-        resp.raise_for_status()
-
-        access_token = data.get("access_token") or data.get("token") or data.get("data", {}).get("access_token")
-
-        if not access_token:
-            logger.error(f"Aucun access_token trouvé. Clés disponibles : {list(data.keys())}")
-            raise RuntimeError(
-                "Impossible d'obtenir le token SoleasPay : "
-                "access_token absent de la réponse de /api/action/auth."
-            )
-
-        logger.info(f"Token obtenu    : len={len(str(access_token))}, preview={str(access_token)[:10]}...")
-        return access_token
-
+        data = _essayer_auth(url, api_key, private_key, mode="headers")
     except requests.RequestException as e:
-        logger.error(f"Échec requête auth : {e}")
-        raise RuntimeError(f"Impossible d'obtenir le token SoleasPay : {e}") from e
+        logger.error(f"Tentative 1 échouée (réseau) : {e}")
+        data = {"code": -1, "message": str(e)}
+
+    token = data.get("access_token") or data.get("token") or data.get("data", {}).get("access_token")
+    if token:
+        logger.info(f"✅ Auth réussie via headers ! Token len={len(str(token))}")
+        return token
+
+    # Détecter un 401 applicatif (HTTP 200 mais code:401 dans le JSON)
+    if data.get("code") == 401 or "Bad credentials" in str(data.get("message", "")):
+        logger.warning("⚠️  Tentative 1 : 401 Bad credentials (headers). "
+                       "L'API attend peut-être les clés dans le body JSON.")
+    else:
+        logger.warning(f"⚠️  Tentative 1 : pas de token. Réponse : {json.dumps(data)[:300]}")
+
+    # ---- Tentative 2 : clés dans le body JSON ----
+    logger.info("--- TENTATIVE 2 : body JSON (public_key, private_key) ---")
+    try:
+        data2 = _essayer_auth(url, api_key, private_key, mode="body")
+    except requests.RequestException as e:
+        logger.error(f"Tentative 2 échouée (réseau) : {e}")
+        data2 = {"code": -1, "message": str(e)}
+
+    token = data2.get("access_token") or data2.get("token") or data2.get("data", {}).get("access_token")
+    if token:
+        logger.info(f"✅ Auth réussie via body JSON ! Token len={len(str(token))}")
+        return token
+
+    if data2.get("code") == 401 or "Bad credentials" in str(data2.get("message", "")):
+        logger.warning("⚠️  Tentative 2 : 401 Bad credentials (body JSON).")
+
+    # ---- Échec des deux tentatives ----
+    logger.critical(
+        "AUTH ÉCHOUÉE après 2 tentatives — causes possibles :\n"
+        "  1. Les identifiants SOLEAS_API_KEY / PRIVATE_SECRET_KEY sont incorrects.\n"
+        "  2. Le service 'retrait' (withdraw) n'est pas activé sur le compte SoleasPay.\n"
+        "  3. L'API /api/action/auth utilise des noms de champs différents\n"
+        "     (pas public_key/private_key ni x-api-key/x-private-key).\n"
+        "  4. L'URL SOLEAS_BASE_URL est incorrecte."
+    )
+    raise RuntimeError(
+        "Impossible d'obtenir le token SoleasPay : "
+        "échec de l'authentification après tentative headers + body JSON. "
+        "Vérifiez les logs pour le détail."
+    )
 
 
 # ---------------------------------------------------------------------------
