@@ -1278,14 +1278,14 @@ def _handle_withdraw_webhook(payload: dict):
     if soleas_ref:
         withdrawal = Withdrawal.query.filter(
             (Withdrawal.withdraw_reference == soleas_ref) |
-            (Withdrawal.withdraw_external_reference == soleas_ref)
+            (Withdrawal.external_reference == soleas_ref)
         ).first()
 
     # ---- 2. Fallback : chercher par external_reference ----
     if not withdrawal and external_ref:
         withdrawal = Withdrawal.query.filter(
             (Withdrawal.withdraw_reference == external_ref) |
-            (Withdrawal.withdraw_external_reference == external_ref)
+            (Withdrawal.external_reference == external_ref)
         ).first()
 
     if withdrawal:
