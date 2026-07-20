@@ -12,10 +12,12 @@ Fonctions :
 
 import json
 import logging
+import random
+import string
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from models import db, User, Withdrawal, Transaction
+from models import db, User, Withdrawal, Transaction, Notification
 from services.soleaspay import withdraw as soleaspay_withdraw, convert_currency
 from services.fees import calculate_fee
 from services.email_service import _send_email as send_email
@@ -28,6 +30,13 @@ logger = logging.getLogger(__name__)
 # Constantes
 # --------------------------
 MIN_WITHDRAWAL_AMOUNT = 500  # unités mineures (5 XOF/USD/...)
+
+
+def _generate_external_reference() -> str:
+    """Génère une référence unique pour le retrait : WDR-YYYYMMDD-XXXXXX."""
+    date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    return f"WDR-{date_str}-{suffix}"
 
 
 def get_available_countries() -> List[Dict[str, Any]]:
@@ -165,6 +174,9 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
     if user.balance < total_debited:
         return {"success": False, "error": "Solde insuffisant."}
 
+    # ---- Générer une external_reference unique ----
+    external_ref = _generate_external_reference()
+
     # ---- Créer l'enregistrement ----
     withdrawal = Withdrawal(
         user_id=user.id,
@@ -179,6 +191,7 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
         total_debited=total_debited,
         exchange_rate=amount_minor / converted_minor if (converted_minor and amount_minor != converted_minor) else 1.0,
         status="CREATED",
+        external_reference=external_ref,
     )
     db.session.add(withdrawal)
     db.session.flush()  # Pour obtenir withdrawal.id avant le commit
@@ -218,6 +231,7 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
             wallet=phone,
             amount=float(converted_minor),
             currency=op_currency,
+            external_reference=external_ref,
         )
         withdrawal.response_payload = json.dumps(resp)
         withdrawal.withdraw_reference = resp.get("reference", "")
@@ -308,11 +322,30 @@ def process_withdrawal_webhook(withdrawal: Withdrawal, webhook_data: dict) -> bo
             txn.status = "success"
             txn.updated_at = datetime.now(timezone.utc)
 
-        # Notification de succès
+        # ---- LOG WITHDRAW SUCCESS ----
+        logger.info(f"WITHDRAW SUCCESS | ref={withdrawal.external_reference} | "
+                    f"user={withdrawal.user_id} | amount={withdrawal.amount} {withdrawal.currency} | "
+                    f"operator={withdrawal.recipient_operator}")
+
+        # Notification email + push
         try:
             _notify_withdrawal(withdrawal.user, withdrawal, success=True)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"WITHDRAW SUCCESS — échec notification: {e}")
+
+        # Notification in-app
+        try:
+            notif = Notification(
+                user_id=withdrawal.user_id,
+                title="Retrait réussi ✅",
+                message=f"Votre retrait de {withdrawal.amount_display():.2f} {withdrawal.currency} "
+                        f"vers {withdrawal.recipient_operator} a été effectué avec succès.",
+                type="withdraw_success",
+                data={"external_reference": withdrawal.external_reference},
+            )
+            db.session.add(notif)
+        except Exception as e:
+            logger.warning(f"WITHDRAW SUCCESS — échec notification in-app: {e}")
 
         db.session.commit()
         return True
@@ -340,7 +373,32 @@ def process_withdrawal_webhook(withdrawal: Withdrawal, webhook_data: dict) -> bo
             if txn:
                 txn.status = "failed"
 
+            # ---- LOGS ----
+            logger.info(f"WITHDRAW FAILED | ref={withdrawal.external_reference} | "
+                        f"user={withdrawal.user_id} | amount={withdrawal.amount} {withdrawal.currency} | "
+                        f"reason={withdrawal.status_message}")
+            logger.info(f"WITHDRAW REFUNDED | ref={withdrawal.external_reference} | "
+                        f"user={withdrawal.user_id} | amount={withdrawal.total_debited} {withdrawal.currency} | "
+                        f"new_balance={user.balance}")
+
+            # Notification email + push
             _notify_withdrawal(user, withdrawal, success=False)
+
+            # Notification in-app
+            try:
+                notif = Notification(
+                    user_id=withdrawal.user_id,
+                    title="Retrait échoué ❌",
+                    message=f"Votre retrait de {withdrawal.amount_display():.2f} {withdrawal.currency} "
+                            f"vers {withdrawal.recipient_operator} a échoué. "
+                            f"Le montant a été remboursé.",
+                    type="withdraw_failed",
+                    data={"external_reference": withdrawal.external_reference},
+                )
+                db.session.add(notif)
+            except Exception as e:
+                logger.warning(f"WITHDRAW FAILED — échec notification in-app: {e}")
+
             db.session.commit()
 
         return False

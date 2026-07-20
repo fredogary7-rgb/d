@@ -436,6 +436,7 @@ def withdraw(
     wallet: str,
     amount: float,
     currency: str = "",
+    external_reference: str = "",
 ) -> Dict[str, Any]:
     """Retire de l'argent du compte SoleasPay vers un compte bénéficiaire (Payout).
 
@@ -449,6 +450,7 @@ def withdraw(
         wallet          : Numéro du wallet bénéficiaire
         amount          : Montant à envoyer
         currency        : (optionnel) Code devise
+        external_reference : (optionnel) Référence unique externe (ex: WDR-20260720-ABC123)
 
     Returns:
         dict: Réponse JSON de SoleasPay.
@@ -481,6 +483,8 @@ def withdraw(
     }
     if currency:
         body["currency"] = currency
+    if external_reference:
+        body["external_reference"] = external_reference
 
     # ---- LOGGING ----
     logger.info("=" * 50)

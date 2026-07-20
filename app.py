@@ -45,6 +45,7 @@ from services.withdraw_service import (
     get_available_countries,
     get_operators_by_country,
     status_label as withdraw_status_label,
+    process_withdrawal_webhook,
 )
 from admin import admin_bp
 from admin.models import AdminUser, AdminLog, SystemConfig
@@ -1102,7 +1103,11 @@ def _handle_payment_webhook(payload: dict):
 
 
 def _handle_withdraw_webhook(payload: dict):
-    """Logique de traitement d'un webhook WITHDRAW."""
+    """Logique de traitement d'un webhook WITHDRAW.
+
+    Recherche d'abord un Withdrawal (nouveau flux direct) par external_reference,
+    puis un Transfer (ancien flux) par reference/external_reference.
+    """
     data = payload.get('data', {})
     if isinstance(data, list) and len(data) > 0:
         ref = data[0].get('external_reference') or data[0].get('reference') or ''
@@ -1111,7 +1116,6 @@ def _handle_withdraw_webhook(payload: dict):
     else:
         ref = ''
 
-    transfer = get_transfer_by_reference(ref) if ref else None
     _log_webhook('WITHDRAW', ref, payload.get('status', 'UNKNOWN'), payload)
 
     webhook_logger.info(
@@ -1121,9 +1125,39 @@ def _handle_withdraw_webhook(payload: dict):
         f"Reference : {ref}"
     )
 
+    # ---- 1. Chercher un Withdrawal par external_reference (nouveau flux) ----
+    withdrawal = Withdrawal.query.filter_by(external_reference=ref).first() if ref else None
+    if withdrawal:
+        webhook_logger.info(f"Withdrawal trouvé: id={withdrawal.id} external_ref={ref} status={withdrawal.status}")
+        if withdrawal.status not in ('WITHDRAW_PROCESSING', 'WAITING_WITHDRAW'):
+            webhook_logger.info(f'Webhook ignoré (idempotent) : withdrawal déjà au statut {withdrawal.status}')
+            return jsonify({
+                'success': True,
+                'message': f'Withdrawal déjà traité (statut={withdrawal.status})',
+                'external_reference': withdrawal.external_reference,
+                'status': withdrawal.status,
+            })
+
+        success = process_withdrawal_webhook(withdrawal, payload)
+        webhook_logger.info(
+            f"WEBHOOK RESULT\n"
+            f"Operation : WITHDRAW\n"
+            f"Status : {'SUCCESS' if success else 'FAILED'}\n"
+            f"ExternalRef : {withdrawal.external_reference}\n"
+            f"User : {withdrawal.user_id}"
+        )
+        return jsonify({
+            'success': success,
+            'message': 'Retrait traité avec succès' if success else 'Retrait échoué',
+            'external_reference': withdrawal.external_reference,
+            'status': withdrawal.status,
+        })
+
+    # ---- 2. Fallback : chercher un Transfer (ancien flux) ----
+    transfer = get_transfer_by_reference(ref) if ref else None
     if not transfer:
-        webhook_logger.warning(f'Transfer introuvable pour reference={ref}')
-        return jsonify({'success': False, 'message': 'Transfer introuvable'}), 404
+        webhook_logger.warning(f'Aucun Withdrawal ni Transfer trouvé pour reference={ref}')
+        return jsonify({'success': False, 'message': 'Aucune entité trouvée pour cette référence.'}), 404
 
     if transfer.status != 'WITHDRAW_PROCESSING':
         webhook_logger.info(f'Webhook ignoré (idempotent) : transfert déjà au statut {transfer.status}')
