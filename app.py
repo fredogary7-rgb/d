@@ -1088,6 +1088,45 @@ def _handle_payment_webhook(payload: dict):
             db.session.add(tx)
             db.session.commit()
             webhook_logger.info(f'Dépôt COMPLETED via webhook unifié: {deposit.reference}, montant={deposit.amount}')
+
+            # ---- Notification push à l'utilisateur ----
+            try:
+                send_push_to_user(
+                    user_id=deposit.user_id,
+                    title="💰 Dépôt confirmé",
+                    body=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a été crédité avec succès sur votre compte TransAfrik.",
+                    url="/wallet",
+                    tag=f"deposit-{deposit.reference}",
+                    data={"reference": deposit.reference, "amount": deposit.amount, "currency": deposit.currency},
+                )
+                app.logger.info(f"PUSH | ENVOYÉE | Dépôt confirmé | user={deposit.user_id} | amount={deposit.amount}")
+                # Notification in-app
+                notif = Notification(
+                    user_id=deposit.user_id,
+                    title="Dépôt confirmé",
+                    message=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a été crédité avec succès.",
+                    type="deposit_success",
+                    data={"reference": deposit.reference},
+                )
+                db.session.add(notif)
+                db.session.commit()
+            except Exception as push_err:
+                app.logger.warning(f"[PUSH] Échec notification dépôt: {push_err}")
+
+            # ---- Email de confirmation ----
+            try:
+                from services.email_service import send_deposit_email
+                send_deposit_email(
+                    email=deposit.user.email,
+                    fullname=deposit.user.fullname,
+                    amount=deposit.amount,
+                    currency=deposit.currency,
+                    reference=deposit.reference,
+                )
+                app.logger.info(f"EMAIL | EMAIL envoyé avec succès | dépôt {deposit.reference}")
+            except Exception as email_err:
+                app.logger.warning(f"[EMAIL] Échec envoi email dépôt: {email_err}")
+
             return jsonify({'success': True, 'message': 'Dépôt confirmé', 'status': 'COMPLETED'})
         elif is_payment_failed(payload):
             deposit.webhook_payload = payload
@@ -1095,6 +1134,29 @@ def _handle_payment_webhook(payload: dict):
             deposit.status_message = payload.get('message', 'Échec du dépôt')
             db.session.commit()
             webhook_logger.info(f'Dépôt FAILED via webhook unifié: {deposit.reference}')
+
+            # ---- Notification push échec ----
+            try:
+                send_push_to_user(
+                    user_id=deposit.user_id,
+                    title="❌ Dépôt échoué",
+                    body=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a échoué : {deposit.status_message}",
+                    url="/wallet",
+                    tag=f"deposit-{deposit.reference}",
+                    data={"reference": deposit.reference, "amount": deposit.amount, "currency": deposit.currency},
+                )
+                notif = Notification(
+                    user_id=deposit.user_id,
+                    title="Dépôt échoué",
+                    message=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a échoué.",
+                    type="deposit_failed",
+                    data={"reference": deposit.reference},
+                )
+                db.session.add(notif)
+                db.session.commit()
+            except Exception as push_err:
+                app.logger.warning(f"[PUSH] Échec notification échec dépôt: {push_err}")
+
             return jsonify({'success': False, 'message': 'Dépôt échoué', 'status': 'FAILED'})
         else:
             deposit.webhook_payload = payload

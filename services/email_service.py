@@ -503,3 +503,50 @@ def send_login_notification(email: str, fullname: str, ip: str = "") -> dict:
 
     email_logger.info(f"Notification connexion envoyée → {email}")
     return _send_email(email, subject, html_body)
+
+
+# ================================================================
+# CONFIRMATION DE DEPOT
+# ================================================================
+
+def send_deposit_email(email: str, fullname: str, amount: float,
+                       currency: str = "XOF", reference: str = "") -> dict:
+    """Envoie un email de confirmation de depot.
+
+    Args:
+        email:     Adresse email du destinataire.
+        fullname:  Nom complet de l'utilisateur.
+        amount:    Montant du depot.
+        currency:  Devise (defaut XOF).
+        reference: Reference de la transaction.
+
+    Returns:
+        {"success": True/False, "message": "...", "raw_response": {...}}
+    """
+    first_name = fullname.split()[0] if fullname.strip() else fullname
+    from datetime import datetime
+    date_str = datetime.utcnow().strftime("%d/%m/%Y a %H:%M")
+
+    ref_line = f"<br>Reference : <strong>{reference}</strong>" if reference else ""
+
+    content = f"""
+            <div class="email-body">
+                <div class="email-title">Depot confirme</div>
+                <div class="email-text">
+                    Bonjour {first_name},<br><br>
+                    Votre depot a ete credite avec succes sur votre compte TransAfrik.<br><br>
+                    <strong>Montant :</strong> {amount:,.0f} {currency}<br>
+                    <strong>Date :</strong> {date_str}{ref_line}
+                </div>
+                <div class="email-text" style="font-size:12px;color:#64748B;">
+                    Vous pouvez consulter votre solde et l'historique<br>
+                    de vos transactions dans votre espace TransAfrik.
+                </div>
+            </div>
+    """
+
+    subject = f"Depot confirme - {amount:,.0f} {currency}"
+    html_body = _base_template(content)
+
+    email_logger.info(f"Confirmation depot envoyee -> {email} | ref={reference}")
+    return _send_email(email, subject, html_body)
