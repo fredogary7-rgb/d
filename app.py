@@ -2345,7 +2345,7 @@ def api_calculate_fees_v2():
 @app.route('/scan')
 @login_required
 def scan_page():
-    return render_template('scan_qr.html', user=current_user)
+    return render_template('scan.html')
 
 
 @app.route('/my-qrcode')
@@ -3818,6 +3818,128 @@ def api_pay_to_user():
             'id': receiver.id,
             'username': receiver.username,
             'fullname': receiver.fullname,
+        },
+    })
+
+
+@app.route('/api/scan/lookup', methods=['POST'])
+@login_required
+def api_scan_lookup():
+    """Recherche un utilisateur à partir du contenu du QR code.
+    Reçoit: {"email": "email@exemple.com"} ou {"qr_data": "TAUSER:email@exemple.com"}
+    Retourne: {"success": True, "user": {...}} ou {"success": False, "message": "..."}
+    """
+    data = request.get_json(silent=True) or {}
+    raw = data.get('qr_data', data.get('email', '')).strip()
+
+    if not raw:
+        return jsonify({'success': False, 'message': 'Aucune donnée fournie.'}), 400
+
+    # Parse le format TAUSER:email
+    email = raw
+    if raw.upper().startswith('TAUSER:'):
+        email = raw[7:].strip()
+
+    if not email or '@' not in email:
+        return jsonify({'success': False, 'message': 'Format invalide. Utilisez TAUSER:email@exemple.com.'}), 400
+
+    # Rechercher l'utilisateur par email exact
+    user = User.query.filter_by(email=email.lower().strip()).first()
+
+    if not user:
+        return jsonify({'success': False, 'message': 'Utilisateur introuvable.'}), 404
+
+    # Ne pas se payer soi-même
+    if user.id == current_user.id:
+        return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous payer vous-même.'}), 400
+
+    return jsonify({
+        'success': True,
+        'user': {
+            'id': user.id,
+            'fullname': user.fullname or user.username or 'Utilisateur',
+            'username': user.username or '',
+            'email': user.email,
+            'phone': user.phone or '',
+            'country': user.country or '',
+            'currency': user.currency or 'XOF',
+            'profile_picture': user.profile_picture or '',
+            'kyc_status': user.kyc_status or '',
+        }
+    })
+
+
+@app.route('/api/scan/pay', methods=['POST'])
+@login_required
+def api_scan_pay():
+    """Effectue un paiement direct par scan QR.
+    Reçoit: {"receiver_id": 123, "amount": 1000, "currency": "XOF"}
+    Débite le sender, crédite le receiver, crée les transactions.
+    """
+    data = request.get_json(silent=True) or {}
+    receiver_id = data.get('receiver_id')
+    amount = data.get('amount')
+    currency = data.get('currency', current_user.currency or 'XOF')
+
+    # Validation
+    try:
+        receiver_id = int(receiver_id)
+        amount = int(amount)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Données invalides.'}), 400
+
+    if amount <= 0:
+        return jsonify({'success': False, 'message': 'Le montant doit être supérieur à 0.'}), 400
+
+    if receiver_id == current_user.id:
+        return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous payer vous-même.'}), 400
+
+    # Vérifier que le receiver existe
+    receiver = User.query.get(receiver_id)
+    if not receiver:
+        return jsonify({'success': False, 'message': 'Destinataire introuvable.'}), 404
+
+    # Utiliser process_free_payment (alias process_wallet_to_wallet)
+    success, result, error = process_wallet_to_wallet(
+        sender_id=current_user.id,
+        receiver_id=receiver_id,
+        amount=amount,
+        currency=currency,
+    )
+
+    if not success:
+        return jsonify({'success': False, 'message': error or 'Erreur lors du paiement.'}), 400
+
+    tx = result.get('transaction') if isinstance(result, dict) else result
+    fee = result.get('fee', 0) if isinstance(result, dict) else 0
+    ref = tx.reference if hasattr(tx, 'reference') else ''
+
+    # Notification push au receveur
+    try:
+        send_push_to_user(
+            user_id=receiver_id,
+            title='Nouveau paiement reçu ! 💸',
+            body=f'{current_user.fullname or current_user.username} vous a envoyé {amount:,} {currency}.',
+            url='/dashboard',
+            tag='scan-payment',
+            data={'transaction_ref': ref, 'amount': amount, 'currency': currency},
+        )
+    except Exception as push_err:
+        app.logger.warning(f'[PUSH] Échec notification scan : {push_err}')
+
+    return jsonify({
+        'success': True,
+        'message': f'Paiement de {amount:,} {currency} vers {receiver.fullname or receiver.username} effectué avec succès.',
+        'transaction': {
+            'reference': ref,
+            'amount': amount,
+            'currency': currency,
+            'fee': fee,
+        },
+        'receiver': {
+            'id': receiver.id,
+            'fullname': receiver.fullname or receiver.username,
+            'email': receiver.email,
         },
     })
 

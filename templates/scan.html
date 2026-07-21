@@ -1,0 +1,613 @@
+{% extends "dashboard.html" %}
+{% block extra_head %}
+<style>
+    :root {
+        --scan-bg: #F1F5F9;
+        --scan-surface: #FFFFFF;
+        --scan-border: #E2E8F0;
+        --scan-text: #0F172A;
+        --scan-text-2: #334155;
+        --scan-text-3: #64748B;
+        --scan-text-4: #94A3B8;
+        --scan-blue: #2563EB;
+        --scan-blue-light: #DBEAFE;
+        --scan-blue-dark: #1D4ED8;
+        --scan-green: #10B981;
+        --scan-green-light: #D1FAE5;
+        --scan-orange: #F59E0B;
+        --scan-orange-light: #FEF3C7;
+        --scan-red: #EF4444;
+        --scan-red-light: #FEE2E2;
+        --scan-radius: 16px;
+        --scan-radius-sm: 12px;
+        --scan-radius-xs: 8px;
+        --scan-shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+        --scan-shadow: 0 4px 16px rgba(0,0,0,.05);
+        --scan-shadow-md: 0 8px 30px rgba(0,0,0,.07);
+        --scan-transition: .25s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"] {
+        --scan-bg: #0B1120;
+        --scan-surface: #111827;
+        --scan-border: #1E293B;
+        --scan-text: #F1F5F9;
+        --scan-text-2: #CBD5E1;
+        --scan-text-3: #94A3B8;
+        --scan-text-4: #64748B;
+        --scan-blue-light: #1E3A5F;
+        --scan-green-light: #064E3B;
+        --scan-orange-light: #78350F;
+        --scan-red-light: #7F1D1D;
+    }
+
+    .scan-page { padding: 8px 0 40px; max-width: 520px; margin: 0 auto; }
+
+    /* Header */
+    .scan-header {
+        display: flex; align-items: center; gap: 14px; margin-bottom: 28px;
+    }
+    .scan-header-icon {
+        width: 48px; height: 48px; border-radius: var(--scan-radius-sm); display: flex;
+        align-items: center; justify-content: center; font-size: 22px;
+        background: linear-gradient(135deg, var(--scan-blue), #7C3AED); color: #fff;
+        box-shadow: 0 8px 24px rgba(37,99,235,.25);
+    }
+    .scan-header-title { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+    .scan-header-sub { font-size: 13px; color: var(--scan-text-3); margin-top: 2px; }
+
+    /* Panels */
+    .scan-panel { display: none; }
+    .scan-panel.active { display: block; animation: scanFadeIn .35s ease; }
+    @keyframes scanFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Card */
+    .scan-card {
+        background: var(--scan-surface); border: 1px solid var(--scan-border);
+        border-radius: var(--scan-radius); padding: 28px 24px;
+        box-shadow: var(--scan-shadow-sm);
+    }
+    .scan-card-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .scan-card-sub { font-size: 13px; color: var(--scan-text-3); margin-bottom: 20px; }
+
+    /* ==== PANEL 1: SCANNER ==== */
+    #scanReader {
+        width: 100%; max-width: 360px; margin: 0 auto 20px; border-radius: var(--scan-radius-sm);
+        overflow: hidden; border: 2px solid var(--scan-border);
+    }
+    #scanReader video { width: 100%; border-radius: var(--scan-radius-sm); display: block; }
+    .scan-or-divider {
+        display: flex; align-items: center; gap: 12px; margin: 16px 0;
+        font-size: 12px; color: var(--scan-text-4); font-weight: 600;
+    }
+    .scan-or-divider::before, .scan-or-divider::after {
+        content: ''; flex: 1; height: 1px; background: var(--scan-border);
+    }
+    .scan-manual-input {
+        width: 100%; padding: 14px 16px; border: 2px solid var(--scan-border);
+        border-radius: var(--scan-radius-xs); font-size: 16px; font-family: 'Inter', sans-serif;
+        color: var(--scan-text); background: var(--scan-surface); outline: none;
+        transition: all var(--scan-transition); text-align: center;
+        letter-spacing: .04em;
+    }
+    .scan-manual-input:focus { border-color: var(--scan-blue); box-shadow: 0 0 0 3px var(--scan-blue-light); }
+    .scan-manual-input::placeholder { color: var(--scan-text-4); letter-spacing: 0; }
+    .scan-btn-primary {
+        width: 100%; padding: 13px; border: none; border-radius: var(--scan-radius-xs);
+        font-size: 14px; font-weight: 700; cursor: pointer;
+        background: var(--scan-blue); color: #fff; font-family: 'Inter', sans-serif;
+        transition: all var(--scan-transition); margin-top: 12px;
+        box-shadow: 0 4px 12px rgba(37,99,235,.25);
+    }
+    .scan-btn-primary:hover { background: var(--scan-blue-dark); transform: translateY(-1px); }
+    .scan-btn-primary:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+    .scan-error {
+        margin-top: 12px; padding: 10px 14px; background: var(--scan-red-light);
+        border-radius: var(--scan-radius-xs); font-size: 12px; color: var(--scan-red);
+        font-weight: 600; display: none;
+    }
+
+    /* ==== PANEL 2: PROFILE + AMOUNT ==== */
+    .scan-recipient {
+        display: flex; align-items: center; gap: 16px; padding: 20px;
+        background: var(--scan-blue-light); border-radius: var(--scan-radius);
+        margin-bottom: 20px;
+    }
+    .scan-recipient-avatar {
+        width: 56px; height: 56px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; font-size: 22px; font-weight: 800;
+        background: linear-gradient(135deg, var(--scan-blue), #7C3AED); color: #fff;
+        flex-shrink: 0; overflow: hidden;
+    }
+    .scan-recipient-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .scan-recipient-info { flex: 1; min-width: 0; }
+    .scan-recipient-name { font-size: 16px; font-weight: 800; }
+    .scan-recipient-email { font-size: 13px; color: var(--scan-blue); word-break: break-all; }
+    .scan-recipient-badge {
+        display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+        font-size: 11px; font-weight: 600; color: var(--scan-green);
+    }
+    .scan-recipient-badge i { font-size: 12px; }
+
+    .scan-amount-group { margin-bottom: 16px; }
+    .scan-amount-label { font-size: 12px; font-weight: 700; color: var(--scan-text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .scan-amount-input {
+        width: 100%; padding: 14px 16px; border: 2px solid var(--scan-border);
+        border-radius: var(--scan-radius-xs); font-size: 22px; font-family: 'Outfit', sans-serif;
+        font-weight: 700; color: var(--scan-text); background: var(--scan-surface); outline: none;
+        transition: all var(--scan-transition);
+    }
+    .scan-amount-input:focus { border-color: var(--scan-blue); box-shadow: 0 0 0 3px var(--scan-blue-light); }
+
+    .scan-fee-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 16px; background: var(--scan-orange-light);
+        border-radius: var(--scan-radius-xs); margin-bottom: 8px;
+    }
+    .scan-fee-label { font-size: 13px; font-weight: 600; color: var(--scan-text-2); }
+    .scan-fee-value { font-size: 14px; font-weight: 800; color: var(--scan-orange); }
+    .scan-total-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 16px; background: var(--scan-border); border-radius: var(--scan-radius-xs);
+    }
+    .scan-total-label { font-size: 14px; font-weight: 700; color: var(--scan-text); }
+    .scan-total-value { font-size: 18px; font-weight: 800; color: var(--scan-text); }
+
+    .scan-btn-row { display: flex; gap: 10px; margin-top: 20px; }
+    .scan-btn-secondary {
+        flex: 1; padding: 13px; border: 2px solid var(--scan-border);
+        border-radius: var(--scan-radius-xs); font-size: 14px; font-weight: 700; cursor: pointer;
+        background: var(--scan-surface); color: var(--scan-text-2); font-family: 'Inter', sans-serif;
+        transition: all var(--scan-transition); text-align: center;
+    }
+    .scan-btn-secondary:hover { border-color: var(--scan-text-3); }
+    .scan-btn-success {
+        flex: 1; padding: 13px; border: none; border-radius: var(--scan-radius-xs);
+        font-size: 14px; font-weight: 700; cursor: pointer;
+        background: var(--scan-green); color: #fff; font-family: 'Inter', sans-serif;
+        transition: all var(--scan-transition);
+        box-shadow: 0 4px 12px rgba(16,185,129,.25);
+    }
+    .scan-btn-success:hover { transform: translateY(-1px); }
+    .scan-btn-success:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+
+    /* ==== PANEL 3: CONFIRMATION ==== */
+    .scan-confirm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .scan-confirm-table td { padding: 12px 14px; border-bottom: 1px solid var(--scan-border); }
+    .scan-confirm-table td:first-child { font-weight: 600; color: var(--scan-text-4); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; width: 40%; }
+    .scan-confirm-table td:last-child { color: var(--scan-text); font-weight: 500; }
+
+    /* ==== PANEL 4: SUCCESS ==== */
+    .scan-success-icon { font-size: 64px; text-align: center; margin-bottom: 16px; }
+    .scan-success-title { font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 8px; }
+    .scan-success-sub { font-size: 13px; color: var(--scan-text-3); text-align: center; margin-bottom: 20px; line-height: 1.6; }
+
+    /* Loader */
+    .scan-loader {
+        position: fixed; inset: 0; background: rgba(15,23,42,.5); z-index: 9999;
+        display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none;
+        transition: opacity .3s; backdrop-filter: blur(4px);
+    }
+    .scan-loader.show { opacity: 1; pointer-events: all; }
+    .scan-loader-spinner {
+        width: 48px; height: 48px; border: 4px solid rgba(255,255,255,.2);
+        border-top-color: #fff; border-radius: 50%; animation: scanSpin .7s linear infinite;
+    }
+    @keyframes scanSpin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .scan-toast {
+        position: fixed; top: 80px; right: 20px; z-index: 9998; padding: 14px 24px;
+        border-radius: var(--scan-radius-sm); font-size: 13px; font-weight: 600; color: #fff;
+        opacity: 0; transform: translateX(40px); pointer-events: none; transition: all .35s ease;
+        box-shadow: var(--scan-shadow-md); font-family: 'Inter', sans-serif;
+    }
+    .scan-toast.show { opacity: 1; transform: translateX(0); }
+    .scan-toast.success { background: var(--scan-green); }
+    .scan-toast.error { background: var(--scan-red); }
+
+    @media (max-width: 768px) {
+        .scan-card { padding: 20px 16px; }
+        .scan-recipient { flex-direction: column; text-align: center; }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<main class="main-content">
+<div class="scan-page">
+
+    <!-- ========== HEADER ========== -->
+    <div class="scan-header">
+        <div class="scan-header-icon"><i class="fa-solid fa-qrcode"></i></div>
+        <div>
+            <h1 class="scan-header-title">Scanner QR Code</h1>
+            <p class="scan-header-sub">Scannez le QR d'un utilisateur pour le payer directement</p>
+        </div>
+    </div>
+
+    <!-- ========== PANEL 1: SCANNER ========== -->
+    <div class="scan-panel active" id="panelScan">
+        <div class="scan-card">
+            <div class="scan-card-title"><i class="fa-solid fa-camera" style="color:var(--scan-blue)"></i> Scanner le QR Code</div>
+            <div class="scan-card-sub">Placez le QR code dans le cadre pour le scanner automatiquement.</div>
+            <div id="scanReader"></div>
+            <div class="scan-or-divider">OU SAISIR LE CODE</div>
+            <input type="text" class="scan-manual-input" id="manualCode" placeholder="Ex: TAUSER:email@exemple.com" autocapitalize="off" autocomplete="off">
+            <button class="scan-btn-primary" id="btnLookup" onclick="scanLookup()">
+                <i class="fa-solid fa-magnifying-glass"></i> Rechercher l'utilisateur
+            </button>
+            <div class="scan-error" id="scanError"></div>
+            <div style="text-align:center;margin-top:14px;">
+                <button style="background:none;border:none;color:var(--scan-text-4);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;" onclick="startScanner()">
+                    <i class="fa-solid fa-rotate-right"></i> Redémarrer le scanner
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PANEL 2: PROFILE + AMOUNT ========== -->
+    <div class="scan-panel" id="panelAmount">
+        <div class="scan-card">
+            <div class="scan-card-title"><i class="fa-solid fa-paper-plane" style="color:var(--scan-blue)"></i> Paiement à</div>
+            <div class="scan-recipient">
+                <div class="scan-recipient-avatar" id="recipientAvatar"></div>
+                <div class="scan-recipient-info">
+                    <div class="scan-recipient-name" id="recipientName">---</div>
+                    <div class="scan-recipient-email" id="recipientEmail">---</div>
+                    <div class="scan-recipient-badge" id="recipientBadge">
+                        <i class="fa-solid fa-circle-check"></i> <span id="recipientBadgeText">Utilisateur vérifié</span>
+                    </div>
+                </div>
+            </div>
+            <div class="scan-amount-group">
+                <label class="scan-amount-label">Montant ({{ user.currency or 'XOF' }})</label>
+                <input type="number" class="scan-amount-input" id="amountInput" placeholder="0" min="1" step="1" oninput="updateFees()">
+            </div>
+            <div class="scan-fee-row">
+                <span class="scan-fee-label">Frais (2%)</span>
+                <span class="scan-fee-value" id="feeDisplay">0 {{ user.currency or 'XOF' }}</span>
+            </div>
+            <div class="scan-total-row">
+                <span class="scan-total-label">Total</span>
+                <span class="scan-total-value" id="totalDisplay">0 {{ user.currency or 'XOF' }}</span>
+            </div>
+            <div class="scan-btn-row">
+                <button class="scan-btn-secondary" onclick="goBackToScan()"><i class="fa-solid fa-arrow-left"></i> Annuler</button>
+                <button class="scan-btn-success" id="btnContinue" onclick="goToConfirm()" disabled>Envoyer <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PANEL 3: CONFIRMATION ========== -->
+    <div class="scan-panel" id="panelConfirm">
+        <div class="scan-card">
+            <div class="scan-card-title"><i class="fa-solid fa-check-circle" style="color:var(--scan-green)"></i> Confirmer le paiement</div>
+            <table class="scan-confirm-table">
+                <tr><td>Destinataire</td><td id="cfName">---</td></tr>
+                <tr><td>Email</td><td id="cfEmail">---</td></tr>
+                <tr><td>Montant</td><td id="cfAmount">---</td></tr>
+                <tr><td>Frais</td><td id="cfFee">---</td></tr>
+                <tr><td>Total débité</td><td><strong id="cfTotal">---</strong></td></tr>
+            </table>
+            <div class="scan-btn-row">
+                <button class="scan-btn-secondary" onclick="goBackToAmount()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
+                <button class="scan-btn-success" id="btnConfirm" onclick="scanPay()"><i class="fa-solid fa-paper-plane"></i> Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PANEL 4: SUCCESS ========== -->
+    <div class="scan-panel" id="panelSuccess">
+        <div class="scan-card">
+            <div class="scan-success-icon">✅</div>
+            <div class="scan-success-title">Paiement effectué avec succès</div>
+            <p class="scan-success-sub">
+                Le montant a été débité de votre compte et crédité sur le compte du destinataire.
+            </p>
+            <button class="scan-btn-primary" onclick="window.location.href='{{ url_for("dashboard") }}'">
+                <i class="fa-solid fa-house"></i> Retour au tableau de bord
+            </button>
+            <button class="scan-btn-secondary" style="margin-top:10px;width:100%;" onclick="resetScan()">
+                <i class="fa-solid fa-qrcode"></i> Nouveau scan
+            </button>
+        </div>
+    </div>
+
+</div>
+</main>
+
+<!-- ========== LOADER ========== -->
+<div class="scan-loader" id="scanLoader"><div class="scan-loader-spinner"></div></div>
+
+<!-- ========== TOAST ========== -->
+<div class="scan-toast" id="scanToast"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+// ==================== ÉTAT GLOBAL ====================
+let foundUser = null;
+let html5QrCode = null;
+let scannerRunning = false;
+
+function showLoader() { document.getElementById('scanLoader').classList.add('show'); }
+function hideLoader() { document.getElementById('scanLoader').classList.remove('show'); }
+
+function showToast(msg, type) {
+    const toast = document.getElementById('scanToast');
+    toast.textContent = msg;
+    toast.className = 'scan-toast ' + type + ' show';
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => { toast.classList.remove('show'); }, 4000);
+}
+
+function showPanel(id) {
+    document.querySelectorAll('.scan-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 200, behavior: 'smooth' });
+}
+
+function showError(msg) {
+    const el = document.getElementById('scanError');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+// ==================== QR SCANNER ====================
+function startScanner() {
+    const readerEl = document.getElementById('scanReader');
+    if (!readerEl) return;
+
+    // Stop existing scanner
+    if (html5QrCode) {
+        if (scannerRunning) {
+            html5QrCode.stop().catch(() => {});
+        }
+        html5QrCode.clear();
+        html5QrCode = null;
+    }
+    scannerRunning = false;
+
+    readerEl.innerHTML = '';
+
+    html5QrCode = new Html5Qrcode('scanReader');
+
+    const config = {
+        fps: 10,
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0
+    };
+
+    html5QrCode.start(
+        { facingMode: 'environment' },
+        config,
+        onScanSuccess,
+        onScanError
+    ).then(() => {
+        scannerRunning = true;
+    }).catch(err => {
+        // Camera not available — show manual input prominently
+        readerEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--scan-text-4);font-size:13px"><i class="fa-solid fa-camera-slash" style="font-size:28px;display:block;margin-bottom:8px;"></i>Caméra non disponible<br>Saisissez le code manuellement ci-dessous.</div>';
+        document.getElementById('manualCode').focus();
+    });
+}
+
+function onScanSuccess(decodedText) {
+    if (!scannerRunning) return;
+    // Stop scanner
+    html5QrCode.stop().then(() => {
+        scannerRunning = false;
+    }).catch(() => {});
+
+    document.getElementById('manualCode').value = decodedText;
+    scanLookup();
+}
+
+function onScanError(err) {
+    // Ignore scanning errors (frame not found, etc.)
+}
+
+// ==================== LOOKUP ====================
+async function scanLookup() {
+    let qrData = document.getElementById('manualCode').value.trim();
+    if (!qrData) {
+        showError('Veuillez scanner un QR code ou saisir un code.');
+        return;
+    }
+
+    // Parse TAUSER:email
+    let email = qrData;
+    if (qrData.toUpperCase().startsWith('TAUSER:')) {
+        email = qrData.substring(7).trim();
+    }
+
+    if (!email || !email.includes('@')) {
+        showError('Code QR invalide. Format attendu : TAUSER:email@exemple.com');
+        return;
+    }
+
+    const btn = document.getElementById('btnLookup');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Recherche en cours...';
+    showLoader();
+
+    try {
+        const res = await fetch('/api/scan/lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            foundUser = data.user;
+            displayRecipient();
+            showPanel('panelAmount');
+            document.getElementById('amountInput').value = '';
+            updateFees();
+            document.getElementById('amountInput').focus();
+        } else {
+            showError(data.message || 'Utilisateur introuvable.');
+        }
+    } catch (e) {
+        showError('Erreur réseau. Veuillez réessayer.');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Rechercher l\'utilisateur';
+    hideLoader();
+}
+
+// ==================== DISPLAY RECIPIENT ====================
+function displayRecipient() {
+    if (!foundUser) return;
+
+    document.getElementById('recipientName').textContent = foundUser.fullname || 'Utilisateur';
+    document.getElementById('recipientEmail').textContent = foundUser.email;
+
+    const avatar = document.getElementById('recipientAvatar');
+    if (foundUser.profile_picture) {
+        avatar.innerHTML = `<img src="${foundUser.profile_picture}" alt="${foundUser.fullname}">`;
+    } else {
+        const initials = (foundUser.fullname || 'U').substring(0, 2).toUpperCase();
+        avatar.textContent = initials;
+    }
+
+    const badge = document.getElementById('recipientBadge');
+    const badgeText = document.getElementById('recipientBadgeText');
+    if (foundUser.kyc_status === 'verified' || foundUser.kyc_status === 'APPROVED') {
+        badge.style.color = 'var(--scan-green)';
+        badgeText.textContent = 'Utilisateur vérifié';
+    } else {
+        badge.style.color = 'var(--scan-orange)';
+        badgeText.textContent = 'Non vérifié';
+    }
+}
+
+// ==================== FEES CALCULATION ====================
+function updateFees() {
+    const amount = parseInt(document.getElementById('amountInput').value) || 0;
+    const currency = '{{ user.currency or "XOF" }}';
+    const feeRate = 0.02;
+    const feeCap = 5000;
+    let fee = Math.min(Math.ceil(amount * feeRate), feeCap);
+    if (amount <= 0) fee = 0;
+    const total = amount + fee;
+
+    document.getElementById('feeDisplay').textContent = fee.toLocaleString('fr-FR') + ' ' + currency;
+    document.getElementById('totalDisplay').textContent = total.toLocaleString('fr-FR') + ' ' + currency;
+    document.getElementById('btnContinue').disabled = amount <= 0;
+}
+
+// ==================== NAVIGATION ====================
+function goToConfirm() {
+    const amount = parseInt(document.getElementById('amountInput').value) || 0;
+    const currency = '{{ user.currency or "XOF" }}';
+    const feeRate = 0.02;
+    const feeCap = 5000;
+    let fee = Math.min(Math.ceil(amount * feeRate), feeCap);
+    if (amount <= 0) fee = 0;
+    const total = amount + fee;
+
+    document.getElementById('cfName').textContent = foundUser.fullname || '---';
+    document.getElementById('cfEmail').textContent = foundUser.email;
+    document.getElementById('cfAmount').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
+    document.getElementById('cfFee').textContent = fee.toLocaleString('fr-FR') + ' ' + currency;
+    document.getElementById('cfTotal').textContent = total.toLocaleString('fr-FR') + ' ' + currency;
+
+    showPanel('panelConfirm');
+}
+
+function goBackToScan() {
+    foundUser = null;
+    document.getElementById('manualCode').value = '';
+    document.getElementById('scanError').style.display = 'none';
+    showPanel('panelScan');
+    startScanner();
+}
+
+function goBackToAmount() {
+    showPanel('panelAmount');
+}
+
+function resetScan() {
+    foundUser = null;
+    document.getElementById('manualCode').value = '';
+    document.getElementById('amountInput').value = '';
+    document.getElementById('scanError').style.display = 'none';
+    showPanel('panelScan');
+    startScanner();
+}
+
+// ==================== PAY ====================
+async function scanPay() {
+    const amount = parseInt(document.getElementById('amountInput').value) || 0;
+    if (amount <= 0 || !foundUser) return;
+
+    const btn = document.getElementById('btnConfirm');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Traitement...';
+    showLoader();
+
+    try {
+        const res = await fetch('/api/scan/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                receiver_id: foundUser.id,
+                amount: amount,
+                currency: '{{ user.currency or "XOF" }}',
+            }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            showPanel('panelSuccess');
+            showToast('Paiement effectué avec succès !', 'success');
+        } else {
+            showToast(data.message || 'Erreur lors du paiement', 'error');
+            goBackToAmount();
+        }
+    } catch (e) {
+        showToast('Erreur réseau', 'error');
+        goBackToAmount();
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Confirmer';
+    hideLoader();
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', function() {
+    startScanner();
+
+    // Allow Enter key on manual input
+    document.getElementById('manualCode').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            scanLookup();
+        }
+    });
+
+    // Allow Enter on amount input
+    document.getElementById('amountInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (parseInt(document.getElementById('amountInput').value) > 0) {
+                goToConfirm();
+            }
+        }
+    });
+});
+
+// Stop scanner when leaving page
+window.addEventListener('beforeunload', function() {
+    if (html5QrCode && scannerRunning) {
+        html5QrCode.stop().catch(() => {});
+    }
+});
+</script>
+{% endblock %}
