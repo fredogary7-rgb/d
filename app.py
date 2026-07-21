@@ -2465,6 +2465,7 @@ def api_qrcode_validate():
         'qr_type': parsed.get('type') if parsed else '',
         'action_url': get_qr_action(parsed.get('type', '') if parsed else ''),
         'user': {
+            'id': resolved_user.id if resolved_user else (parsed.get('user_id') if parsed else None),
             'qr_id': resolved_user.qr_identifier if resolved_user else (parsed.get('qr_id') if parsed else ''),
             'name': resolved_user.fullname if resolved_user else (parsed.get('name') if parsed else ''),
             'phone': resolved_user.phone if resolved_user else (parsed.get('phone') if parsed else ''),
