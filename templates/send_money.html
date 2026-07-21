@@ -102,6 +102,46 @@
         .error{background:#FEE2E2;color:#DC2626;padding:12px 16px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:14px;display:none}
         .error.show{display:block}
         @media(max-width:600px){.header{padding:14px 16px}.sc{padding:22px 16px}.grid{grid-template-columns:1fr}.frow{grid-template-columns:1fr}.amt{font-size:24px;padding:14px 16px}.nav{padding:0 20px 22px;flex-direction:column}.nav .btno{min-width:100%}}
+
+        /* ── Tab selector ── */
+        .tab-row{display:flex;gap:4px;padding:16px 28px 0;border-bottom:1px solid var(--border)}
+        .tab-btn{flex:1;padding:10px 14px;border:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;font-family:'Outfit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:var(--text-3);transition:all var(--transition);position:relative;text-align:center}
+        .tab-btn.active{color:var(--blue);background:var(--blue-light)}
+        .tab-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--blue);border-radius:3px 3px 0 0}
+        .tab-btn i{margin-right:4px}
+        @media(max-width:480px){.tab-btn{font-size:11px;padding:8px 8px}}
+
+        /* ── User search results ── */
+        .usearch{display:flex;gap:8px;margin-bottom:16px}
+        .usearch input{flex:1}
+        .usearch-results{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+        .usearch-result{border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;background:var(--surface)}
+        .usearch-result:hover{border-color:var(--blue);background:var(--blue-light);transform:translateX(3px)}
+        .usearch-result.sel{border-color:var(--blue);background:#EFF6FF;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .usearch-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--green))}
+        .usearch-info{flex:1;min-width:0}
+        .usearch-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .usearch-sub{font-size:11px;color:var(--text-3);margin-top:2px}
+        .usearch-check{color:var(--blue);font-size:18px;visibility:hidden}
+        .usearch-result.sel .usearch-check{visibility:visible}
+        .usearch-none{text-align:center;padding:20px;color:var(--text-4);font-size:13px}
+        .usearch-none i{font-size:28px;display:block;margin-bottom:8px;opacity:.4}
+
+        /* ── Selected user display ── */
+        .seluser{display:flex;align-items:center;gap:14px;padding:18px;background:linear-gradient(135deg,var(--blue-light),var(--green-light));border-radius:var(--radius-lg);margin-bottom:18px;animation:scaleIn .4s ease-out}
+        .seluser-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--green))}
+        .seluser-info{flex:1}
+        .seluser-name{font-size:14px;font-weight:700}
+        .seluser-sub{font-size:11px;color:var(--text-3)}
+        .seluser-remove{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px;color:var(--text-3);transition:all .2s}
+        .seluser-remove:hover{color:#DC2626;border-color:#DC2626}
+
+        /* ── Success screen ── */
+        .success-screen{text-align:center;padding:20px 0;animation:scaleIn .5s ease-out}
+        .success-screen i{font-size:56px;color:var(--green);margin-bottom:12px;display:block}
+        .success-screen h3{font-size:20px;font-weight:800;margin-bottom:6px}
+        .success-screen p{font-size:13px;color:var(--text-2);margin-bottom:4px}
+        .success-screen .success-amt{font-size:28px;font-weight:900;font-family:'Outfit',sans-serif;color:var(--green);margin:8px 0}
     </style>
 </head>
 <body>
@@ -113,31 +153,59 @@
 
 <main class="container">
     <div class="card">
-        <div class="progress">
+        <!-- ═══════════════════════════════════════════════════════
+             TAB SWITCHER
+             ═══════════════════════════════════════════════════════ -->
+        <div class="tab-row">
+            <button class="tab-btn active" id="tabMm" onclick="switchMode(0)">
+                <i class="fa-solid fa-globe"></i> Transfert Mobile Money
+            </button>
+            <button class="tab-btn" id="tabUu" onclick="switchMode(1)">
+                <i class="fa-solid fa-user-group"></i> Envoyer à un utilisateur
+            </button>
+        </div>
+
+        <!-- Progress bar (Mobile Money only) -->
+        <div class="progress" id="progressBar">
             <div class="pd active" id="d1">1</div><div class="pl" id="l1"></div>
             <div class="pd" id="d2">2</div><div class="pl" id="l2"></div>
             <div class="pd" id="d3">3</div>
         </div>
+
         <div class="error" id="err"></div>
-        <div class="loading" id="ld"><i class="fa-solid fa-spinner fa-spin"></i> Création de la transaction...</div>
+        <div class="loading" id="ld"><i class="fa-solid fa-spinner fa-spin"></i> Traitement en cours...</div>
         <div class="sc" id="sc"></div>
         <div class="nav" id="nav"></div>
     </div>
 </main>
 
 <script>
+// ═══════════════════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════════════════
 const COUNTRIES = {{ countries | tojson | safe }};
 const USER_COUNTRY = "{{ user.country }}";
 const USER_PHONE = "{{ user.phone }}";
 const USER_NAME = "{{ user.fullname }}";
+const USER_CURRENCY = "{{ user.currency }}";
 
 const OP_ICONS = {tmoney:'oit',moov:'oimv',mtn:'oim',orange:'oio',wave:'oiw',airtel:'oia',free:'oif',vodacom:'oiv',zamtel:'oiz'};
 const OP_SHORT = {tmoney:'TM',moov:'MV',mtn:'MTN',orange:'OR',wave:'WV',airtel:'AT',free:'FR',vodacom:'VC',zamtel:'ZT'};
 
+// 0 = Mobile Money, 1 = User-to-User
+let currentMode = 0;
+
+// ── Mobile Money state ──
 let step=1;
 let selSenderCountry=null, selSenderOp=null, selReceiverCountry=null, selReceiverOp=null;
 let amount=0, senderPhone=USER_PHONE||'', receiverPhone='', receiverName='';
-let feesResult = null;  // {fees, total, receiver_gets} from API
+let feesResult = null;
+
+// ── User-to-User state ──
+let uuSelectedUser = null;
+let uuAmount = 0;
+let uuSearchTimeout = null;
+let uuSearchResults = [];
 
 // ---- Pré-remplissage depuis les query params (scan QR) ----
 (function autoFillFromQR(){
@@ -158,13 +226,44 @@ let feesResult = null;  // {fees, total, receiver_gets} from API
     }
     if (rp) receiverPhone = rp;
     if (rn) receiverName = rn;
-    // Nettoyer l'URL pour éviter le re-remplissage après navigation
     if (typeof window.history !== 'undefined' && window.history.replaceState) {
         window.history.replaceState({}, document.title, '/send-money');
     }
 })();
 
+// ═══════════════════════════════════════════════════════
+// MODE SWITCHER
+// ═══════════════════════════════════════════════════════
+function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById('tabMm').classList.toggle('active', mode===0);
+    document.getElementById('tabUu').classList.toggle('active', mode===1);
+
+    // Show/hide progress bar (only for Mobile Money)
+    document.getElementById('progressBar').style.display = (mode===0) ? 'flex' : 'none';
+
+    // Reset errors
+    document.getElementById('err').classList.remove('show');
+    document.getElementById('ld').classList.remove('show');
+
+    if (mode===0) {
+        render();
+    } else {
+        // Reset user-to-user state
+        uuSelectedUser = null;
+        uuAmount = 0;
+        uuSearchResults = [];
+        uuRender();
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════════════
+// ═══════  MOBILE MONEY FLOW (inchangé)  ═══════
+// ═══════════════════════════════════════════════════════
+
 function render(){
+    if (currentMode!==0) return;
     updateProgress();
     const sc=document.getElementById('sc'),nav=document.getElementById('nav');
     if(step===1) renderStep1(sc,nav);
@@ -256,7 +355,6 @@ async function updateCalc(){
     let currency=selReceiverCountry?selReceiverCountry.currency:'XOF';
     let currencySymbol=currency==='XAF'?'FCFA':currency==='CDF'?'FC':currency==='UGX'?'USh':currency==='ZMW'?'ZK':currency;
     let el=id=>document.getElementById(id);
-    // Afficher "... calcul..." pendant le chargement
     if(el('cvFee'))el('cvFee').textContent='...';
     if(el('cvTotal'))el('cvTotal').textContent='...';
     if(amount<=0)return;
@@ -274,14 +372,9 @@ async function updateCalc(){
             })
         });
         let json=await res.json();
-        if(json.success&&json.data){
-            feesResult=json.data;
-        }else{
-            feesResult={fees:0,total:amount,receiver_gets:amount};
-        }
-    }catch(e){
-        feesResult={fees:0,total:amount,receiver_gets:amount};
-    }
+        if(json.success&&json.data){feesResult=json.data;}
+        else{feesResult={fees:0,total:amount,receiver_gets:amount};}
+    }catch(e){feesResult={fees:0,total:amount,receiver_gets:amount};}
     if(el('cvSend'))el('cvSend').textContent=amount.toLocaleString('fr')+' '+currencySymbol;
     if(el('cvFee'))el('cvFee').textContent=feesResult.fees.toLocaleString('fr')+' '+currencySymbol;
     if(el('cvRecv'))el('cvRecv').textContent=feesResult.receiver_gets.toLocaleString('fr')+' '+currencySymbol;
@@ -298,6 +391,7 @@ function goBack(){step=Math.max(1,step-1);render();window.scrollTo({top:0,behavi
 
 async function submitTransfer(){
     document.getElementById('ld').classList.add('show');
+    document.getElementById('ld').innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Création de la transaction...';
     document.getElementById('err').classList.remove('show');
     let btn=document.querySelector('.nav .btn');if(btn)btn.disabled=true;
     try{
@@ -317,8 +411,203 @@ async function submitTransfer(){
     document.getElementById('ld').classList.remove('show');
     if(btn)btn.disabled=false;
 }
-function showError(msg){let e=document.getElementById('err');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),5000)}
 
+// ═══════════════════════════════════════════════════════
+// ═══════  USER-TO-USER FLOW (wallet interne)  ═══════
+// ═══════════════════════════════════════════════════════
+
+function uuRender(){
+    const sc=document.getElementById('sc'),nav=document.getElementById('nav');
+
+    if (uuSelectedUser) {
+        // Step 2: Amount + Confirm
+        uuRenderAmount(sc, nav);
+    } else {
+        // Step 1: Search user
+        uuRenderSearch(sc, nav);
+    }
+}
+
+function uuRenderSearch(sc, nav){
+    sc.innerHTML=`
+        <div class="sec">
+            <div class="st"><div class="si"><i class="fa-solid fa-magnifying-glass"></i></div> Rechercher un utilisateur TransAfrik</div>
+            <p style="font-size:12px;color:var(--text-4);margin-bottom:16px">Recherchez par nom d'utilisateur, email ou numéro de téléphone.</p>
+            <div class="usearch">
+                <input class="fin" id="uuSearchInput" placeholder="@nomutilisateur, email ou téléphone..." oninput="uuOnSearchInput(this.value)" autocomplete="off">
+            </div>
+            <div id="uuSearchResults" class="usearch-results">
+                <div class="usearch-none">
+                    <i class="fa-solid fa-search"></i>
+                    <p>Tapez au moins 2 caractères pour chercher un utilisateur.</p>
+                </div>
+            </div>
+        </div>`;
+    nav.innerHTML=`<a href="/dashboard" class="btno">Annuler</a>`;
+    // Focus
+    setTimeout(()=>{let inp=document.getElementById('uuSearchInput');if(inp)inp.focus()},100);
+}
+
+function uuRenderAmount(sc, nav){
+    if (!uuSelectedUser) return uuRenderSearch(sc, nav);
+    const u = uuSelectedUser;
+    const currency = u.currency || USER_CURRENCY || 'XOF';
+    const fee = uuAmount > 0 ? Math.min(Math.ceil(uuAmount * 0.02), 5000) : 0;
+    const total = uuAmount + fee;
+    const presets = [5000, 10000, 25000, 50000, 100000];
+
+    sc.innerHTML=`
+        <div class="sec">
+            <div class="st"><div class="si"><i class="fa-solid fa-circle-check"></i></div> Destinataire sélectionné</div>
+
+            <div class="seluser">
+                <div class="seluser-avatar">${(u.fullname || u.username || '?')[0].toUpperCase()}</div>
+                <div class="seluser-info">
+                    <div class="seluser-name">${u.fullname || 'Utilisateur'}</div>
+                    <div class="seluser-sub">@${u.username} · ${u.phone || 'N/A'} · ${u.currency || currency}</div>
+                </div>
+                <button class="seluser-remove" onclick="uuRemoveUser()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="fg" style="margin-top:20px"><label class="flbl">Montant à envoyer (${currency})</label>
+            <input class="amt" id="uuAmtInput" value="${uuAmount||''}" placeholder="0" oninput="uuOnAmount(this.value)"></div>
+            <div class="apresets">${presets.map(p=>`<div class="apre" onclick="uuSetPreset(${p})">${p.toLocaleString('fr')} ${currency}</div>`).join('')}</div>
+
+            ${uuAmount > 0 ? `
+            <div class="calc" style="margin-top:16px;animation:scaleIn .4s ease-out">
+                <div class="cr"><span class="cl"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span><span class="cv">${uuAmount.toLocaleString('fr')} ${currency}</span></div>
+                <div class="cr"><span class="cl"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (2% plaf. 5000)</span><span class="cv fee">${fee.toLocaleString('fr')} ${currency}</span></div>
+                <div class="cr" style="border-bottom:none;border-top:2px solid var(--border);padding-top:14px;margin-top:4px"><span class="cl" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total débité</span><span class="cv total">${total.toLocaleString('fr')} ${currency}</span></div>
+            </div>` : ''}
+        </div>`;
+
+    nav.innerHTML=`<button class="btno" onclick="uuRemoveUser()"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn" id="uuConfirmBtn" onclick="uuSubmit()" ${uuAmount>=500?'':'disabled'}>Envoyer <i class="fa-solid fa-paper-plane"></i></button>`;
+}
+
+function uuOnSearchInput(val){
+    clearTimeout(uuSearchTimeout);
+    const q = val.trim();
+    if (q.length < 2) {
+        document.getElementById('uuSearchResults').innerHTML = `
+            <div class="usearch-none">
+                <i class="fa-solid fa-search"></i>
+                <p>Tapez au moins 2 caractères pour chercher un utilisateur.</p>
+            </div>`;
+        return;
+    }
+    uuSearchTimeout = setTimeout(() => uuDoSearch(q), 300);
+}
+
+async function uuDoSearch(q){
+    const container = document.getElementById('uuSearchResults');
+    container.innerHTML = '<div class="usearch-none"><p><i class="fa-solid fa-spinner fa-spin"></i> Recherche...</p></div>';
+    try {
+        const res = await fetch('/api/receive/search?q=' + encodeURIComponent(q));
+        const data = await res.json();
+        if (data.success && data.users.length > 0) {
+            uuSearchResults = data.users;
+            container.innerHTML = uuSearchResults.map(u => `
+                <div class="usearch-result" id="uuRes${u.id}" onclick="uuSelectUser(${u.id})">
+                    <div class="usearch-avatar">${(u.fullname || u.username || '?')[0].toUpperCase()}</div>
+                    <div class="usearch-info">
+                        <div class="usearch-name">${u.fullname || 'Utilisateur'}</div>
+                        <div class="usearch-sub">@${u.username} · ${u.phone || 'N/A'} · ${u.currency || ''}</div>
+                    </div>
+                    <i class="fa-solid fa-circle-check usearch-check"></i>
+                </div>`).join('');
+        } else {
+            container.innerHTML = `<div class="usearch-none"><i class="fa-solid fa-users-slash"></i><p>Aucun utilisateur trouvé pour "${q}".</p></div>`;
+        }
+    } catch (e) {
+        container.innerHTML = '<div class="usearch-none"><p>Erreur réseau. Réessayez.</p></div>';
+    }
+}
+
+function uuSelectUser(userId){
+    const user = uuSearchResults.find(u => u.id === userId);
+    if (!user) return;
+    uuSelectedUser = user;
+    uuAmount = 0;
+    uuRender();
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function uuRemoveUser(){
+    uuSelectedUser = null;
+    uuAmount = 0;
+    uuRender();
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function uuOnAmount(v){
+    uuAmount = parseInt(v) || 0;
+    uuRenderAmount(document.getElementById('sc'), document.getElementById('nav'));
+}
+
+function uuSetPreset(v){
+    uuAmount = v;
+    let inp = document.getElementById('uuAmtInput');
+    if (inp) inp.value = v;
+    uuOnAmount(v);
+}
+
+async function uuSubmit(){
+    if (!uuSelectedUser || uuAmount < 500) return;
+    document.getElementById('ld').classList.add('show');
+    document.getElementById('ld').innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
+    document.getElementById('err').classList.remove('show');
+    let btn = document.querySelector('#uuConfirmBtn');
+    if (btn) btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/pay-to-user', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                receiver_id: uuSelectedUser.id,
+                amount: uuAmount,
+                currency: uuSelectedUser.currency || USER_CURRENCY || 'XOF',
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const fee = data.fee || 0;
+            const total = data.total_debit || uuAmount;
+            const currency = data.currency || 'XOF';
+            // Afficher succès
+            document.getElementById('sc').innerHTML = `
+                <div class="success-screen">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h3>Transfert réussi !</h3>
+                    <p>Vous avez envoyé</p>
+                    <div class="success-amt">${uuAmount.toLocaleString('fr')} ${currency}</div>
+                    <p style="font-size:12px;color:var(--text-3)">Frais : ${fee.toLocaleString('fr')} ${currency} · Débité : ${total.toLocaleString('fr')} ${currency}</p>
+                    <p style="margin-top:8px;font-size:13px;color:var(--green)">Vers @${uuSelectedUser.username}</p>
+                </div>`;
+            document.getElementById('nav').innerHTML = `<a href="/dashboard" class="btn" style="flex:1">Retour au tableau de bord <i class="fa-solid fa-home"></i></a>`;
+        } else {
+            showError(data.message || 'Erreur lors du transfert.');
+        }
+    } catch (e) {
+        showError('Erreur réseau. Veuillez réessayer.');
+    }
+    document.getElementById('ld').classList.remove('show');
+    if (btn) btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════
+// SHARED HELPERS
+// ═══════════════════════════════════════════════════════
+function showError(msg){
+    let e=document.getElementById('err');
+    e.textContent=msg;
+    e.classList.add('show');
+    setTimeout(()=>e.classList.remove('show'),5000);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
 const theme=localStorage.getItem('transafrik-theme')||'light';
 document.documentElement.setAttribute('data-theme',theme);
 render();
