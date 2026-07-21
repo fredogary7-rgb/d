@@ -56,13 +56,11 @@
 
         /* ===== PROGRESS ===== */
         .progress-bar{display:flex;align-items:center;justify-content:center;padding:28px 32px 8px;gap:0}
-        .progress-step{display:flex;align-items:center;gap:8px}
         .progress-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;transition:all var(--transition);border:2px solid var(--border);color:var(--text-4);background:var(--bg);flex-shrink:0}
         .progress-dot.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
         .progress-dot.done{background:var(--green);border-color:var(--green);color:#fff}
         .progress-line{width:40px;height:2px;background:var(--border);transition:all var(--transition);flex-shrink:0}
         .progress-line.done{background:var(--green)}
-        .progress-label{font-size:10px;font-weight:600;color:var(--text-4);text-align:center;margin-top:6px;display:none}
 
         /* ===== STEP CONTENT ===== */
         .step-content{padding:32px}
@@ -72,13 +70,28 @@
         .step-title{font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;margin-bottom:14px;display:flex;align-items:center;gap:10px}
         .step-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:var(--blue-light);color:var(--blue)}
 
-        /* ===== MODE TOGGLE ===== */
+        /* ===== MODE SELECTOR (écran d'accueil) ===== */
+        .mode-selector{display:flex;gap:20px;align-items:stretch}
+        .mode-card{flex:1;padding:36px 24px;border:2px solid var(--border);border-radius:var(--radius-xl);cursor:pointer;text-align:center;transition:all .25s;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:18px;position:relative;overflow:hidden}
+        .mode-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--blue),var(--green));opacity:0;transition:opacity .3s}
+        .mode-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:var(--shadow-xl)}
+        .mode-card:hover::before{opacity:.03}
+        .mode-card-icon{width:72px;height:72px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;position:relative;z-index:1}
+        .mode-card-icon.mobile{background:linear-gradient(135deg,#DBEAFE,#2563EB);color:#fff}
+        .mode-card-icon.user{background:linear-gradient(135deg,#D1FAE5,#10B981);color:#fff}
+        .mode-card-title{font-size:19px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--text);position:relative;z-index:1}
+        .mode-card-desc{font-size:13px;color:var(--text-4);line-height:1.5;position:relative;z-index:1}
+        .mode-card-arrow{font-size:22px;color:var(--blue);position:relative;z-index:1;transition:transform .25s}
+        .mode-card:hover .mode-card-arrow{transform:translateX(4px)}
+
+        /* ===== MODE TOGGLE (petit, dans les steps) ===== */
         .mode-toggle{display:flex;gap:0;margin-bottom:24px;border:1.5px solid var(--border);border-radius:100px;overflow:hidden;background:var(--bg)}
         .mode-btn{flex:1;padding:10px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-3);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;white-space:nowrap;text-align:center}
         .mode-btn.active{background:var(--blue);color:#fff;border-radius:100px;box-shadow:0 2px 8px rgba(37,99,235,.25)}
         .mode-btn:hover:not(.active){color:var(--blue)}
-        .separator-or{display:flex;align-items:center;gap:14px;margin:20px 0;color:var(--text-4);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
-        .separator-or::before,.separator-or::after{content:'';flex:1;height:1px;background:var(--border)}
+        .change-mode-link{text-align:center;margin-top:12px}
+        .change-mode-link a{font-size:12px;font-weight:600;color:var(--text-4);cursor:pointer;transition:color .2s}
+        .change-mode-link a:hover{color:var(--blue)}
 
         /* ===== USER SEARCH ===== */
         .user-search-wrap{position:relative}
@@ -106,7 +119,7 @@
         .search-loading{text-align:center;padding:20px;color:var(--text-4);font-size:13px}
         .search-no-results{text-align:center;padding:24px;color:var(--text-4)}
         .search-no-results i{font-size:32px;display:block;margin-bottom:8px;opacity:.4}
-        .search-error{text-align:center;padding:16px;color:var(--red);font-size:13px}
+        .search-error{text-align:center;padding:16px;color:#EF4444;font-size:13px}
 
         /* ===== COUNTRY SELECTOR ===== */
         .country-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:340px;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--text-4) transparent}
@@ -207,7 +220,10 @@
             .step-nav .btn-outline{min-width:100%}
             .form-row{grid-template-columns:1fr}
             .progress-bar{padding:20px 20px 4px}
-            .progress-label{display:none}
+            .mode-selector{flex-direction:column;gap:14px}
+            .mode-card{padding:28px 20px;gap:14px}
+            .mode-card-icon{width:56px;height:56px;font-size:26px}
+            .mode-card-title{font-size:17px}
         }
         @media(max-width:480px){
             .country-grid{grid-template-columns:1fr;max-height:220px}
@@ -224,16 +240,16 @@
 <header class="transfer-header">
     <a href="/dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="header-title-area">
-        <div class="header-title">Nouveau transfert</div>
-        <div class="header-subtitle">Envoyez de l'argent partout en Afrique en quelques secondes.</div>
+        <div class="header-title" id="headerTitle">Nouveau transfert</div>
+        <div class="header-subtitle" id="headerSubtitle">Choisissez le type de transfert.</div>
     </div>
 </header>
 
 <!-- ===== MAIN CONTAINER ===== -->
 <main class="transfer-container" id="transferApp">
     <div class="main-card">
-        <!-- Progress bar -->
-        <div class="progress-bar">
+        <!-- Progress bar (caché sur l'écran de sélection) -->
+        <div class="progress-bar" id="progressBar" style="display:none">
             <div class="progress-dot active" id="dot1">1</div>
             <div class="progress-line" id="line1"></div>
             <div class="progress-dot" id="dot2">2</div>
@@ -270,652 +286,529 @@ const OP_SHORT = {
 };
 
 /* ===== STATE ===== */
-let step = 1;
-let selectedCountry = null;
-let selectedOperator = null;
-let amount = 0;
-let recipientName = '';
-let recipientPhone = '';
-let destinationCountry = null;
-let destinationOperator = null;
-let mode = 'classic'; // 'classic' | 'user'
-let selectedUser = null;
-let searchTimer = null;
-let searchResults = [];
+var step = 1;
+var selectedCountry = null;
+var selectedOperator = null;
+var amount = 0;
+var recipientName = '';
+var recipientPhone = '';
+var destinationCountry = null;
+var destinationOperator = null;
+var mode = null; // null = sélection, 'classic' | 'user'
+var selectedUser = null;
+var searchTimer = null;
+var searchResults = [];
 
-/* ===== MODE TOGGLE ===== */
-function setMode(m){ mode=m; step=1; selectedUser=null; searchResults=[]; render(); }
+/* ===== SET MODE ===== */
+function setMode(m) {
+    mode = m;
+    step = 1;
+    selectedUser = null;
+    searchResults = [];
+    selectedCountry = null;
+    selectedOperator = null;
+    amount = 0;
+    recipientName = '';
+    recipientPhone = '';
+    destinationCountry = null;
+    destinationOperator = null;
+    updateHeader();
+    render();
+}
+
+/* ===== UPDATE HEADER ===== */
+function updateHeader() {
+    var t = document.getElementById('headerTitle');
+    var s = document.getElementById('headerSubtitle');
+    if (mode === 'user') {
+        t.textContent = 'Envoyer à un utilisateur';
+        s.textContent = 'Transférez des fonds directement à un autre compte TransAfrik.';
+    } else if (mode === 'classic') {
+        t.textContent = 'Transfert Mobile Money';
+        s.textContent = 'Envoyez de l\'argent vers un numéro Mobile Money en Afrique.';
+    } else {
+        t.textContent = 'Nouveau transfert';
+        s.textContent = 'Choisissez le type de transfert.';
+    }
+}
 
 /* ===== RENDER ===== */
-function render(){
-    const content = document.getElementById('stepContent');
-    const nav = document.getElementById('stepNav');
-    updateProgress();
+function render() {
+    var content = document.getElementById('stepContent');
+    var nav = document.getElementById('stepNav');
+    var progressBar = document.getElementById('progressBar');
 
-    if(mode === 'user'){
-        switch(step){
-            case 1: renderUserSearchStep(content, nav); break;
-            case 2: renderUserAmountStep(content, nav); break;
-            case 3: renderUserSummaryStep(content, nav); break;
-        }
+    if (!mode) {
+        // Écran de sélection : pas de progress bar
+        progressBar.style.display = 'none';
+        renderModeSelection(content, nav);
     } else {
-        switch(step){
-            case 1: renderCountryStep(content, nav); break;
-            case 2: renderOperatorStep(content, nav); break;
-            case 3: renderAmountStep(content, nav); break;
-            case 4: renderSummaryStep(content, nav); break;
+        progressBar.style.display = 'flex';
+        updateProgress();
+        if (mode === 'user') {
+            switch (step) {
+                case 1: renderUserSearchStep(content, nav); break;
+                case 2: renderUserAmountStep(content, nav); break;
+                case 3: renderUserSummaryStep(content, nav); break;
+            }
+        } else {
+            switch (step) {
+                case 1: renderCountryStep(content, nav); break;
+                case 2: renderOperatorStep(content, nav); break;
+                case 3: renderAmountStep(content, nav); break;
+                case 4: renderSummaryStep(content, nav); break;
+            }
         }
     }
+}
+
+/* ===== ÉCRAN DE SÉLECTION DU MODE ===== */
+function renderModeSelection(content, nav) {
+    content.innerHTML =
+        '<div class="step-section" style="margin-bottom:0">' +
+            '<div class="step-icon" style="margin:0 auto 8px;width:40px;height:40px"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>' +
+            '<div class="step-title" style="justify-content:center;margin-bottom:6px">Choisissez le type de transfert</div>' +
+            '<p style="font-size:13px;color:var(--text-4);text-align:center;margin-bottom:28px">Deux méthodes sont disponibles selon vos besoins.</p>' +
+        '</div>' +
+        '<div class="mode-selector">' +
+            '<div class="mode-card" onclick="setMode(\'user\')">' +
+                '<div class="mode-card-icon user"><i class="fa-solid fa-user-group"></i></div>' +
+                '<div class="mode-card-title">Envoyer à un utilisateur</div>' +
+                '<div class="mode-card-desc">Transférez directement à un autre compte TransAfrik par @username, email ou téléphone. Rapide, sans frais Mobile Money supplémentaires.</div>' +
+                '<div class="mode-card-arrow"><i class="fa-solid fa-arrow-right"></i></div>' +
+            '</div>' +
+            '<div class="mode-card" onclick="setMode(\'classic\')">' +
+                '<div class="mode-card-icon mobile"><i class="fa-solid fa-mobile-screen"></i></div>' +
+                '<div class="mode-card-title">Transfert Mobile Money</div>' +
+                '<div class="mode-card-desc">Envoyez vers un numéro Mobile Money (Tmoney, Moov, MTN, Orange, Wave...) dans 11 pays africains.</div>' +
+                '<div class="mode-card-arrow"><i class="fa-solid fa-arrow-right"></i></div>' +
+            '</div>' +
+        '</div>';
+    nav.innerHTML =
+        '<a href="/dashboard" class="btn-outline">Annuler</a>' +
+        '<div style="flex:1"></div>';
 }
 
 /* ===== PROGRESS ===== */
-function updateProgress(){
-    const totalSteps = mode === 'user' ? 3 : 4;
-    for(let i=1;i<=4;i++){
-        const dot = document.getElementById('dot'+i);
-        const line = i<4 ? document.getElementById('line'+i) : null;
-        dot.classList.remove('active','done');
-        if(line) line.classList.remove('done');
-        if(i > totalSteps){ dot.style.display='none'; if(line) line.style.display='none'; }
-        else { dot.style.display=''; if(line) line.style.display=''; }
-        if(i<step){dot.classList.add('done');dot.innerHTML='<i class="fa-solid fa-check"></i>';if(line)line.classList.add('done');}
-        else if(i===step){dot.classList.add('active');dot.textContent=i;}
-        else{dot.textContent=i;}
+function updateProgress() {
+    var totalSteps = mode === 'user' ? 3 : 4;
+    for (var i = 1; i <= 4; i++) {
+        var dot = document.getElementById('dot' + i);
+        var line = i < 4 ? document.getElementById('line' + i) : null;
+        dot.classList.remove('active', 'done');
+        if (line) line.classList.remove('done');
+        if (i > totalSteps) { dot.style.display = 'none'; if (line) line.style.display = 'none'; }
+        else { dot.style.display = ''; if (line) line.style.display = ''; }
+        if (i < step) { dot.classList.add('done'); dot.innerHTML = '<i class="fa-solid fa-check"></i>'; if (line) line.classList.add('done'); }
+        else if (i === step) { dot.classList.add('active'); dot.textContent = i; }
+        else { dot.textContent = i; }
     }
 }
 
-/* ===== STEP 1: COUNTRY ===== */
-function renderCountryStep(content, nav){
-    content.innerHTML = `
-        <div class="step-section" style="margin-bottom:0">
-            <div class="mode-toggle">
-                <button class="mode-btn" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
-                <button class="mode-btn active" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
-            </div>
-        </div>
-        <div class="step-section">
-            <div class="step-label">Étape 1 sur 4</div>
-            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-earth-africa"></i></div> Pays de destination</div>
-            <p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Sélectionnez le pays où l'argent sera envoyé.</p>
-            <div class="country-grid">
-                ${COUNTRIES.map(c => `
-                    <div class="country-option${selectedCountry && selectedCountry.code===c.code?' selected':''}" onclick="selectCountry('${c.code}')" data-code="${c.code}">
-                        <span class="flag">${c.flag}</span>
-                        <span>${c.name}</span>
-                        <i class="fa-solid fa-circle-check check"></i>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    nav.innerHTML = `
-        <a href="/dashboard" class="btn-outline">Annuler</a>
-        <button class="btn-primary" onclick="goNext()" ${!selectedCountry?'disabled':''}>
-            Continuer <i class="fa-solid fa-arrow-right"></i>
-        </button>
-    `;
+/* ===== NAVIGATION ===== */
+function goNext() {
+    if (mode === 'user') {
+        if (step === 1 && !selectedUser) return;
+        if (step === 2 && amount <= 0) return;
+        step = Math.min(3, step + 1);
+    } else {
+        if (step === 1 && !selectedCountry) return;
+        if (step === 2 && !selectedOperator) return;
+        if (step === 3 && (!amount || !recipientPhone)) return;
+        step = Math.min(4, step + 1);
+    }
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ===== STEP 2: OPERATOR ===== */
-function renderOperatorStep(content, nav){
-    const operators = selectedCountry ? selectedCountry.operators : [];
-    content.innerHTML = `
-        <div class="step-section">
-            <div class="step-label">Étape 2 sur 4</div>
-            <div class="step-title">
-                <div class="step-icon"><i class="fa-solid fa-tower-cell"></i></div>
-                Opérateur · ${selectedCountry.flag} ${selectedCountry.name}
-            </div>
-            <p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Choisissez l'opérateur mobile du bénéficiaire.</p>
-            <div class="operator-list">
-                ${operators.map(op => `
-                    <div class="operator-option${selectedOperator && selectedOperator.id===op.id?' selected':''}" onclick="selectOperator('${op.id}')">
-                        <div class="operator-icon ${OP_ICONS[op.id] || 'op-icon-orange'}">${OP_SHORT[op.id] || 'OP'}</div>
-                        <span>${op.name}</span>
-                        <i class="fa-solid fa-circle-check check" style="margin-left:auto;font-size:14px;color:var(--blue)"></i>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    nav.innerHTML = `
-        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-        <button class="btn-primary" onclick="goNext()" ${!selectedOperator?'disabled':''}>
-            Continuer <i class="fa-solid fa-arrow-right"></i>
-        </button>
-    `;
+function goBack() {
+    step = Math.max(1, step - 1);
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ===== STEP 3: AMOUNT + RECIPIENT ===== */
-function renderAmountStep(content, nav){
-    const currency = selectedCountry ? selectedCountry.currency : 'XOF';
-    const presets = getPresets(currency);
-    content.innerHTML = `
-        <div class="step-section">
-            <div class="step-label">Étape 3 sur 4</div>
-            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-coins"></i></div> Montant & Destinataire</div>
-        </div>
-        <div class="step-section">
-            <div class="step-label" style="margin-bottom:8px">Montant à envoyer</div>
-            <div class="amount-input-group">
-                <input type="number" class="amount-input" id="amountInput" placeholder="0" value="${amount||''}" min="0" oninput="onAmountChange(this.value)">
-            </div>
-            <div class="currency-display">${currency}</div>
-            <div class="amount-presets">
-                ${presets.map(p => `<div class="amount-preset" onclick="setPreset(${p})">${p.toLocaleString('fr-FR')} ${currency}</div>`).join('')}
-            </div>
-            <div class="calculator-card" id="calculator" style="margin-top:20px;${amount>0?'':'display:none'}">
-                <div class="calc-row">
-                    <span class="calc-label"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span>
-                    <span class="calc-value" id="calcSend">${amount.toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (1%)</span>
-                    <span class="calc-value fee" id="calcFee">${Math.round(amount*0.01).toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label"><i class="fa-solid fa-arrow-down-wide-short" style="color:var(--green)"></i> Le bénéficiaire reçoit</span>
-                    <span class="calc-value receive" id="calcReceive">${Math.round(amount*0.99).toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-                <div class="calc-row calc-total-row">
-                    <span class="calc-label" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total à payer</span>
-                    <span class="calc-value total" id="calcTotal">${amount.toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-            </div>
-        </div>
-        <div class="step-section">
-            <div class="step-label" style="margin-bottom:8px">Destinataire</div>
-            <div class="recipient-form">
-                <div class="form-field">
-                    <label class="form-label">Nom complet (optionnel)</label>
-                    <input type="text" class="form-input" id="recipientName" placeholder="Nom du bénéficiaire" value="${recipientName}" oninput="recipientName=this.value;checkStep3Ready()">
-                </div>
-                <div class="form-field">
-                    <label class="form-label">Numéro de téléphone *</label>
-                    <input type="tel" class="form-input" id="recipientPhone" placeholder="+228 90 00 00 00" value="${recipientPhone}" oninput="recipientPhone=this.value;checkStep3Ready()">
-                </div>
-                <div class="form-row">
-                    <div class="form-field">
-                        <label class="form-label">Pays</label>
-                        <select class="form-input form-select" id="destCountry" onchange="onDestCountryChange(this.value)">
-                            <option value="">— Pays —</option>
-                            ${COUNTRIES.map(c => `<option value="${c.code}" ${destinationCountry&&destinationCountry.code===c.code?'selected':''}>${c.flag} ${c.name}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Opérateur</label>
-                        <select class="form-input form-select" id="destOperator" onchange="onDestOperatorChange(this.value)">
-                            <option value="">— Opérateur —</option>
-                            ${destinationCountry?destinationCountry.operators.map(op=>`<option value="${op.id}" ${destinationOperator&&destinationOperator.id===op.id?'selected':''}>${op.name}</option>`).join(''):''}
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    nav.innerHTML = `
-        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-        <button class="btn-primary" id="step3NextBtn" onclick="goNext()" ${amount>0 && recipientPhone?'':'disabled'}>
-            Continuer <i class="fa-solid fa-arrow-right"></i>
-        </button>
-    `;
-    // Re-run check after render
-    setTimeout(checkStep3Ready,100);
+function backToSelection() {
+    mode = null;
+    step = 1;
+    selectedUser = null;
+    selectedCountry = null;
+    selectedOperator = null;
+    amount = 0;
+    updateHeader();
+    render();
 }
 
-function onDestCountryChange(code){
-    if(!code){ destinationCountry=null; destinationOperator=null; renderStep3Fields(); return; }
-    destinationCountry = COUNTRIES.find(c=>c.code===code)||null;
+/* ===== STEP 1: COUNTRY (classic) ===== */
+function renderCountryStep(content, nav) {
+    content.innerHTML =
+        '<div class="step-section" style="margin-bottom:0">' +
+            '<div class="mode-toggle">' +
+                '<button class="mode-btn" onclick="backToSelection()"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>' +
+                '<button class="mode-btn active"><i class="fa-solid fa-mobile-screen"></i> Transfert Mobile Money</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="step-section">' +
+            '<div class="step-label">Étape 1 sur 4</div>' +
+            '<div class="step-title"><div class="step-icon"><i class="fa-solid fa-earth-africa"></i></div> Pays de destination</div>' +
+            '<p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Sélectionnez le pays où l\'argent sera envoyé.</p>' +
+            '<div class="country-grid">' +
+                COUNTRIES.map(function (c) {
+                    var sel = selectedCountry && selectedCountry.code === c.code ? ' selected' : '';
+                    return '<div class="country-option' + sel + '" onclick="selectCountry(\'' + c.code + '\')" data-code="' + c.code + '">' +
+                        '<span class="flag">' + c.flag + '</span><span>' + c.name + '</span>' +
+                        '<i class="fa-solid fa-circle-check check"></i></div>';
+                }).join('') +
+            '</div>' +
+        '</div>';
+    nav.innerHTML =
+        '<a href="/dashboard" class="btn-outline">Annuler</a>' +
+        '<button class="btn-primary" onclick="goNext()"' + (!selectedCountry ? ' disabled' : '') + '>Continuer <i class="fa-solid fa-arrow-right"></i></button>';
+}
+
+/* ===== STEP 2: OPERATOR (classic) ===== */
+function renderOperatorStep(content, nav) {
+    var operators = selectedCountry ? selectedCountry.operators : [];
+    content.innerHTML =
+        '<div class="step-section">' +
+            '<div class="step-label">Étape 2 sur 4</div>' +
+            '<div class="step-title"><div class="step-icon"><i class="fa-solid fa-tower-cell"></i></div>Opérateur · ' + selectedCountry.flag + ' ' + selectedCountry.name + '</div>' +
+            '<p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Choisissez l\'opérateur mobile du bénéficiaire.</p>' +
+            '<div class="operator-list">' +
+                operators.map(function (op) {
+                    var sel = selectedOperator && selectedOperator.id === op.id ? ' selected' : '';
+                    return '<div class="operator-option' + sel + '" onclick="selectOperator(\'' + op.id + '\')">' +
+                        '<div class="operator-icon ' + (OP_ICONS[op.id] || 'op-icon-orange') + '">' + (OP_SHORT[op.id] || 'OP') + '</div>' +
+                        '<span>' + op.name + '</span>' +
+                        '<i class="fa-solid fa-circle-check check" style="margin-left:auto;font-size:14px;color:var(--blue)"></i></div>';
+                }).join('') +
+            '</div>' +
+        '</div>';
+    nav.innerHTML =
+        '<button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>' +
+        '<button class="btn-primary" onclick="goNext()"' + (!selectedOperator ? ' disabled' : '') + '>Continuer <i class="fa-solid fa-arrow-right"></i></button>';
+}
+
+/* ===== STEP 3: AMOUNT + RECIPIENT (classic) ===== */
+function renderAmountStep(content, nav) {
+    var currency = selectedCountry ? selectedCountry.currency : 'XOF';
+    var presets = getPresets(currency);
+    content.innerHTML =
+        '<div class="step-section"><div class="step-label">Étape 3 sur 4</div><div class="step-title"><div class="step-icon"><i class="fa-solid fa-coins"></i></div> Montant & Destinataire</div></div>' +
+        '<div class="step-section">' +
+            '<div class="step-label" style="margin-bottom:8px">Montant à envoyer</div>' +
+            '<div class="amount-input-group"><input type="number" class="amount-input" id="amountInput" placeholder="0" value="' + (amount || '') + '" min="0" oninput="onAmountChange(this.value)"></div>' +
+            '<div class="currency-display">' + currency + '</div>' +
+            '<div class="amount-presets">' + presets.map(function (p) { return '<div class="amount-preset" onclick="setPreset(' + p + ')">' + p.toLocaleString('fr-FR') + ' ' + currency + '</div>'; }).join('') + '</div>' +
+            '<div class="calculator-card" id="calculator" style="margin-top:20px;' + (amount > 0 ? '' : 'display:none') + '">' +
+                '<div class="calc-row"><span class="calc-label"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span><span class="calc-value" id="calcSend">' + amount.toLocaleString('fr-FR') + ' ' + currency + '</span></div>' +
+                '<div class="calc-row"><span class="calc-label"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (1%)</span><span class="calc-value fee" id="calcFee">' + Math.round(amount * 0.01).toLocaleString('fr-FR') + ' ' + currency + '</span></div>' +
+                '<div class="calc-row"><span class="calc-label"><i class="fa-solid fa-arrow-down-wide-short" style="color:var(--green)"></i> Le bénéficiaire reçoit</span><span class="calc-value receive" id="calcReceive">' + Math.round(amount * 0.99).toLocaleString('fr-FR') + ' ' + currency + '</span></div>' +
+                '<div class="calc-row calc-total-row"><span class="calc-label" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total à payer</span><span class="calc-value total" id="calcTotal">' + amount.toLocaleString('fr-FR') + ' ' + currency + '</span></div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="step-section">' +
+            '<div class="step-label" style="margin-bottom:8px">Destinataire</div>' +
+            '<div class="recipient-form">' +
+                '<div class="form-field"><label class="form-label">Nom complet (optionnel)</label><input type="text" class="form-input" id="recipientName" placeholder="Nom du bénéficiaire" value="' + recipientName + '" oninput="recipientName=this.value;checkStep3Ready()"></div>' +
+                '<div class="form-field"><label class="form-label">Numéro de téléphone *</label><input type="tel" class="form-input" id="recipientPhone" placeholder="+228 90 00 00 00" value="' + recipientPhone + '" oninput="recipientPhone=this.value;checkStep3Ready()"></div>' +
+                '<div class="form-row">' +
+                    '<div class="form-field"><label class="form-label">Pays</label><select class="form-input form-select" id="destCountry" onchange="onDestCountryChange(this.value)"><option value="">— Pays —</option>' + COUNTRIES.map(function (c) { return '<option value="' + c.code + '"' + (destinationCountry && destinationCountry.code === c.code ? ' selected' : '') + '>' + c.flag + ' ' + c.name + '</option>'; }).join('') + '</select></div>' +
+                    '<div class="form-field"><label class="form-label">Opérateur</label><select class="form-input form-select" id="destOperator" onchange="onDestOperatorChange(this.value)"><option value="">— Opérateur —</option>' + (destinationCountry ? destinationCountry.operators.map(function (op) { return '<option value="' + op.id + '"' + (destinationOperator && destinationOperator.id === op.id ? ' selected' : '') + '>' + op.name + '</option>'; }).join('') : '') + '</select></div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    nav.innerHTML =
+        '<button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>' +
+        '<button class="btn-primary" id="step3NextBtn" onclick="goNext()"' + (amount > 0 && recipientPhone ? '' : ' disabled') + '>Continuer <i class="fa-solid fa-arrow-right"></i></button>';
+    setTimeout(checkStep3Ready, 100);
+}
+
+function onDestCountryChange(code) {
+    if (!code) { destinationCountry = null; destinationOperator = null; renderStep3Fields(); return; }
+    destinationCountry = COUNTRIES.find(function (c) { return c.code === code; }) || null;
     destinationOperator = null;
     renderStep3Fields();
     checkStep3Ready();
 }
-function onDestOperatorChange(opId){
-    if(!opId||!destinationCountry){destinationOperator=null;checkStep3Ready();return;}
-    destinationOperator = destinationCountry.operators.find(o=>o.id===opId)||null;
+function onDestOperatorChange(opId) {
+    if (!opId || !destinationCountry) { destinationOperator = null; checkStep3Ready(); return; }
+    destinationOperator = destinationCountry.operators.find(function (o) { return o.id === opId; }) || null;
     checkStep3Ready();
 }
-function renderStep3Fields(){
-    const destOp = document.getElementById('destOperator');
-    if(!destOp) return;
+function renderStep3Fields() {
+    var destOp = document.getElementById('destOperator');
+    if (!destOp) return;
     destOp.innerHTML = '<option value="">— Opérateur —</option>' +
-        (destinationCountry ? destinationCountry.operators.map(op=>`<option value="${op.id}" ${destinationOperator&&destinationOperator.id===op.id?'selected':''}>${op.name}</option>`).join('') : '');
+        (destinationCountry ? destinationCountry.operators.map(function (op) { return '<option value="' + op.id + '"' + (destinationOperator && destinationOperator.id === op.id ? ' selected' : '') + '>' + op.name + '</option>'; }).join('') : '');
 }
-function checkStep3Ready(){
-    const btn = document.getElementById('step3NextBtn');
-    if(!btn) return;
+function checkStep3Ready() {
+    var btn = document.getElementById('step3NextBtn');
+    if (!btn) return;
     btn.disabled = !(amount > 0 && recipientPhone.trim().length > 0);
 }
 
-function onAmountChange(val){
+function onAmountChange(val) {
     amount = parseInt(val) || 0;
-    const calc = document.getElementById('calculator');
-    if(calc){
-        if(amount > 0){calc.style.display='block';calc.style.animation='none';calc.offsetHeight;calc.style.animation='scaleIn .4s ease-out';}
+    var calc = document.getElementById('calculator');
+    if (calc) {
+        if (amount > 0) { calc.style.display = 'block'; calc.style.animation = 'none'; calc.offsetHeight; calc.style.animation = 'scaleIn .4s ease-out'; }
         else calc.style.display = 'none';
     }
     updateCalcDisplay();
     checkStep3Ready();
 }
 
-function updateCalcDisplay(){
-    const currency = selectedCountry ? selectedCountry.currency : 'XOF';
-    const fee = Math.round(amount * 0.01);
-    const receive = amount - fee;
-    const el = (id)=>document.getElementById(id);
-    if(el('calcSend')) el('calcSend').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
-    if(el('calcFee')) el('calcFee').textContent = fee.toLocaleString('fr-FR') + ' ' + currency;
-    if(el('calcReceive')) el('calcReceive').textContent = receive.toLocaleString('fr-FR') + ' ' + currency;
-    if(el('calcTotal')) el('calcTotal').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
+function updateCalcDisplay() {
+    var currency = selectedCountry ? selectedCountry.currency : 'XOF';
+    var fee = Math.round(amount * 0.01);
+    var receive = amount - fee;
+    var el = function (id) { return document.getElementById(id); };
+    if (el('calcSend')) el('calcSend').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
+    if (el('calcFee')) el('calcFee').textContent = fee.toLocaleString('fr-FR') + ' ' + currency;
+    if (el('calcReceive')) el('calcReceive').textContent = receive.toLocaleString('fr-FR') + ' ' + currency;
+    if (el('calcTotal')) el('calcTotal').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
 }
 
-function setPreset(val){amount=val;document.getElementById('amountInput').value=val;onAmountChange(val);}
-function getPresets(currency){
-    if(['CDF','UGX'].includes(currency)) return [10000,25000,50000,100000];
-    return [5000,10000,25000,50000,100000];
+function setPreset(val) { amount = val; document.getElementById('amountInput').value = val; onAmountChange(val); }
+function getPresets(currency) {
+    if (['CDF', 'UGX'].indexOf(currency) !== -1) return [10000, 25000, 50000, 100000];
+    return [5000, 10000, 25000, 50000, 100000];
 }
 
-/* ===== STEP 4: SUMMARY ===== */
-function renderSummaryStep(content, nav){
-    const currency = selectedCountry ? selectedCountry.currency : 'XOF';
-    const fee = Math.round(amount * 0.01);
-    const receive = amount - fee;
-    content.innerHTML = `
-        <div class="step-section">
-            <div class="step-label">Étape 4 sur 4</div>
-            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div> Résumé du transfert</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-header">
-                <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
-                <h3>Prêt à envoyer</h3>
-                <p>Vérifiez les détails avant de continuer.</p>
-            </div>
-            <div class="summary-row">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i>
-                    <div><div class="summary-row-label">Vous envoyez</div><div class="summary-row-value">${selectedCountry.flag} ${selectedCountry.name} · ${selectedOperator.name}</div></div>
-                </div>
-                <div class="summary-row-amount send">${amount.toLocaleString('fr-FR')} ${currency}</div>
-            </div>
-            <div class="summary-row">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i>
-                    <div><div class="summary-row-label">Frais de transfert</div><div class="summary-row-value">1% du montant</div></div>
-                </div>
-                <div class="summary-row-amount fee">${fee.toLocaleString('fr-FR')} ${currency}</div>
-            </div>
-            <div class="summary-row summary-row-highlight">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i>
-                    <div><div class="summary-row-label">Le bénéficiaire reçoit</div><div class="summary-row-value">${recipientName||'Bénéficiaire'} · ${recipientPhone}</div></div>
-                </div>
-                <div class="summary-row-amount receive">${receive.toLocaleString('fr-FR')} ${currency}</div>
-            </div>
-            ${destinationCountry ? `
-            <div class="summary-row">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-location-dot" style="background:var(--surface-hover);color:var(--text-3)"></i>
-                    <div><div class="summary-row-label">Pays · Opérateur</div><div class="summary-row-value">${destinationCountry.flag} ${destinationCountry.name}${destinationOperator?' · '+destinationOperator.name:''}</div></div>
-                </div>
-                <div></div>
-            </div>`:''}
-            <div style="padding:0 24px 24px;text-align:center">
-                <p style="font-size:11px;color:var(--text-4);margin-top:12px">
-                    <i class="fa-solid fa-lock"></i> Transfert sécurisé · Délai estimé : instantané
-                </p>
-            </div>
-        </div>
-    `;
-    nav.innerHTML = `
-        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button>
-        <button class="btn-primary" onclick="confirmTransfer()">
-            Continuer <i class="fa-solid fa-lock"></i>
-        </button>
-    `;
+/* ===== STEP 4: SUMMARY (classic) ===== */
+function renderSummaryStep(content, nav) {
+    var currency = selectedCountry ? selectedCountry.currency : 'XOF';
+    var fee = Math.round(amount * 0.01);
+    var receive = amount - fee;
+    content.innerHTML =
+        '<div class="step-section"><div class="step-label">Étape 4 sur 4</div><div class="step-title"><div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div> Résumé du transfert</div></div>' +
+        '<div class="summary-card">' +
+            '<div class="summary-header"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i><h3>Prêt à envoyer</h3><p>Vérifiez les détails avant de continuer.</p></div>' +
+            '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="summary-row-label">Vous envoyez</div><div class="summary-row-value">' + selectedCountry.flag + ' ' + selectedCountry.name + ' · ' + selectedOperator.name + '</div></div></div><div class="summary-row-amount send">' + amount.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
+            '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i><div><div class="summary-row-label">Frais de transfert</div><div class="summary-row-value">1% du montant</div></div></div><div class="summary-row-amount fee">' + fee.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
+            '<div class="summary-row summary-row-highlight"><div class="summary-row-left"><i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i><div><div class="summary-row-label">Le bénéficiaire reçoit</div><div class="summary-row-value">' + (recipientName || 'Bénéficiaire') + ' · ' + recipientPhone + '</div></div></div><div class="summary-row-amount receive">' + receive.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
+            (destinationCountry ? '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-location-dot" style="background:var(--surface-hover);color:var(--text-3)"></i><div><div class="summary-row-label">Pays · Opérateur</div><div class="summary-row-value">' + destinationCountry.flag + ' ' + destinationCountry.name + (destinationOperator ? ' · ' + destinationOperator.name : '') + '</div></div></div><div></div></div>' : '') +
+            '<div style="padding:0 24px 24px;text-align:center"><p style="font-size:11px;color:var(--text-4);margin-top:12px"><i class="fa-solid fa-lock"></i> Transfert sécurisé · Délai estimé : instantané</p></div>' +
+        '</div>';
+    nav.innerHTML =
+        '<button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button>' +
+        '<button class="btn-primary" onclick="confirmTransfer()">Continuer <i class="fa-solid fa-lock"></i></button>';
 }
 
-/* ===== NAVIGATION ===== */
-function goNext(){
-    if(step === 1 && !selectedCountry) return;
-    if(step === 2 && !selectedOperator) return;
-    if(step === 3 && (!amount || !recipientPhone)) return;
-    step = Math.min(4, step + 1);
-    render();
-    window.scrollTo({top:0,behavior:'smooth'});
-}
-function goBack(){step=Math.max(1,step-1);render();window.scrollTo({top:0,behavior:'smooth'});}
-
-/* ===== SELECTIONS ===== */
-function selectCountry(code){
-    selectedCountry = COUNTRIES.find(c=>c.code===code)||null;
-    selectedOperator = null; // reset operator when country changes
+/* ===== SELECTIONS (classic) ===== */
+function selectCountry(code) {
+    selectedCountry = COUNTRIES.find(function (c) { return c.code === code; }) || null;
+    selectedOperator = null;
     render();
 }
-function selectOperator(opId){
-    selectedOperator = selectedCountry.operators.find(o=>o.id===opId)||null;
+function selectOperator(opId) {
+    selectedOperator = selectedCountry.operators.find(function (o) { return o.id === opId; }) || null;
     render();
 }
 
-/* ===== CONFIRM ===== */
-function confirmTransfer(){
+/* ===== CONFIRM (classic) ===== */
+function confirmTransfer() {
     window.location.href = '/transfer/confirm';
 }
-
-/* ===== THEME ===== */
-const savedTheme = localStorage.getItem('transafrik-theme')||'light';
-document.documentElement.setAttribute('data-theme',savedTheme);
 
 /* ══════════════════════════════════════════════════════════
    MODE: ENVOYER À UN UTILISATEUR TransAfrik
    ══════════════════════════════════════════════════════════ */
 
 /* ===== USER STEP 1: RECHERCHE ===== */
-function renderUserSearchStep(content, nav){
-    content.innerHTML = `
-        <div class="step-section" style="margin-bottom:0">
-            <div class="mode-toggle">
-                <button class="mode-btn active" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
-                <button class="mode-btn" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
-            </div>
-        </div>
-        <div class="step-section">
-            <div class="step-label">Étape 1 sur 3</div>
-            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div> Rechercher un utilisateur</div>
-            <p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Tapez le @username, l'email complet ou le numéro de téléphone.</p>
-            <div class="user-search-wrap">
-                <i class="fa-solid fa-at user-search-icon"></i>
-                <input type="text" class="user-search-input" id="userSearchInput" placeholder="@username ou email ou téléphone"
-                    oninput="onUserSearchInput(this.value)" onfocus="onUserSearchInput(this.value)" autocomplete="off">
-            </div>
-            <div class="user-search-hint">
-                <i class="fa-solid fa-info-circle"></i> Exemple : @1xthom14, 1xthom14@gmail.com, +228 90 00 00 00
-            </div>
-            <div id="userSearchResults"></div>
-        </div>
-        ${selectedUser ? `
-        <div class="step-section">
-            <div class="user-selected-card">
-                <div class="user-selected-avatar">${avatarUserLetters(selectedUser.fullname)}</div>
-                <div class="user-selected-info">
-                    <div class="user-selected-name">${selectedUser.fullname}</div>
-                    <div class="user-selected-username">@${selectedUser.username}</div>
-                </div>
-            </div>
-        </div>` : ''}
-    `;
-    nav.innerHTML = `
-        <a href="/dashboard" class="btn-outline">Annuler</a>
-        <button class="btn-primary" onclick="goNext()" ${!selectedUser?'disabled':''}>
-            Continuer <i class="fa-solid fa-arrow-right"></i>
-        </button>
-    `;
-    // Focus sur l'input
-    setTimeout(()=>{ const inp=document.getElementById('userSearchInput'); if(inp) inp.focus(); }, 150);
+function renderUserSearchStep(content, nav) {
+    content.innerHTML =
+        '<div class="step-section" style="margin-bottom:0">' +
+            '<div class="mode-toggle">' +
+                '<button class="mode-btn active"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>' +
+                '<button class="mode-btn" onclick="backToSelection()"><i class="fa-solid fa-mobile-screen"></i> Transfert Mobile Money</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="step-section">' +
+            '<div class="step-label">Étape 1 sur 3</div>' +
+            '<div class="step-title"><div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div> Rechercher un utilisateur</div>' +
+            '<p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Tapez le @username, l\'email complet ou le numéro de téléphone.</p>' +
+            '<div class="user-search-wrap">' +
+                '<i class="fa-solid fa-at user-search-icon"></i>' +
+                '<input type="text" class="user-search-input" id="userSearchInput" placeholder="@username ou email ou téléphone" oninput="onUserSearchInput(this.value)" onfocus="onUserSearchInput(this.value)" autocomplete="off">' +
+            '</div>' +
+            '<div class="user-search-hint"><i class="fa-solid fa-info-circle"></i> Exemple : @1xthom14, 1xthom14@gmail.com, +228 90 00 00 00</div>' +
+            '<div id="userSearchResults"></div>' +
+        '</div>' +
+        (selectedUser ? '<div class="step-section"><div class="user-selected-card"><div class="user-selected-avatar">' + avatarUserLetters(selectedUser.fullname) + '</div><div class="user-selected-info"><div class="user-selected-name">' + selectedUser.fullname + '</div><div class="user-selected-username">@' + selectedUser.username + '</div></div></div></div>' : '');
+    nav.innerHTML =
+        '<a href="/dashboard" class="btn-outline">Annuler</a>' +
+        '<button class="btn-primary" onclick="goNext()"' + (!selectedUser ? ' disabled' : '') + '>Continuer <i class="fa-solid fa-arrow-right"></i></button>';
+    setTimeout(function () { var inp = document.getElementById('userSearchInput'); if (inp) inp.focus(); }, 150);
 }
 
-function avatarUserLetters(name){ if(!name)return'?';let p=name.trim().split(' ');return(p[0][0]||'')+(p[1]?p[1][0]:''); }
+function avatarUserLetters(name) { if (!name) return '?'; var p = name.trim().split(' '); return (p[0][0] || '') + (p[1] ? p[1][0] : ''); }
 
-function onUserSearchInput(val){
+function onUserSearchInput(val) {
     clearTimeout(searchTimer);
-    const q = val.trim();
-    const resultsEl = document.getElementById('userSearchResults');
-    if(!resultsEl) return;
-
-    if(q.length < 2){
-        resultsEl.innerHTML = '';
-        searchResults = [];
-        return;
-    }
-
+    var q = val.trim();
+    var resultsEl = document.getElementById('userSearchResults');
+    if (!resultsEl) return;
+    if (q.length < 2) { resultsEl.innerHTML = ''; searchResults = []; return; }
     resultsEl.innerHTML = '<div class="search-loading"><i class="fa-solid fa-spinner fa-spin"></i> Recherche...</div>';
-    searchTimer = setTimeout(() => { doUserSearch(q, resultsEl); }, 300);
+    searchTimer = setTimeout(function () { doUserSearch(q, resultsEl); }, 300);
 }
 
-async function doUserSearch(q, resultsEl){
-    try {
-        const res = await fetch('/api/receive/search?q=' + encodeURIComponent(q));
-        const data = await res.json();
-        if(data.success && data.user){
-            searchResults = [data.user];
-            resultsEl.innerHTML = `
-                <div class="user-results">
-                    <div class="user-result" onclick="selectUserFromSearch(searchResults[0])">
-                        <div class="user-result-avatar">${avatarUserLetters(data.user.fullname)}</div>
-                        <div class="user-result-info">
-                            <div class="user-result-name">${data.user.fullname}</div>
-                            <div class="user-result-username">@${data.user.username} · ${data.user.country || ''}</div>
-                        </div>
-                        <i class="fa-solid fa-chevron-right user-result-arrow"></i>
-                    </div>
-                </div>`;
-        } else {
+function doUserSearch(q, resultsEl) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/receive/search?q=' + encodeURIComponent(q));
+    xhr.onload = function () {
+        try {
+            var data = JSON.parse(xhr.responseText);
+            if (data.success && data.user) {
+                searchResults = [data.user];
+                resultsEl.innerHTML =
+                    '<div class="user-results">' +
+                        '<div class="user-result" onclick="selectUserFromSearch(searchResults[0])">' +
+                            '<div class="user-result-avatar">' + avatarUserLetters(data.user.fullname) + '</div>' +
+                            '<div class="user-result-info"><div class="user-result-name">' + data.user.fullname + '</div><div class="user-result-username">@' + data.user.username + ' · ' + (data.user.country || '') + '</div></div>' +
+                            '<i class="fa-solid fa-chevron-right user-result-arrow"></i>' +
+                        '</div>' +
+                    '</div>';
+            } else {
+                searchResults = [];
+                resultsEl.innerHTML = '<div class="search-no-results"><i class="fa-solid fa-user-slash"></i><p style="font-weight:600;margin-bottom:4px">Aucun utilisateur trouvé</p><p style="font-size:12px">Vérifiez le @username, l\'email ou le téléphone.</p></div>';
+            }
+        } catch (e) {
             searchResults = [];
-            resultsEl.innerHTML = `
-                <div class="search-no-results">
-                    <i class="fa-solid fa-user-slash"></i>
-                    <p style="font-weight:600;margin-bottom:4px">Aucun utilisateur trouvé</p>
-                    <p style="font-size:12px">Vérifiez le @username, l'email ou le téléphone.</p>
-                </div>`;
+            resultsEl.innerHTML = '<div class="search-error"><i class="fa-solid fa-triangle-exclamation"></i> Erreur réseau.</div>';
         }
-    } catch(e){
+    };
+    xhr.onerror = function () {
         searchResults = [];
         resultsEl.innerHTML = '<div class="search-error"><i class="fa-solid fa-triangle-exclamation"></i> Erreur réseau.</div>';
-    }
+    };
+    xhr.send();
 }
 
-function selectUserFromSearch(user){
+function selectUserFromSearch(user) {
     selectedUser = user;
     searchResults = [];
     render();
 }
 
 /* ===== USER STEP 2: MONTANT ===== */
-function renderUserAmountStep(content, nav){
-    const currency = 'XOF';
-    const presets = getPresets(currency);
-    content.innerHTML = `
-        <div class="step-section" style="margin-bottom:0">
-            <div class="mode-toggle">
-                <button class="mode-btn active" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
-                <button class="mode-btn" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
-            </div>
-        </div>
-        ${selectedUser ? `
-        <div class="step-section">
-            <div class="user-selected-card">
-                <div class="user-selected-avatar">${avatarUserLetters(selectedUser.fullname)}</div>
-                <div class="user-selected-info">
-                    <div class="user-selected-name">${selectedUser.fullname}</div>
-                    <div class="user-selected-username">@${selectedUser.username}</div>
-                </div>
-            </div>
-        </div>` : ''}
-        <div class="step-section">
-            <div class="step-label">Étape 2 sur 3</div>
-            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-coins"></i></div> Montant à envoyer</div>
-            <div class="amount-input-group">
-                <input type="number" class="amount-input" id="userAmountInput" placeholder="0" value="${amount||''}" min="0" oninput="onUserAmountChange(this.value)">
-            </div>
-            <div class="currency-display">${currency}</div>
-            <div class="amount-presets">
-                ${presets.map(p => `<div class="amount-preset" onclick="setUserPreset(${p})">${p.toLocaleString('fr-FR')} ${currency}</div>`).join('')}
-            </div>
-            <div class="calculator-card" id="userCalculator" style="margin-top:20px;${amount>0?'':'display:none'}">
-                <div class="calc-row">
-                    <span class="calc-label"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span>
-                    <span class="calc-value" id="userCalcSend">${amount.toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (2%)</span>
-                    <span class="calc-value fee" id="userCalcFee">${Math.round(amount*0.02).toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-                <div class="calc-row">
-                    <span class="calc-label"><i class="fa-solid fa-arrow-down-wide-short" style="color:var(--green)"></i> Le destinataire reçoit</span>
-                    <span class="calc-value receive" id="userCalcReceive">${Math.round(amount*0.98).toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-                <div class="calc-row calc-total-row">
-                    <span class="calc-label" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total débité</span>
-                    <span class="calc-value total" id="userCalcTotal">${Math.round(amount*1.02).toLocaleString('fr-FR')} ${currency}</span>
-                </div>
-            </div>
-        </div>
-    `;
-    nav.innerHTML = `
-        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-        <button class="btn-primary" id="userStep2NextBtn" onclick="goNext()" ${amount>0?'':'disabled'}>
-            Continuer <i class="fa-solid fa-arrow-right"></i>
-        </button>
-    `;
+function renderUserAmountStep(content, nav) {
+    var currency = 'XOF';
+    var presets = getPresets(currency);
+    content.innerHTML =
+        '<div class="step-section" style="margin-bottom:0">' +
+            '<div class="mode-toggle">' +
+                '<button class="mode-btn active"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>' +
+                '<button class="mode-btn" onclick="backToSelection()"><i class="fa-solid fa-mobile-screen"></i> Transfert Mobile Money</button>' +
+            '</div>' +
+        '</div>' +
+        (selectedUser ? '<div class="step-section"><div class="user-selected-card"><div class="user-selected-avatar">' + avatarUserLetters(selectedUser.fullname) + '</div><div class="user-selected-info"><div class="user-selected-name">' + selectedUser.fullname + '</div><div class="user-selected-username">@' + selectedUser.username + '</div></div></div></div>' : '') +
+        '<div class="step-section">' +
+            '<div class="step-label">Étape 2 sur 3</div>' +
+            '<div class="step-title"><div class="step-icon"><i class="fa-solid fa-coins"></i></div> Montant à envoyer</div>' +
+            '<div class="amount-input-group"><input type="number" class="amount-input" id="userAmountInput" placeholder="0" value="' + (amount || '') + '" min="0" oninput="onUserAmountChange(this.value)"></div>' +
+            '<div class="currency-display">' + currency + '</div>' +
+            '<div class="amount-presets">' + presets.map(function (p) { return '<div class="amount-preset" onclick="setUserPreset(' + p + ')">' + p.toLocaleString('fr-FR') + ' ' + currency + '</div>'; }).join('') + '</div>' +
+            '<div class="calculator-card" id="userCalculator" style="margin-top:20px;' + (amount > 0 ? '' : 'display:none') + '">' +
+                buildUserCalcHTML(amount, currency) +
+            '</div>' +
+        '</div>';
+    nav.innerHTML =
+        '<button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>' +
+        '<button class="btn-primary" id="userStep2NextBtn" onclick="goNext()"' + (amount > 0 ? '' : ' disabled') + '>Continuer <i class="fa-solid fa-arrow-right"></i></button>';
 }
 
-function onUserAmountChange(val){
+function buildUserCalcHTML(amt, currency) {
+    var fee = Math.ceil(amt * 0.02);
+    var total = amt + fee;
+    return '<div class="calc-row"><span class="calc-label"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span><span class="calc-value" id="userCalcSend">' + amt.toLocaleString('fr-FR') + ' ' + currency + '</span></div>' +
+        '<div class="calc-row"><span class="calc-label"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (2%)</span><span class="calc-value fee" id="userCalcFee">' + fee.toLocaleString('fr-FR') + ' ' + currency + '</span></div>' +
+        '<div class="calc-row"><span class="calc-label"><i class="fa-solid fa-arrow-down-wide-short" style="color:var(--green)"></i> Le destinataire reçoit</span><span class="calc-value receive" id="userCalcReceive">' + amt.toLocaleString('fr-FR') + ' ' + currency + '</span></div>' +
+        '<div class="calc-row calc-total-row"><span class="calc-label" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total débité</span><span class="calc-value total" id="userCalcTotal">' + total.toLocaleString('fr-FR') + ' ' + currency + '</span></div>';
+}
+
+function onUserAmountChange(val) {
     amount = parseInt(val) || 0;
-    const calc = document.getElementById('userCalculator');
-    if(calc){
-        if(amount > 0){calc.style.display='block';calc.style.animation='none';calc.offsetHeight;calc.style.animation='scaleIn .4s ease-out';}
+    var calc = document.getElementById('userCalculator');
+    if (calc) {
+        if (amount > 0) { calc.style.display = 'block'; calc.style.animation = 'none'; calc.offsetHeight; calc.style.animation = 'scaleIn .4s ease-out'; }
         else calc.style.display = 'none';
     }
-    updateUserCalcDisplay();
-    const btn = document.getElementById('userStep2NextBtn');
-    if(btn) btn.disabled = !(amount > 0);
+    // Rebuild calculator HTML inline
+    calc.innerHTML = buildUserCalcHTML(amount, 'XOF');
+    var btn = document.getElementById('userStep2NextBtn');
+    if (btn) btn.disabled = !(amount > 0);
 }
 
-function updateUserCalcDisplay(){
-    const currency = 'XOF';
-    const fee = Math.round(amount * 0.02);
-    const receive = amount;
-    const total = amount + fee;
-    const el = (id)=>document.getElementById(id);
-    if(el('userCalcSend')) el('userCalcSend').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
-    if(el('userCalcFee')) el('userCalcFee').textContent = fee.toLocaleString('fr-FR') + ' ' + currency;
-    if(el('userCalcReceive')) el('userCalcReceive').textContent = receive.toLocaleString('fr-FR') + ' ' + currency;
-    if(el('userCalcTotal')) el('userCalcTotal').textContent = total.toLocaleString('fr-FR') + ' ' + currency;
-}
-
-function setUserPreset(val){amount=val;document.getElementById('userAmountInput').value=val;onUserAmountChange(val);}
+function setUserPreset(val) { amount = val; document.getElementById('userAmountInput').value = val; onUserAmountChange(val); }
 
 /* ===== USER STEP 3: RÉSUMÉ + ENVOI ===== */
-function renderUserSummaryStep(content, nav){
-    const currency = 'XOF';
-    const fee = Math.round(amount * 0.02);
-    const total = amount + fee;
-    content.innerHTML = `
-        <div class="step-section" style="margin-bottom:0">
-            <div class="mode-toggle">
-                <button class="mode-btn active" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
-                <button class="mode-btn" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
-            </div>
-        </div>
-        <div class="step-section">
-            <div class="step-label">Étape 3 sur 3</div>
-            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div> Résumé de l'envoi</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-header">
-                <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
-                <h3>Prêt à envoyer</h3>
-                <p>Vérifiez les détails avant de confirmer.</p>
-            </div>
-            ${selectedUser ? `
-            <div class="summary-row">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-user" style="background:var(--blue-light);color:var(--blue)"></i>
-                    <div><div class="summary-row-label">Destinataire</div><div class="summary-row-value">${selectedUser.fullname} · @${selectedUser.username}</div></div>
-                </div>
-                <div></div>
-            </div>` : ''}
-            <div class="summary-row">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i>
-                    <div><div class="summary-row-label">Vous envoyez</div><div class="summary-row-value">${currency}</div></div>
-                </div>
-                <div class="summary-row-amount send">${amount.toLocaleString('fr-FR')} ${currency}</div>
-            </div>
-            <div class="summary-row">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i>
-                    <div><div class="summary-row-label">Frais (2%)</div><div class="summary-row-value">Débité de votre compte</div></div>
-                </div>
-                <div class="summary-row-amount fee">${fee.toLocaleString('fr-FR')} ${currency}</div>
-            </div>
-            <div class="summary-row summary-row-highlight">
-                <div class="summary-row-left">
-                    <i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i>
-                    <div><div class="summary-row-label">Total débité</div><div class="summary-row-value">Frais inclus</div></div>
-                </div>
-                <div class="summary-row-amount receive">${total.toLocaleString('fr-FR')} ${currency}</div>
-            </div>
-            <div style="padding:0 24px 24px;text-align:center">
-                <p style="font-size:11px;color:var(--text-4);margin-top:12px">
-                    <i class="fa-solid fa-lock"></i> Transaction instantanée · Les fonds sont crédités immédiatement
-                </p>
-            </div>
-        </div>
-    `;
-    nav.innerHTML = `
-        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button>
-        <button class="btn-primary" id="sendToUserBtn" onclick="sendToUser()">
-            <i class="fa-solid fa-paper-plane"></i> Envoyer maintenant
-        </button>
-    `;
+function renderUserSummaryStep(content, nav) {
+    var currency = 'XOF';
+    var fee = Math.ceil(amount * 0.02);
+    var total = amount + fee;
+    content.innerHTML =
+        '<div class="step-section" style="margin-bottom:0">' +
+            '<div class="mode-toggle">' +
+                '<button class="mode-btn active"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>' +
+                '<button class="mode-btn" onclick="backToSelection()"><i class="fa-solid fa-mobile-screen"></i> Transfert Mobile Money</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="step-section"><div class="step-label">Étape 3 sur 3</div><div class="step-title"><div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div> Résumé de l\'envoi</div></div>' +
+        '<div class="summary-card">' +
+            '<div class="summary-header"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i><h3>Prêt à envoyer</h3><p>Vérifiez les détails avant de confirmer.</p></div>' +
+            (selectedUser ? '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-user" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="summary-row-label">Destinataire</div><div class="summary-row-value">' + selectedUser.fullname + ' · @' + selectedUser.username + '</div></div></div><div></div></div>' : '') +
+            '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="summary-row-label">Vous envoyez</div><div class="summary-row-value">' + currency + '</div></div></div><div class="summary-row-amount send">' + amount.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
+            '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i><div><div class="summary-row-label">Frais (2%)</div><div class="summary-row-value">Débité de votre compte</div></div></div><div class="summary-row-amount fee">' + fee.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
+            '<div class="summary-row summary-row-highlight"><div class="summary-row-left"><i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i><div><div class="summary-row-label">Total débité</div><div class="summary-row-value">Frais inclus</div></div></div><div class="summary-row-amount receive">' + total.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
+            '<div style="padding:0 24px 24px;text-align:center"><p style="font-size:11px;color:var(--text-4);margin-top:12px"><i class="fa-solid fa-lock"></i> Transaction instantanée · Les fonds sont crédités immédiatement</p></div>' +
+        '</div>';
+    nav.innerHTML =
+        '<button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button>' +
+        '<button class="btn-primary" id="sendToUserBtn" onclick="sendToUser()"><i class="fa-solid fa-paper-plane"></i> Envoyer maintenant</button>';
 }
 
 /* ===== ENVOI VERS UTILISATEUR (API /api/pay-to-receiver) ===== */
-async function sendToUser(){
-    const btn = document.getElementById('sendToUserBtn');
-    if(!btn) return;
+function sendToUser() {
+    var btn = document.getElementById('sendToUserBtn');
+    if (!btn) return;
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
 
-    try {
-        const res = await fetch('/api/pay-to-receiver', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                receiver_id: selectedUser.id,
-                amount: amount,
-                currency: 'XOF'
-            })
-        });
-        const data = await res.json();
-        if(data.success){
-            // Rediriger vers le dashboard avec message succès
-            window.location.href = '/dashboard?sent=1&to=' + encodeURIComponent('@'+selectedUser.username) + '&amount=' + amount;
-        } else {
-            alert(data.message || 'Erreur lors de l\'envoi.');
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/pay-to-receiver');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function () {
+        try {
+            var data = JSON.parse(xhr.responseText);
+            if (data.success) {
+                window.location.href = '/dashboard?sent=1&to=' + encodeURIComponent('@' + selectedUser.username) + '&amount=' + amount;
+            } else {
+                alert(data.message || 'Erreur lors de l\'envoi.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer maintenant';
+            }
+        } catch (e) {
+            alert('Erreur lors de l\'envoi.');
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer maintenant';
         }
-    } catch(e){
+    };
+    xhr.onerror = function () {
         alert('Erreur réseau. Veuillez réessayer.');
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer maintenant';
-    }
+    };
+    xhr.send(JSON.stringify({ receiver_id: selectedUser.id, amount: amount, currency: 'XOF' }));
 }
 
-/* ===== MODE CLASSIC: NAVIGATION (override pour user) ===== */
-const origGoNext = goNext;
-goNext = function(){
-    if(mode === 'user'){
-        if(step === 1 && !selectedUser) return;
-        if(step === 2 && amount <= 0) return;
-        step = Math.min(3, step + 1);
-        render();
-        window.scrollTo({top:0,behavior:'smooth'});
-        return;
-    }
-    origGoNext();
-};
-
-const origGoBack = goBack;
-goBack = function(){
-    step = Math.max(1, step - 1);
-    render();
-    window.scrollTo({top:0,behavior:'smooth'});
-};
+/* ===== THEME ===== */
+var savedTheme = localStorage.getItem('transafrik-theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
 
 /* ===== INIT ===== */
+updateHeader();
 render();
 </script>
 </body>
