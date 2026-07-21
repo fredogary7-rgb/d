@@ -3650,7 +3650,7 @@ def api_pay_to_receiver():
             'message': f'Solde insuffisant. Votre solde est de {current_user.balance} {currency}.',
         }), 400
 
-    success, tx, error = process_free_payment(
+    success, result, error = process_free_payment(
         sender_id=current_user.id,
         receiver_id=receiver_id,
         amount=amount,
@@ -3659,6 +3659,10 @@ def api_pay_to_receiver():
 
     if not success:
         return jsonify({'success': False, 'message': error}), 400
+
+    tx = result['transaction']
+    fee = result['fee']
+    total_debit = amount + fee
 
     # Envoyer notification push au receveur
     try:
@@ -3677,8 +3681,10 @@ def api_pay_to_receiver():
 
     return jsonify({
         'success': True,
-        'message': 'Paiement effectué avec succès !',
+        'message': f'Paiement de {amount} {currency} effectué avec succès ! (frais : {fee} {currency})',
         'transaction': tx.to_dict(),
+        'fee': fee,
+        'total_debit': total_debit,
     })
 
 

@@ -358,23 +358,32 @@ def process_free_payment(
     receiver_id: int,
     amount: int,
     currency: str = "XOF",
-) -> Tuple[bool, Optional[TransactionReceive], Optional[str]]:
+) -> Tuple[bool, Optional[Any], Optional[str]]:
     """Traite un paiement libre (sans demande préalable) vers un utilisateur.
+
+    Le sender est débité de (amount + 2% fees). Le receiver reçoit amount.
+    Les fees sont conservés par la plateforme.
 
     Args:
         sender_id: ID de l'utilisateur qui paie
         receiver_id: ID de l'utilisateur qui reçoit
-        amount: Montant payé en unités mineures
+        amount: Montant envoyé au receiver en unités mineures
         currency: Devise
 
     Returns:
-        Tuple (success, transaction_or_None, error_message_or_None)
+        Tuple (success, {transaction, fee}, error_message_or_None)
     """
+    import math
+
     if sender_id == receiver_id:
         return False, None, "Vous ne pouvez pas vous payer vous-même."
 
     if amount <= 0:
         return False, None, "Le montant doit être supérieur à 0."
+
+    # Frais plateforme : 2% plafonnés à 5000 XOF
+    fee = min(math.ceil(amount * 0.02), 5000)
+    total_debit = amount + fee
 
     # Vérifier les utilisateurs
     sender = User.query.get(sender_id)
@@ -383,10 +392,13 @@ def process_free_payment(
     if not sender or not receiver:
         return False, None, "Utilisateur introuvable."
 
-    if sender.balance < amount:
-        return False, None, f"Solde insuffisant. Votre solde est de {sender.balance} {currency}."
+    if (sender.balance or 0) < total_debit:
+        return False, None, (
+            f"Solde insuffisant. Votre solde est de {sender.balance} {currency}. "
+            f"Vous devez {total_debit} {currency} (montant {amount} + frais {fee})."
+        )
 
-    # Créer la transaction
+    # Créer la transaction receive
     reference = generate_receive_reference()
     tx = TransactionReceive(
         payment_request_id=None,
@@ -396,19 +408,23 @@ def process_free_payment(
         currency=currency,
         status="completed",
         reference=reference,
-        description=f"Paiement libre de {sender.fullname or sender.username} à {receiver.fullname or receiver.username}",
+        description=(
+            f"Paiement libre de {sender.fullname or sender.username}"
+            f" à {receiver.fullname or receiver.username}"
+        ),
     )
     db.session.add(tx)
 
-    # Créditer le receveur
+    # Créditer le receveur (montant net)
     receiver.balance = (receiver.balance or 0) + amount
 
-    # Débiter le payeur
-    sender.balance = sender.balance - amount
+    # Débiter le payeur (montant + frais)
+    sender.balance = (sender.balance or 0) - total_debit
+    sender.used_daily = (sender.used_daily or 0) + total_debit
 
     db.session.commit()
 
-    return True, tx, None
+    return True, {"transaction": tx, "fee": fee}, None
 
 
 # ═══════════════════════════════════════════════════════════

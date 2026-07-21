@@ -72,6 +72,42 @@
         .step-title{font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;margin-bottom:14px;display:flex;align-items:center;gap:10px}
         .step-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:var(--blue-light);color:var(--blue)}
 
+        /* ===== MODE TOGGLE ===== */
+        .mode-toggle{display:flex;gap:0;margin-bottom:24px;border:1.5px solid var(--border);border-radius:100px;overflow:hidden;background:var(--bg)}
+        .mode-btn{flex:1;padding:10px 16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-3);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;white-space:nowrap;text-align:center}
+        .mode-btn.active{background:var(--blue);color:#fff;border-radius:100px;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+        .mode-btn:hover:not(.active){color:var(--blue)}
+        .separator-or{display:flex;align-items:center;gap:14px;margin:20px 0;color:var(--text-4);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+        .separator-or::before,.separator-or::after{content:'';flex:1;height:1px;background:var(--border)}
+
+        /* ===== USER SEARCH ===== */
+        .user-search-wrap{position:relative}
+        .user-search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text-4)}
+        .user-search-input{width:100%;padding:14px 16px 14px 44px;font-size:15px;font-weight:500;border:2px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);color:var(--text);outline:none;transition:all var(--transition);font-family:'Inter',sans-serif}
+        .user-search-input:focus{border-color:var(--blue);box-shadow:0 0 0 5px rgba(37,99,235,.08)}
+        .user-search-input::placeholder{color:var(--text-4);font-weight:400}
+        .user-search-hint{font-size:11px;color:var(--text-4);margin-top:8px;display:flex;align-items:center;gap:6px}
+        .user-results{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);margin-top:8px;overflow:hidden;box-shadow:var(--shadow-lg);animation:fadeSlideDown .25s ease-out}
+        .user-result{padding:16px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .15s;border-bottom:1px solid var(--border)}
+        .user-result:last-child{border-bottom:none}
+        .user-result:hover{background:var(--blue-light)}
+        .user-result-avatar{width:42px;height:42px;border-radius:50%;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;font-family:'Outfit',sans-serif}
+        .user-result-info{flex:1;min-width:0}
+        .user-result-name{font-weight:700;font-size:14px;color:var(--text)}
+        .user-result-username{font-size:12px;color:var(--text-4);margin-top:2px}
+        .user-result-arrow{color:var(--text-4);font-size:13px}
+        .user-selected-card{background:linear-gradient(135deg,var(--blue-light),var(--surface));border:2px solid var(--blue);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:center;gap:16px;animation:scaleIn .35s ease-out}
+        .user-selected-avatar{width:52px;height:52px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;font-family:'Outfit',sans-serif}
+        .user-selected-info{flex:1;min-width:0}
+        .user-selected-name{font-size:16px;font-weight:800;color:var(--text);font-family:'Outfit',sans-serif}
+        .user-selected-username{font-size:13px;color:var(--blue);font-weight:600;margin-top:2px}
+        .user-selected-change{margin-top:12px;font-size:12px;color:var(--text-4);cursor:pointer;font-weight:600;transition:color .2s}
+        .user-selected-change:hover{color:var(--blue)}
+        .search-loading{text-align:center;padding:20px;color:var(--text-4);font-size:13px}
+        .search-no-results{text-align:center;padding:24px;color:var(--text-4)}
+        .search-no-results i{font-size:32px;display:block;margin-bottom:8px;opacity:.4}
+        .search-error{text-align:center;padding:16px;color:var(--red);font-size:13px}
+
         /* ===== COUNTRY SELECTOR ===== */
         .country-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:340px;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--text-4) transparent}
         .country-grid::-webkit-scrollbar{width:5px}
@@ -242,6 +278,13 @@ let recipientName = '';
 let recipientPhone = '';
 let destinationCountry = null;
 let destinationOperator = null;
+let mode = 'classic'; // 'classic' | 'user'
+let selectedUser = null;
+let searchTimer = null;
+let searchResults = [];
+
+/* ===== MODE TOGGLE ===== */
+function setMode(m){ mode=m; step=1; selectedUser=null; searchResults=[]; render(); }
 
 /* ===== RENDER ===== */
 function render(){
@@ -249,21 +292,32 @@ function render(){
     const nav = document.getElementById('stepNav');
     updateProgress();
 
-    switch(step){
-        case 1: renderCountryStep(content, nav); break;
-        case 2: renderOperatorStep(content, nav); break;
-        case 3: renderAmountStep(content, nav); break;
-        case 4: renderSummaryStep(content, nav); break;
+    if(mode === 'user'){
+        switch(step){
+            case 1: renderUserSearchStep(content, nav); break;
+            case 2: renderUserAmountStep(content, nav); break;
+            case 3: renderUserSummaryStep(content, nav); break;
+        }
+    } else {
+        switch(step){
+            case 1: renderCountryStep(content, nav); break;
+            case 2: renderOperatorStep(content, nav); break;
+            case 3: renderAmountStep(content, nav); break;
+            case 4: renderSummaryStep(content, nav); break;
+        }
     }
 }
 
 /* ===== PROGRESS ===== */
 function updateProgress(){
+    const totalSteps = mode === 'user' ? 3 : 4;
     for(let i=1;i<=4;i++){
         const dot = document.getElementById('dot'+i);
         const line = i<4 ? document.getElementById('line'+i) : null;
         dot.classList.remove('active','done');
         if(line) line.classList.remove('done');
+        if(i > totalSteps){ dot.style.display='none'; if(line) line.style.display='none'; }
+        else { dot.style.display=''; if(line) line.style.display=''; }
         if(i<step){dot.classList.add('done');dot.innerHTML='<i class="fa-solid fa-check"></i>';if(line)line.classList.add('done');}
         else if(i===step){dot.classList.add('active');dot.textContent=i;}
         else{dot.textContent=i;}
@@ -273,6 +327,12 @@ function updateProgress(){
 /* ===== STEP 1: COUNTRY ===== */
 function renderCountryStep(content, nav){
     content.innerHTML = `
+        <div class="step-section" style="margin-bottom:0">
+            <div class="mode-toggle">
+                <button class="mode-btn" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
+                <button class="mode-btn active" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
+            </div>
+        </div>
         <div class="step-section">
             <div class="step-label">Étape 1 sur 4</div>
             <div class="step-title"><div class="step-icon"><i class="fa-solid fa-earth-africa"></i></div> Pays de destination</div>
@@ -545,6 +605,315 @@ function confirmTransfer(){
 /* ===== THEME ===== */
 const savedTheme = localStorage.getItem('transafrik-theme')||'light';
 document.documentElement.setAttribute('data-theme',savedTheme);
+
+/* ══════════════════════════════════════════════════════════
+   MODE: ENVOYER À UN UTILISATEUR TransAfrik
+   ══════════════════════════════════════════════════════════ */
+
+/* ===== USER STEP 1: RECHERCHE ===== */
+function renderUserSearchStep(content, nav){
+    content.innerHTML = `
+        <div class="step-section" style="margin-bottom:0">
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
+                <button class="mode-btn" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
+            </div>
+        </div>
+        <div class="step-section">
+            <div class="step-label">Étape 1 sur 3</div>
+            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div> Rechercher un utilisateur</div>
+            <p style="font-size:13px;color:var(--text-4);margin-bottom:18px">Tapez le @username, l'email complet ou le numéro de téléphone.</p>
+            <div class="user-search-wrap">
+                <i class="fa-solid fa-at user-search-icon"></i>
+                <input type="text" class="user-search-input" id="userSearchInput" placeholder="@username ou email ou téléphone"
+                    oninput="onUserSearchInput(this.value)" onfocus="onUserSearchInput(this.value)" autocomplete="off">
+            </div>
+            <div class="user-search-hint">
+                <i class="fa-solid fa-info-circle"></i> Exemple : @1xthom14, 1xthom14@gmail.com, +228 90 00 00 00
+            </div>
+            <div id="userSearchResults"></div>
+        </div>
+        ${selectedUser ? `
+        <div class="step-section">
+            <div class="user-selected-card">
+                <div class="user-selected-avatar">${avatarUserLetters(selectedUser.fullname)}</div>
+                <div class="user-selected-info">
+                    <div class="user-selected-name">${selectedUser.fullname}</div>
+                    <div class="user-selected-username">@${selectedUser.username}</div>
+                </div>
+            </div>
+        </div>` : ''}
+    `;
+    nav.innerHTML = `
+        <a href="/dashboard" class="btn-outline">Annuler</a>
+        <button class="btn-primary" onclick="goNext()" ${!selectedUser?'disabled':''}>
+            Continuer <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    `;
+    // Focus sur l'input
+    setTimeout(()=>{ const inp=document.getElementById('userSearchInput'); if(inp) inp.focus(); }, 150);
+}
+
+function avatarUserLetters(name){ if(!name)return'?';let p=name.trim().split(' ');return(p[0][0]||'')+(p[1]?p[1][0]:''); }
+
+function onUserSearchInput(val){
+    clearTimeout(searchTimer);
+    const q = val.trim();
+    const resultsEl = document.getElementById('userSearchResults');
+    if(!resultsEl) return;
+
+    if(q.length < 2){
+        resultsEl.innerHTML = '';
+        searchResults = [];
+        return;
+    }
+
+    resultsEl.innerHTML = '<div class="search-loading"><i class="fa-solid fa-spinner fa-spin"></i> Recherche...</div>';
+    searchTimer = setTimeout(() => { doUserSearch(q, resultsEl); }, 300);
+}
+
+async function doUserSearch(q, resultsEl){
+    try {
+        const res = await fetch('/api/receive/search?q=' + encodeURIComponent(q));
+        const data = await res.json();
+        if(data.success && data.user){
+            searchResults = [data.user];
+            resultsEl.innerHTML = `
+                <div class="user-results">
+                    <div class="user-result" onclick="selectUserFromSearch(searchResults[0])">
+                        <div class="user-result-avatar">${avatarUserLetters(data.user.fullname)}</div>
+                        <div class="user-result-info">
+                            <div class="user-result-name">${data.user.fullname}</div>
+                            <div class="user-result-username">@${data.user.username} · ${data.user.country || ''}</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right user-result-arrow"></i>
+                    </div>
+                </div>`;
+        } else {
+            searchResults = [];
+            resultsEl.innerHTML = `
+                <div class="search-no-results">
+                    <i class="fa-solid fa-user-slash"></i>
+                    <p style="font-weight:600;margin-bottom:4px">Aucun utilisateur trouvé</p>
+                    <p style="font-size:12px">Vérifiez le @username, l'email ou le téléphone.</p>
+                </div>`;
+        }
+    } catch(e){
+        searchResults = [];
+        resultsEl.innerHTML = '<div class="search-error"><i class="fa-solid fa-triangle-exclamation"></i> Erreur réseau.</div>';
+    }
+}
+
+function selectUserFromSearch(user){
+    selectedUser = user;
+    searchResults = [];
+    render();
+}
+
+/* ===== USER STEP 2: MONTANT ===== */
+function renderUserAmountStep(content, nav){
+    const currency = 'XOF';
+    const presets = getPresets(currency);
+    content.innerHTML = `
+        <div class="step-section" style="margin-bottom:0">
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
+                <button class="mode-btn" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
+            </div>
+        </div>
+        ${selectedUser ? `
+        <div class="step-section">
+            <div class="user-selected-card">
+                <div class="user-selected-avatar">${avatarUserLetters(selectedUser.fullname)}</div>
+                <div class="user-selected-info">
+                    <div class="user-selected-name">${selectedUser.fullname}</div>
+                    <div class="user-selected-username">@${selectedUser.username}</div>
+                </div>
+            </div>
+        </div>` : ''}
+        <div class="step-section">
+            <div class="step-label">Étape 2 sur 3</div>
+            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-coins"></i></div> Montant à envoyer</div>
+            <div class="amount-input-group">
+                <input type="number" class="amount-input" id="userAmountInput" placeholder="0" value="${amount||''}" min="0" oninput="onUserAmountChange(this.value)">
+            </div>
+            <div class="currency-display">${currency}</div>
+            <div class="amount-presets">
+                ${presets.map(p => `<div class="amount-preset" onclick="setUserPreset(${p})">${p.toLocaleString('fr-FR')} ${currency}</div>`).join('')}
+            </div>
+            <div class="calculator-card" id="userCalculator" style="margin-top:20px;${amount>0?'':'display:none'}">
+                <div class="calc-row">
+                    <span class="calc-label"><i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i> Vous envoyez</span>
+                    <span class="calc-value" id="userCalcSend">${amount.toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label"><i class="fa-solid fa-percent" style="color:var(--orange)"></i> Frais (2%)</span>
+                    <span class="calc-value fee" id="userCalcFee">${Math.round(amount*0.02).toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label"><i class="fa-solid fa-arrow-down-wide-short" style="color:var(--green)"></i> Le destinataire reçoit</span>
+                    <span class="calc-value receive" id="userCalcReceive">${Math.round(amount*0.98).toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+                <div class="calc-row calc-total-row">
+                    <span class="calc-label" style="font-weight:700;color:var(--text)"><i class="fa-solid fa-cart-shopping" style="color:var(--blue)"></i> Total débité</span>
+                    <span class="calc-value total" id="userCalcTotal">${Math.round(amount*1.02).toLocaleString('fr-FR')} ${currency}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    nav.innerHTML = `
+        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
+        <button class="btn-primary" id="userStep2NextBtn" onclick="goNext()" ${amount>0?'':'disabled'}>
+            Continuer <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    `;
+}
+
+function onUserAmountChange(val){
+    amount = parseInt(val) || 0;
+    const calc = document.getElementById('userCalculator');
+    if(calc){
+        if(amount > 0){calc.style.display='block';calc.style.animation='none';calc.offsetHeight;calc.style.animation='scaleIn .4s ease-out';}
+        else calc.style.display = 'none';
+    }
+    updateUserCalcDisplay();
+    const btn = document.getElementById('userStep2NextBtn');
+    if(btn) btn.disabled = !(amount > 0);
+}
+
+function updateUserCalcDisplay(){
+    const currency = 'XOF';
+    const fee = Math.round(amount * 0.02);
+    const receive = amount;
+    const total = amount + fee;
+    const el = (id)=>document.getElementById(id);
+    if(el('userCalcSend')) el('userCalcSend').textContent = amount.toLocaleString('fr-FR') + ' ' + currency;
+    if(el('userCalcFee')) el('userCalcFee').textContent = fee.toLocaleString('fr-FR') + ' ' + currency;
+    if(el('userCalcReceive')) el('userCalcReceive').textContent = receive.toLocaleString('fr-FR') + ' ' + currency;
+    if(el('userCalcTotal')) el('userCalcTotal').textContent = total.toLocaleString('fr-FR') + ' ' + currency;
+}
+
+function setUserPreset(val){amount=val;document.getElementById('userAmountInput').value=val;onUserAmountChange(val);}
+
+/* ===== USER STEP 3: RÉSUMÉ + ENVOI ===== */
+function renderUserSummaryStep(content, nav){
+    const currency = 'XOF';
+    const fee = Math.round(amount * 0.02);
+    const total = amount + fee;
+    content.innerHTML = `
+        <div class="step-section" style="margin-bottom:0">
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('user')"><i class="fa-solid fa-user"></i> Envoyer à un utilisateur</button>
+                <button class="mode-btn" onclick="setMode('classic')"><i class="fa-solid fa-mobile-screen"></i> Transfert classique</button>
+            </div>
+        </div>
+        <div class="step-section">
+            <div class="step-label">Étape 3 sur 3</div>
+            <div class="step-title"><div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div> Résumé de l'envoi</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-header">
+                <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
+                <h3>Prêt à envoyer</h3>
+                <p>Vérifiez les détails avant de confirmer.</p>
+            </div>
+            ${selectedUser ? `
+            <div class="summary-row">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-user" style="background:var(--blue-light);color:var(--blue)"></i>
+                    <div><div class="summary-row-label">Destinataire</div><div class="summary-row-value">${selectedUser.fullname} · @${selectedUser.username}</div></div>
+                </div>
+                <div></div>
+            </div>` : ''}
+            <div class="summary-row">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i>
+                    <div><div class="summary-row-label">Vous envoyez</div><div class="summary-row-value">${currency}</div></div>
+                </div>
+                <div class="summary-row-amount send">${amount.toLocaleString('fr-FR')} ${currency}</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i>
+                    <div><div class="summary-row-label">Frais (2%)</div><div class="summary-row-value">Débité de votre compte</div></div>
+                </div>
+                <div class="summary-row-amount fee">${fee.toLocaleString('fr-FR')} ${currency}</div>
+            </div>
+            <div class="summary-row summary-row-highlight">
+                <div class="summary-row-left">
+                    <i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i>
+                    <div><div class="summary-row-label">Total débité</div><div class="summary-row-value">Frais inclus</div></div>
+                </div>
+                <div class="summary-row-amount receive">${total.toLocaleString('fr-FR')} ${currency}</div>
+            </div>
+            <div style="padding:0 24px 24px;text-align:center">
+                <p style="font-size:11px;color:var(--text-4);margin-top:12px">
+                    <i class="fa-solid fa-lock"></i> Transaction instantanée · Les fonds sont crédités immédiatement
+                </p>
+            </div>
+        </div>
+    `;
+    nav.innerHTML = `
+        <button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button>
+        <button class="btn-primary" id="sendToUserBtn" onclick="sendToUser()">
+            <i class="fa-solid fa-paper-plane"></i> Envoyer maintenant
+        </button>
+    `;
+}
+
+/* ===== ENVOI VERS UTILISATEUR (API /api/pay-to-receiver) ===== */
+async function sendToUser(){
+    const btn = document.getElementById('sendToUserBtn');
+    if(!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
+
+    try {
+        const res = await fetch('/api/pay-to-receiver', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                receiver_id: selectedUser.id,
+                amount: amount,
+                currency: 'XOF'
+            })
+        });
+        const data = await res.json();
+        if(data.success){
+            // Rediriger vers le dashboard avec message succès
+            window.location.href = '/dashboard?sent=1&to=' + encodeURIComponent('@'+selectedUser.username) + '&amount=' + amount;
+        } else {
+            alert(data.message || 'Erreur lors de l\'envoi.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer maintenant';
+        }
+    } catch(e){
+        alert('Erreur réseau. Veuillez réessayer.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer maintenant';
+    }
+}
+
+/* ===== MODE CLASSIC: NAVIGATION (override pour user) ===== */
+const origGoNext = goNext;
+goNext = function(){
+    if(mode === 'user'){
+        if(step === 1 && !selectedUser) return;
+        if(step === 2 && amount <= 0) return;
+        step = Math.min(3, step + 1);
+        render();
+        window.scrollTo({top:0,behavior:'smooth'});
+        return;
+    }
+    origGoNext();
+};
+
+const origGoBack = goBack;
+goBack = function(){
+    step = Math.max(1, step - 1);
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+};
 
 /* ===== INIT ===== */
 render();
