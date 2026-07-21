@@ -3773,7 +3773,6 @@ def api_pay_to_user():
         currency=currency,
         status='completed',
         reference=ref,
-        description=f'Transfert de @{current_user.username} vers @{receiver.username}',
     )
     db.session.add(tx)
 
