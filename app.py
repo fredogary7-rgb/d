@@ -14,6 +14,7 @@ from services.receive_service import (
     get_user_payment_requests, get_recent_received_payments,
     generate_pay_qrcode, search_user_for_payment, search_users_for_payment,
     expire_old_requests, process_receive_payment, process_free_payment,
+    generate_receive_reference, process_free_payment as process_wallet_to_wallet,
 )
 from services.push_service import send_push_to_user
 from services.email_service import send_otp_email
@@ -3707,18 +3708,18 @@ def api_receive_search_user():
     return jsonify({'success': True, 'users': results})
 
 
-# --- ENVOI VERS UN UTILISATEUR (wallet interne → Withdraw SoleasPay) ---
+# --- ENVOI VERS UN UTILISATEUR (wallet interne → wallet interne, sans SoleasPay) ---
 @app.route('/api/pay-to-user', methods=['POST'])
 @login_required
 def api_pay_to_user():
-    """Envoi d'argent à un utilisateur :
+    """Envoi d'argent à un autre utilisateur TransAfrik (wallet à wallet).
+    Pas de Mobile Money, pas de SoleasPay — purement interne.
     1. Vérifie le solde wallet
-    2. Débite le wallet (montant + frais 2%)
-    3. Crée un Withdrawal SoleasPay vers le numéro du destinataire
-    4. Crédite le destinataire en interne
+    2. Débite le wallet de l'expéditeur (montant + frais 2%)
+    3. Crédite le wallet du destinataire
+    4. Enregistre la TransactionReceive
     """
     import math
-    from services.withdraw_service import submit_withdraw
 
     data = request.get_json()
     if not data:
@@ -3726,8 +3727,7 @@ def api_pay_to_user():
 
     receiver_id = data.get('receiver_id')
     amount = int(data.get('amount', 0))
-    currency = data.get('currency', 'XOF')
-    operator_id = data.get('operator_id')
+    currency = data.get('currency', 'XOF').upper()
 
     if not receiver_id:
         return jsonify({'success': False, 'message': 'Destinataire requis.'}), 400
@@ -3744,78 +3744,26 @@ def api_pay_to_user():
     if receiver.id == current_user.id:
         return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous envoyer de l\'argent.'}), 400
 
-    if not receiver.phone:
-        return jsonify({'success': False, 'message': 'Le destinataire n\'a pas de numéro de téléphone enregistré.'}), 400
-
     # Frais plateforme : 2% plafonnés à 5000 XOF
     fee = min(math.ceil(amount * 0.02), 5000)
     total_debit = amount + fee
 
-    # Vérifier le solde
+    # Vérifier le solde de l'expéditeur
     if (current_user.balance or 0) < total_debit:
         return jsonify({
             'success': False,
-            'message': f'Solde insuffisant. Votre solde : {current_user.balance} {currency}. '
-                       f'Total requis : {total_debit} {currency} (montant {amount} + frais {fee}).',
+            'message': f'Solde insuffisant. Votre solde : {current_user.balance:,} {currency}. '
+                       f'Total requis : {total_debit:,} {currency} (montant {amount:,} + frais {fee:,}).',
         }), 400
 
-    # ---- Étape 1 : Débiter le wallet de l'expéditeur ----
+    # ---- Débiter l'expéditeur ----
     current_user.balance = (current_user.balance or 0) - total_debit
     current_user.used_daily = (current_user.used_daily or 0) + total_debit
 
-    # ---- Étape 2 : Créer un Withdrawal SoleasPay vers le numéro du destinataire ----
-    # Déterminer l'opérateur : soit fourni, soit déduit du pays du destinataire
-    from config.operators import OPERATORS
-
-    target_operator_id = operator_id
-    target_country = receiver.country or 'TG'
-
-    if not target_operator_id:
-        # Trouver le premier opérateur mobile_money actif du pays du destinataire
-        for key, op in OPERATORS.items():
-            if op.get('active') and op.get('type') == 'mobile_money' and op.get('country') == target_country:
-                target_operator_id = op['id']
-                break
-        if not target_operator_id:
-            # Fallback : pays par défaut
-            for key, op in OPERATORS.items():
-                if op.get('active') and op.get('type') == 'mobile_money':
-                    target_operator_id = op['id']
-                    target_country = op['country']
-                    break
-
-    if not target_operator_id:
-        return jsonify({'success': False, 'message': 'Aucun opérateur Mobile Money compatible trouvé.'}), 500
-
-    # Appeler submit_withdraw pour créer le Withdrawal SoleasPay
-    withdraw_data = {
-        'operator_id': int(target_operator_id),
-        'phone': receiver.phone,
-        'amount': float(amount),
-        'currency': currency,
-        'recipient_name': receiver.fullname or receiver.username,
-        'sender_reference': f'PAY-TO-USER-{current_user.id}-{receiver_id}',
-    }
-
-    withdraw_result = submit_withdraw(current_user, withdraw_data)
-
-    if not withdraw_result.get('success'):
-        # Rollback : rembourser l'expéditeur
-        current_user.balance = (current_user.balance or 0) + total_debit
-        current_user.used_daily = (current_user.used_daily or 0) - total_debit
-        db.session.commit()
-        return jsonify({
-            'success': False,
-            'message': f'Échec du retrait vers le destinataire : {withdraw_result.get("error", "Erreur inconnue")}',
-        }), 500
-
-    withdrawal = withdraw_result.get('withdrawal')
-
-    # ---- Étape 3 : Créditer le wallet du destinataire (en avance, sera confirmé par webhook) ----
-    # Note : le destinataire reçoit le montant net (amount), les frais sont pour la plateforme
+    # ---- Créditer le destinataire (montant net) ----
     receiver.balance = (receiver.balance or 0) + amount
 
-    # ---- Étape 4 : Créer la TransactionReceive ----
+    # ---- Créer la TransactionReceive ----
     ref = generate_receive_reference()
     tx = TransactionReceive(
         payment_request_id=None,
@@ -3825,12 +3773,11 @@ def api_pay_to_user():
         currency=currency,
         status='completed',
         reference=ref,
-        description=(f'Paiement de @{current_user.username} vers @{receiver.username} '
-                     f'(Withdraw SoleasPay {withdrawal.id if withdrawal else "N/A"})'),
+        description=f'Transfert de @{current_user.username} vers @{receiver.username}',
     )
     db.session.add(tx)
 
-    # ---- Étape 5 : Créer une Transaction "send" pour l'historique ----
+    # ---- Créer une Transaction "send" pour l'historique ----
     send_tx = Transaction(
         user_id=current_user.id,
         type='send',
@@ -3839,9 +3786,9 @@ def api_pay_to_user():
         fee=fee,
         status='success',
         recipient_name=receiver.fullname or receiver.username,
-        recipient_phone=receiver.phone,
-        recipient_country=target_country,
-        recipient_operator=str(target_operator_id),
+        recipient_phone=receiver.phone or '',
+        recipient_country=receiver.country or '',
+        recipient_operator='TransAfrik',
     )
     db.session.add(send_tx)
 
@@ -3849,11 +3796,10 @@ def api_pay_to_user():
 
     # Notification push au receveur
     try:
-        from services.push_service import send_push_to_user
         send_push_to_user(
             user_id=receiver_id,
             title='Nouveau paiement reçu ! 💸',
-            body=f'{current_user.fullname} vous a envoyé {amount} {currency}.',
+            body=f'{current_user.fullname} vous a envoyé {amount:,} {currency}.',
             url='/dashboard',
             tag='receive-payment',
             data={'transaction_ref': ref, 'amount': amount, 'currency': currency},
@@ -3863,7 +3809,7 @@ def api_pay_to_user():
 
     return jsonify({
         'success': True,
-        'message': f'Transfert de {amount} {currency} vers @{receiver.username} effectué avec succès.',
+        'message': f'Transfert de {amount:,} {currency} vers @{receiver.username} effectué avec succès.',
         'transaction': tx.to_dict() if hasattr(tx, 'to_dict') else {'id': tx.id, 'reference': ref},
         'fee': fee,
         'total_debit': total_debit,
@@ -3874,7 +3820,6 @@ def api_pay_to_user():
             'username': receiver.username,
             'fullname': receiver.fullname,
         },
-        'withdrawal_id': withdrawal.id if withdrawal else None,
     })
 
 
