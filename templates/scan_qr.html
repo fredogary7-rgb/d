@@ -657,20 +657,7 @@ function resetPayFlow() {
     toast('Pret pour un nouveau scan.');
 }
 
-// Mobile sidebar toggle
-document.addEventListener('DOMContentLoaded', function(){
-    var sidebar = document.getElementById('sidebar');
-    var toggle = document.createElement('button');
-    toggle.className = 'topbar-icon-btn';
-    toggle.style.display = 'none';
-    toggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
-    toggle.onclick = function(){ sidebar.classList.toggle('open'); };
-    document.querySelector('.topbar-left').prepend(toggle);
-    if (window.innerWidth <= 1024) toggle.style.display = 'flex';
-    window.addEventListener('resize', function(){
-        toggle.style.display = window.innerWidth <= 1024 ? 'flex' : 'none';
-    });
-});
+// Mobile sidebar toggle — disabled on this page
 </script>
 </body>
 </html>
