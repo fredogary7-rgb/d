@@ -408,10 +408,6 @@ def process_free_payment(
         currency=currency,
         status="completed",
         reference=reference,
-        description=(
-            f"Paiement libre de {sender.fullname or sender.username}"
-            f" à {receiver.fullname or receiver.username}"
-        ),
     )
     db.session.add(tx)
 
