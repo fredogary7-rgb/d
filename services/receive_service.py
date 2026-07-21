@@ -474,6 +474,79 @@ def search_user_for_payment(query: str) -> Optional[Dict[str, Any]]:
     }
 
 
+def search_users_for_payment(query: str, limit: int = 10) -> list:
+    """Recherche plusieurs utilisateurs pour un paiement (recherche @username instantanée).
+
+    Stratégie de recherche :
+    1. Match exact : email commence par query@ (username)
+    2. Match partiel : email contient query
+    3. Match phone partiel
+    4. Match qr_identifier
+
+    Args:
+        query: Terme de recherche (min 2 caractères)
+        limit: Nombre maximum de résultats
+
+    Returns:
+        Liste de dictionnaires utilisateur (max `limit`)
+    """
+    if not query or len(query) < 2:
+        return []
+
+    results = []
+    seen_ids = set()
+
+    # Supprimer le @ si présent (ex: @1xthom14 → 1xthom14)
+    clean_query = query.lstrip('@').strip()
+
+    # 1) Recherche par username (email commence par query) — prioritaire
+    users = User.query.filter(
+        User.email.ilike(f"{clean_query}%@%")
+    ).limit(limit).all()
+    for u in users:
+        if u.id not in seen_ids:
+            seen_ids.add(u.id)
+            results.append(_user_to_search_dict(u))
+
+    # 2) Recherche par email contient query
+    if len(results) < limit:
+        users = User.query.filter(
+            User.email.ilike(f"%{clean_query}%")
+        ).limit(limit).all()
+        for u in users:
+            if u.id not in seen_ids:
+                seen_ids.add(u.id)
+                results.append(_user_to_search_dict(u))
+
+    # 3) Recherche par phone
+    if len(results) < limit:
+        users = User.query.filter(
+            User.phone.ilike(f"%{clean_query}%")
+        ).limit(limit).all()
+        for u in users:
+            if u.id not in seen_ids:
+                seen_ids.add(u.id)
+                results.append(_user_to_search_dict(u))
+
+    return results[:limit]
+
+
+def _user_to_search_dict(user: User) -> Dict[str, Any]:
+    """Convertit un objet User en dictionnaire de recherche."""
+    return {
+        "id": user.id,
+        "fullname": user.fullname or "Utilisateur",
+        "username": user.username,
+        "email": user.email,
+        "phone": user.phone,
+        "country": user.country,
+        "currency": user.currency,
+        "profile_picture": user.profile_picture,
+        "qr_identifier": user.qr_identifier,
+        "kyc_status": user.kyc_status,
+    }
+
+
 # ═══════════════════════════════════════════════════════════
 # NETTOYAGE DES DEMANDES EXPIRÉES
 # ═══════════════════════════════════════════════════════════

@@ -3691,20 +3691,191 @@ def api_pay_to_receiver():
 @app.route('/api/receive/search')
 @login_required
 def api_receive_search_user():
-    """Recherche un utilisateur pour un paiement."""
+    """Recherche d'utilisateurs pour un paiement (liste de résultats)."""
     q = request.args.get('q', '').strip()
     if not q or len(q) < 2:
-        return jsonify({'success': False, 'message': 'Recherche trop courte.'}), 400
+        return jsonify({'success': False, 'message': 'Recherche trop courte (min. 2 caractères).'}), 400
 
-    result = search_user_for_payment(q)
-    if not result:
-        return jsonify({'success': False, 'message': 'Aucun utilisateur trouvé.'}), 404
+    results = search_users_for_payment(q, limit=10)
 
-    # Ne pas renvoyer l'utilisateur courant
-    if result['id'] == current_user.id:
-        return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous payer vous-même.'}), 400
+    # Filtrer l'utilisateur courant
+    results = [u for u in results if u['id'] != current_user.id]
 
-    return jsonify({'success': True, 'user': result})
+    if not results:
+        return jsonify({'success': True, 'users': [], 'message': 'Aucun utilisateur trouvé.'})
+
+    return jsonify({'success': True, 'users': results})
+
+
+# --- ENVOI VERS UN UTILISATEUR (wallet interne → Withdraw SoleasPay) ---
+@app.route('/api/pay-to-user', methods=['POST'])
+@login_required
+def api_pay_to_user():
+    """Envoi d'argent à un utilisateur :
+    1. Vérifie le solde wallet
+    2. Débite le wallet (montant + frais 2%)
+    3. Crée un Withdrawal SoleasPay vers le numéro du destinataire
+    4. Crédite le destinataire en interne
+    """
+    import math
+    from services.withdraw_service import submit_withdraw
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données JSON requises.'}), 400
+
+    receiver_id = data.get('receiver_id')
+    amount = int(data.get('amount', 0))
+    currency = data.get('currency', 'XOF')
+    operator_id = data.get('operator_id')
+
+    if not receiver_id:
+        return jsonify({'success': False, 'message': 'Destinataire requis.'}), 400
+    if amount <= 0:
+        return jsonify({'success': False, 'message': 'Montant invalide (min. 500 XOF).'}), 400
+    if amount < 500:
+        return jsonify({'success': False, 'message': 'Montant minimum : 500 XOF.'}), 400
+
+    # Récupérer le destinataire
+    receiver = User.query.get(receiver_id)
+    if not receiver:
+        return jsonify({'success': False, 'message': 'Destinataire introuvable.'}), 404
+
+    if receiver.id == current_user.id:
+        return jsonify({'success': False, 'message': 'Vous ne pouvez pas vous envoyer de l\'argent.'}), 400
+
+    if not receiver.phone:
+        return jsonify({'success': False, 'message': 'Le destinataire n\'a pas de numéro de téléphone enregistré.'}), 400
+
+    # Frais plateforme : 2% plafonnés à 5000 XOF
+    fee = min(math.ceil(amount * 0.02), 5000)
+    total_debit = amount + fee
+
+    # Vérifier le solde
+    if (current_user.balance or 0) < total_debit:
+        return jsonify({
+            'success': False,
+            'message': f'Solde insuffisant. Votre solde : {current_user.balance} {currency}. '
+                       f'Total requis : {total_debit} {currency} (montant {amount} + frais {fee}).',
+        }), 400
+
+    # ---- Étape 1 : Débiter le wallet de l'expéditeur ----
+    current_user.balance = (current_user.balance or 0) - total_debit
+    current_user.used_daily = (current_user.used_daily or 0) + total_debit
+
+    # ---- Étape 2 : Créer un Withdrawal SoleasPay vers le numéro du destinataire ----
+    # Déterminer l'opérateur : soit fourni, soit déduit du pays du destinataire
+    from config.operators import OPERATORS
+
+    target_operator_id = operator_id
+    target_country = receiver.country or 'TG'
+
+    if not target_operator_id:
+        # Trouver le premier opérateur mobile_money actif du pays du destinataire
+        for key, op in OPERATORS.items():
+            if op.get('active') and op.get('type') == 'mobile_money' and op.get('country') == target_country:
+                target_operator_id = op['id']
+                break
+        if not target_operator_id:
+            # Fallback : pays par défaut
+            for key, op in OPERATORS.items():
+                if op.get('active') and op.get('type') == 'mobile_money':
+                    target_operator_id = op['id']
+                    target_country = op['country']
+                    break
+
+    if not target_operator_id:
+        return jsonify({'success': False, 'message': 'Aucun opérateur Mobile Money compatible trouvé.'}), 500
+
+    # Appeler submit_withdraw pour créer le Withdrawal SoleasPay
+    withdraw_data = {
+        'operator_id': int(target_operator_id),
+        'phone': receiver.phone,
+        'amount': float(amount),
+        'currency': currency,
+        'recipient_name': receiver.fullname or receiver.username,
+        'sender_reference': f'PAY-TO-USER-{current_user.id}-{receiver_id}',
+    }
+
+    withdraw_result = submit_withdraw(current_user, withdraw_data)
+
+    if not withdraw_result.get('success'):
+        # Rollback : rembourser l'expéditeur
+        current_user.balance = (current_user.balance or 0) + total_debit
+        current_user.used_daily = (current_user.used_daily or 0) - total_debit
+        db.session.commit()
+        return jsonify({
+            'success': False,
+            'message': f'Échec du retrait vers le destinataire : {withdraw_result.get("error", "Erreur inconnue")}',
+        }), 500
+
+    withdrawal = withdraw_result.get('withdrawal')
+
+    # ---- Étape 3 : Créditer le wallet du destinataire (en avance, sera confirmé par webhook) ----
+    # Note : le destinataire reçoit le montant net (amount), les frais sont pour la plateforme
+    receiver.balance = (receiver.balance or 0) + amount
+
+    # ---- Étape 4 : Créer la TransactionReceive ----
+    ref = generate_receive_reference()
+    tx = TransactionReceive(
+        payment_request_id=None,
+        sender_id=current_user.id,
+        receiver_id=receiver_id,
+        amount=amount,
+        currency=currency,
+        status='completed',
+        reference=ref,
+        description=(f'Paiement de @{current_user.username} vers @{receiver.username} '
+                     f'(Withdraw SoleasPay {withdrawal.id if withdrawal else "N/A"})'),
+    )
+    db.session.add(tx)
+
+    # ---- Étape 5 : Créer une Transaction "send" pour l'historique ----
+    send_tx = Transaction(
+        user_id=current_user.id,
+        type='send',
+        amount=amount,
+        currency=currency,
+        fee=fee,
+        status='success',
+        recipient_name=receiver.fullname or receiver.username,
+        recipient_phone=receiver.phone,
+        recipient_country=target_country,
+        recipient_operator=str(target_operator_id),
+    )
+    db.session.add(send_tx)
+
+    db.session.commit()
+
+    # Notification push au receveur
+    try:
+        from services.push_service import send_push_to_user
+        send_push_to_user(
+            user_id=receiver_id,
+            title='Nouveau paiement reçu ! 💸',
+            body=f'{current_user.fullname} vous a envoyé {amount} {currency}.',
+            url='/dashboard',
+            tag='receive-payment',
+            data={'transaction_ref': ref, 'amount': amount, 'currency': currency},
+        )
+    except Exception as push_err:
+        app.logger.warning(f'[PUSH] Échec notification paiement : {push_err}')
+
+    return jsonify({
+        'success': True,
+        'message': f'Transfert de {amount} {currency} vers @{receiver.username} effectué avec succès.',
+        'transaction': tx.to_dict() if hasattr(tx, 'to_dict') else {'id': tx.id, 'reference': ref},
+        'fee': fee,
+        'total_debit': total_debit,
+        'amount': amount,
+        'currency': currency,
+        'receiver': {
+            'id': receiver.id,
+            'username': receiver.username,
+            'fullname': receiver.fullname,
+        },
+        'withdrawal_id': withdrawal.id if withdrawal else None,
+    })
 
 
 # ══════════════════════════════════════════════════════════════════════════

@@ -660,16 +660,20 @@ function doUserSearch(q, resultsEl) {
     xhr.onload = function () {
         try {
             var data = JSON.parse(xhr.responseText);
-            if (data.success && data.user) {
-                searchResults = [data.user];
-                resultsEl.innerHTML =
-                    '<div class="user-results">' +
-                        '<div class="user-result" onclick="selectUserFromSearch(searchResults[0])">' +
-                            '<div class="user-result-avatar">' + avatarUserLetters(data.user.fullname) + '</div>' +
-                            '<div class="user-result-info"><div class="user-result-name">' + data.user.fullname + '</div><div class="user-result-username">@' + data.user.username + ' · ' + (data.user.country || '') + '</div></div>' +
+            if (data.success && data.users && data.users.length > 0) {
+                searchResults = data.users;
+                var html = '<div class="user-results">';
+                for (var i = 0; i < searchResults.length; i++) {
+                    var u = searchResults[i];
+                    html +=
+                        '<div class="user-result" onclick="selectUserFromSearch(searchResults[' + i + '])">' +
+                            '<div class="user-result-avatar">' + avatarUserLetters(u.fullname) + '</div>' +
+                            '<div class="user-result-info"><div class="user-result-name">' + u.fullname + '</div><div class="user-result-username">@' + u.username + ' · ' + (u.country || '') + '</div></div>' +
                             '<i class="fa-solid fa-chevron-right user-result-arrow"></i>' +
-                        '</div>' +
-                    '</div>';
+                        '</div>';
+                }
+                html += '</div>';
+                resultsEl.innerHTML = html;
             } else {
                 searchResults = [];
                 resultsEl.innerHTML = '<div class="search-no-results"><i class="fa-solid fa-user-slash"></i><p style="font-weight:600;margin-bottom:4px">Aucun utilisateur trouvé</p><p style="font-size:12px">Vérifiez le @username, l\'email ou le téléphone.</p></div>';
@@ -692,10 +696,11 @@ function selectUserFromSearch(user) {
     render();
 }
 
-/* ===== USER STEP 2: MONTANT ===== */
+/* ===== USER STEP 2: MONTANT + OPÉRATEUR ===== */
 function renderUserAmountStep(content, nav) {
     var currency = 'XOF';
     var presets = getPresets(currency);
+    var operatorsByCountry = getSimpleOperatorsByCountry(selectedUser ? selectedUser.country : null);
     content.innerHTML =
         '<div class="step-section" style="margin-bottom:0">' +
             '<div class="mode-toggle">' +
@@ -703,7 +708,7 @@ function renderUserAmountStep(content, nav) {
                 '<button class="mode-btn" onclick="backToSelection()"><i class="fa-solid fa-mobile-screen"></i> Transfert Mobile Money</button>' +
             '</div>' +
         '</div>' +
-        (selectedUser ? '<div class="step-section"><div class="user-selected-card"><div class="user-selected-avatar">' + avatarUserLetters(selectedUser.fullname) + '</div><div class="user-selected-info"><div class="user-selected-name">' + selectedUser.fullname + '</div><div class="user-selected-username">@' + selectedUser.username + '</div></div></div></div>' : '') +
+        (selectedUser ? '<div class="step-section"><div class="user-selected-card"><div class="user-selected-avatar">' + avatarUserLetters(selectedUser.fullname) + '</div><div class="user-selected-info"><div class="user-selected-name">' + selectedUser.fullname + '</div><div class="user-selected-username">@' + selectedUser.username + ' · 📱 ' + (selectedUser.phone || 'Pas de numéro') + '</div></div></div></div>' : '') +
         '<div class="step-section">' +
             '<div class="step-label">Étape 2 sur 3</div>' +
             '<div class="step-title"><div class="step-icon"><i class="fa-solid fa-coins"></i></div> Montant à envoyer</div>' +
@@ -713,10 +718,39 @@ function renderUserAmountStep(content, nav) {
             '<div class="calculator-card" id="userCalculator" style="margin-top:20px;' + (amount > 0 ? '' : 'display:none') + '">' +
                 buildUserCalcHTML(amount, currency) +
             '</div>' +
-        '</div>';
+        '</div>' +
+        (operatorsByCountry.length > 0 ? '<div class="step-section">' +
+            '<div class="step-label">Opérateur Mobile Money du destinataire</div>' +
+            '<div class="step-title"><div class="step-icon"><i class="fa-solid fa-tower-cell"></i></div> Choisissez l\'opérateur</div>' +
+            '<p style="font-size:12px;color:var(--text-4);margin-bottom:14px">L\'argent sera retiré vers le numéro <strong>' + (selectedUser ? selectedUser.phone : '') + '</strong> via cet opérateur.</p>' +
+            '<div class="operator-list">' +
+                operatorsByCountry.map(function (op) {
+                    var sel = userSelectedOperatorId === op.id ? ' selected' : '';
+                    return '<div class="operator-option' + sel + '" onclick="selectUserOperator(' + op.id + ')">' +
+                        '<div class="operator-icon ' + (OP_ICONS[op.slug] || 'op-icon-orange') + '">' + (OP_SHORT[op.slug] || 'OP') + '</div>' +
+                        '<span>' + op.name + '</span>' +
+                        '<i class="fa-solid fa-circle-check check" style="margin-left:auto;font-size:14px;color:var(--blue)"></i></div>';
+                }).join('') +
+            '</div>' +
+        '</div>' : '');
     nav.innerHTML =
         '<button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Retour</button>' +
         '<button class="btn-primary" id="userStep2NextBtn" onclick="goNext()"' + (amount > 0 ? '' : ' disabled') + '>Continuer <i class="fa-solid fa-arrow-right"></i></button>';
+}
+
+function getSimpleOperatorsByCountry(countryCode) {
+    if (!countryCode) countryCode = 'TG';
+    var c = COUNTRIES.find(function (c) { return c.code === countryCode; });
+    if (c && c.operators) return c.operators;
+    for (var i = 0; i < COUNTRIES.length; i++) {
+        if (COUNTRIES[i].operators && COUNTRIES[i].operators.length > 0) return COUNTRIES[i].operators;
+    }
+    return [];
+}
+
+function selectUserOperator(opId) {
+    userSelectedOperatorId = opId;
+    render();
 }
 
 function buildUserCalcHTML(amt, currency) {
@@ -761,23 +795,31 @@ function renderUserSummaryStep(content, nav) {
             (selectedUser ? '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-user" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="summary-row-label">Destinataire</div><div class="summary-row-value">' + selectedUser.fullname + ' · @' + selectedUser.username + '</div></div></div><div></div></div>' : '') +
             '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-arrow-up" style="background:var(--blue-light);color:var(--blue)"></i><div><div class="summary-row-label">Vous envoyez</div><div class="summary-row-value">' + currency + '</div></div></div><div class="summary-row-amount send">' + amount.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
             '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-percent" style="background:#FFEDD5;color:var(--orange)"></i><div><div class="summary-row-label">Frais (2%)</div><div class="summary-row-value">Débité de votre compte</div></div></div><div class="summary-row-amount fee">' + fee.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
-            '<div class="summary-row summary-row-highlight"><div class="summary-row-left"><i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i><div><div class="summary-row-label">Total débité</div><div class="summary-row-value">Frais inclus</div></div></div><div class="summary-row-amount receive">' + total.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
-            '<div style="padding:0 24px 24px;text-align:center"><p style="font-size:11px;color:var(--text-4);margin-top:12px"><i class="fa-solid fa-lock"></i> Transaction instantanée · Les fonds sont crédités immédiatement</p></div>' +
+        (userSelectedOperatorId ? '<div class="summary-row"><div class="summary-row-left"><i class="fa-solid fa-tower-cell" style="background:var(--surface-hover);color:var(--text-3)"></i><div><div class="summary-row-label">Opérateur</div><div class="summary-row-value">Retrait via ' + (getOpNameById(userSelectedOperatorId) || 'Mobile Money') + ' vers ' + (selectedUser ? selectedUser.phone : '') + '</div></div></div><div></div></div>' : '') +
+        '<div class="summary-row summary-row-highlight"><div class="summary-row-left"><i class="fa-solid fa-arrow-down" style="background:var(--green-light);color:var(--green)"></i><div><div class="summary-row-label">Total débité</div><div class="summary-row-value">Frais inclus</div></div></div><div class="summary-row-amount receive">' + total.toLocaleString('fr-FR') + ' ' + currency + '</div></div>' +
+            '<div style="padding:0 24px 24px;text-align:center"><p style="font-size:11px;color:var(--text-4);margin-top:12px"><i class="fa-solid fa-lock"></i> Débit de votre wallet · Retrait SoleasPay vers le numéro du destinataire</p></div>' +
         '</div>';
     nav.innerHTML =
         '<button class="btn-outline" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> Modifier</button>' +
         '<button class="btn-primary" id="sendToUserBtn" onclick="sendToUser()"><i class="fa-solid fa-paper-plane"></i> Envoyer maintenant</button>';
 }
 
-/* ===== ENVOI VERS UTILISATEUR (API /api/pay-to-receiver) ===== */
+var userSelectedOperatorId = null; // pour le mode utilisateur
+
+/* ===== ENVOI VERS UTILISATEUR (API /api/pay-to-user : wallet → Withdraw SoleasPay) ===== */
 function sendToUser() {
     var btn = document.getElementById('sendToUserBtn');
     if (!btn) return;
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
 
+    var payload = { receiver_id: selectedUser.id, amount: amount, currency: 'XOF' };
+    if (userSelectedOperatorId) {
+        payload.operator_id = userSelectedOperatorId;
+    }
+
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/pay-to-receiver');
+    xhr.open('POST', '/api/pay-to-user');
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.onload = function () {
         try {
@@ -800,7 +842,20 @@ function sendToUser() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer maintenant';
     };
-    xhr.send(JSON.stringify({ receiver_id: selectedUser.id, amount: amount, currency: 'XOF' }));
+    xhr.send(JSON.stringify(payload));
+}
+
+function getOpNameById(opId) {
+    if (!opId) return null;
+    for (var i = 0; i < COUNTRIES.length; i++) {
+        var ops = COUNTRIES[i].operators;
+        if (ops) {
+            for (var j = 0; j < ops.length; j++) {
+                if (ops[j].id === opId) return ops[j].name;
+            }
+        }
+    }
+    return null;
 }
 
 /* ===== THEME ===== */
