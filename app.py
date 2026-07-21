@@ -2345,7 +2345,7 @@ def api_calculate_fees_v2():
 @app.route('/scan')
 @login_required
 def scan_page():
-    return render_template('scan.html')
+    return render_template('scan.html', user=current_user)
 
 
 @app.route('/my-qrcode')
