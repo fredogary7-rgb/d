@@ -87,12 +87,19 @@ class User(db.Model, UserMixin):
 
     @property
     def total_received(self):
-        """Sum of all receive-type transactions."""
-        return db.session.query(db.func.coalesce(db.func.sum(Transaction.amount), 0)).filter(
+        """Sum of all receive-type transactions (incl. PaymentRequest/QR)."""
+        from_transactions = db.session.query(db.func.coalesce(db.func.sum(Transaction.amount), 0)).filter(
             Transaction.user_id == self.id,
             Transaction.type == 'receive',
             Transaction.status == 'success'
         ).scalar()
+
+        from_receives = db.session.query(db.func.coalesce(db.func.sum(TransactionReceive.amount), 0)).filter(
+            TransactionReceive.receiver_id == self.id,
+            TransactionReceive.status == 'completed'
+        ).scalar()
+
+        return from_transactions + from_receives
 
     @property
     def tx_count(self):
