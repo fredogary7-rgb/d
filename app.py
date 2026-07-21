@@ -12,7 +12,7 @@ from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCod
 from services.receive_service import (
     create_payment_request, cancel_payment_request, get_payment_request_by_code,
     get_user_payment_requests, get_recent_received_payments,
-    generate_pay_qrcode, search_user_for_payment,
+    generate_pay_qrcode, search_user_for_payment, search_users_for_payment,
     expire_old_requests, process_receive_payment, process_free_payment,
 )
 from services.push_service import send_push_to_user
