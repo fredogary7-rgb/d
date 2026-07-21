@@ -334,6 +334,35 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ===== PAIEMENT WALLET-TO-WALLET ===== -->
+                <div id="payPanel" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+                    <div style="margin-bottom:16px;">
+                        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4);display:block;margin-bottom:6px;">Montant ({{ user.currency or 'XOF' }})</label>
+                        <input type="number" id="payAmount" placeholder="0" min="1" step="1" style="width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-lg);font-size:22px;font-weight:700;font-family:'Outfit',sans-serif;color:var(--text);background:var(--bg);outline:none;transition:all var(--transition);" oninput="updatePayFees()">
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:12px 14px;background:rgba(249,115,22,.1);border-radius:12px;margin-bottom:8px;">
+                        <span style="font-size:13px;font-weight:600;color:var(--text-2);">Frais (2%)</span>
+                        <span style="font-size:14px;font-weight:800;color:var(--orange);" id="payFee">0 {{ user.currency or 'XOF' }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:14px 16px;background:var(--border);border-radius:12px;margin-bottom:16px;">
+                        <span style="font-size:14px;font-weight:700;">Total</span>
+                        <span style="font-size:18px;font-weight:800;" id="payTotal">0 {{ user.currency or 'XOF' }}</span>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="scan-btn scan-btn-outline" onclick="cancelPay()" style="flex:1;"><i class="fa-solid fa-arrow-left"></i> Annuler</button>
+                        <button class="scan-btn scan-btn-primary" id="btnConfirmPay" onclick="confirmPay()" disabled style="flex:1;"><i class="fa-solid fa-paper-plane"></i> Confirmer</button>
+                    </div>
+                    <div id="payError" style="margin-top:12px;padding:10px 14px;background:var(--red-light);border-radius:12px;font-size:12px;color:var(--red);font-weight:600;display:none;"></div>
+                </div>
+
+                <!-- ===== SUCCÈS ===== -->
+                <div id="paySuccess" style="display:none;text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+                    <div style="font-size:56px;margin-bottom:12px;">✅</div>
+                    <div style="font-size:18px;font-weight:800;margin-bottom:6px;">Paiement effectue !</div>
+                    <div style="font-size:13px;color:var(--text-3);margin-bottom:16px;" id="paySuccessMsg"></div>
+                    <button class="scan-btn scan-btn-primary" onclick="resetPayFlow()" style="width:100%;"><i class="fa-solid fa-qrcode"></i> Nouveau scan</button>
+                </div>
             </div>
         </div>
     </section>
@@ -484,14 +513,7 @@ async function processScan(raw) {
 
         if (data.success) {
             var u = data.user;
-            showFeedback(true,
-                'Utilisateur identifie !',
-                'Envoyez de l\'argent a ' + (u.name || 'cet utilisateur') + ' en toute securite.',
-                '/send-money?receiver_country=' + encodeURIComponent(u.country || '') +
-                '&receiver_operator=' + encodeURIComponent(u.operator || '') +
-                '&receiver_phone=' + encodeURIComponent(u.phone || '') +
-                '&receiver_name=' + encodeURIComponent(u.name || '')
-            );
+            // Afficher l'aperçu du destinataire
             document.getElementById('previewAvatar').textContent = (u.name || '?')[0].toUpperCase();
             document.getElementById('previewName').textContent = u.name || 'Utilisateur';
             document.getElementById('previewDetails').innerHTML =
@@ -499,6 +521,9 @@ async function processScan(raw) {
                 ' &nbsp;|&nbsp; ' + (u.flag || '') + ' ' + (u.country_name || u.country || '—');
             userPreview.style.display = 'flex';
             toast('QR Code valide — utilisateur identifie.');
+
+            // Afficher le panneau de paiement wallet-to-wallet
+            openPayPanel(u);
         } else {
             showFeedback(false, 'Utilisateur non trouve', data.error || 'Aucun utilisateur correspondant a ce QR Code.');
             userPreview.style.display = 'none';
@@ -523,6 +548,113 @@ function showFeedback(success, title, sub, actionUrl) {
         feedbackAction.style.display = 'none';
     }
     if (!success) userPreview.style.display = 'none';
+}
+
+// ========== WALLET-TO-WALLET PAYMENT ==========
+var currentReceiver = null;
+
+function openPayPanel(u) {
+    currentReceiver = u;
+    document.getElementById('payPanel').style.display = 'block';
+    document.getElementById('paySuccess').style.display = 'none';
+    document.getElementById('payAmount').value = '';
+    document.getElementById('payFee').textContent = '0 XOF';
+    document.getElementById('payTotal').textContent = '0 XOF';
+    document.getElementById('btnConfirmPay').disabled = true;
+    document.getElementById('payError').style.display = 'none';
+    feedback.className = 'scan-feedback'; // hide feedback
+    feedbackAction.style.display = 'none';
+    // Scroll to pay panel
+    document.getElementById('payPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function updatePayFees() {
+    var amount = parseInt(document.getElementById('payAmount').value) || 0;
+    var fee = Math.min(Math.ceil(amount * 0.02), 5000);
+    var total = amount + fee;
+    var currency = '{{ user.currency or "XOF" }}';
+    document.getElementById('payFee').textContent = fee.toLocaleString() + ' ' + currency;
+    document.getElementById('payTotal').textContent = total.toLocaleString() + ' ' + currency;
+    document.getElementById('btnConfirmPay').disabled = (amount < 500);
+    if (amount < 500 && amount > 0) {
+        document.getElementById('payError').style.display = 'block';
+        document.getElementById('payError').textContent = 'Montant minimum : 500 ' + currency + '.';
+    } else {
+        document.getElementById('payError').style.display = 'none';
+    }
+}
+
+function cancelPay() {
+    document.getElementById('payPanel').style.display = 'none';
+    currentReceiver = null;
+    // Re-show scan state
+    feedback.className = 'scan-feedback';
+    feedbackAction.style.display = 'none';
+    userPreview.style.display = 'none';
+    toast('Paiement annule.');
+}
+
+async function confirmPay() {
+    if (!currentReceiver) return;
+    var amount = parseInt(document.getElementById('payAmount').value) || 0;
+    var currency = '{{ user.currency or "XOF" }}';
+
+    if (amount < 500) {
+        document.getElementById('payError').style.display = 'block';
+        document.getElementById('payError').textContent = 'Montant minimum : 500 ' + currency + '.';
+        return;
+    }
+
+    var btn = document.getElementById('btnConfirmPay');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Paiement...';
+
+    try {
+        var res = await fetch('/api/scan/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                receiver_id: currentReceiver.user_id || currentReceiver.id,
+                amount: amount,
+                currency: currency,
+            })
+        });
+        var data = await res.json();
+
+        if (data.success) {
+            document.getElementById('payPanel').style.display = 'none';
+            document.getElementById('paySuccess').style.display = 'block';
+            document.getElementById('paySuccessMsg').textContent =
+                'Vous avez envoye ' + amount.toLocaleString() + ' ' + currency +
+                ' a ' + (currentReceiver.name || 'cet utilisateur') + '.';
+            toast('Paiement reussi ! ' + amount.toLocaleString() + ' ' + currency + ' envoyes.');
+        } else {
+            document.getElementById('payError').style.display = 'block';
+            document.getElementById('payError').textContent = data.message || 'Erreur lors du paiement.';
+            toast(data.message || 'Erreur.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Confirmer';
+        }
+    } catch(e) {
+        document.getElementById('payError').style.display = 'block';
+        document.getElementById('payError').textContent = 'Erreur reseau. Verifiez votre connexion.';
+        toast('Erreur reseau.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Confirmer';
+    }
+}
+
+function resetPayFlow() {
+    document.getElementById('paySuccess').style.display = 'none';
+    document.getElementById('payPanel').style.display = 'none';
+    document.getElementById('userPreview').style.display = 'none';
+    currentReceiver = null;
+    document.getElementById('payAmount').value = '';
+    document.getElementById('payError').style.display = 'none';
+    document.getElementById('btnConfirmPay').disabled = true;
+    feedback.className = 'scan-feedback';
+    feedbackAction.style.display = 'none';
+    toast('Pret pour un nouveau scan.');
 }
 
 // Mobile sidebar toggle
