@@ -4,7 +4,7 @@
    Protège contre les schémas chrome-extension:, edge-extension:, etc.
    ============================================================ */
 
-const CACHE_VERSION = 'transafrik-v1.0.2';
+const CACHE_VERSION = 'transafrik-v1.0.3';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_PAGES = `${CACHE_VERSION}-pages`;
@@ -293,23 +293,27 @@ self.addEventListener('message', (event) => {
 self.addEventListener('push', (event) => {
   if (!event.data) return;
   try {
-    const data = event.data.json();
+    const payload = event.data.json();
+    // L'URL est dans payload.data.url (la charge utile est {"title":...,"body":...,"data":{"url":"..."}})
+    const clickUrl = payload.data?.url || '/';
+    console.log('[SW] Push reçu — titre:', payload.title, '— url:', clickUrl);
     const options = {
-      body: data.body || '',
-      icon: data.icon || '/static/img/icons/icon-192x192.png',
-      badge: '/static/img/icons/icon-72x72.png',
-      vibrate: [200, 100, 200],
+      body: payload.body || '',
+      icon: payload.icon || '/static/img/icons/icon-192x192.png',
+      badge: payload.badge || '/static/img/icons/icon-72x72.png',
+      vibrate: payload.vibrate || [200, 100, 200],
       data: {
-        url: data.url || '/',
-        ...data,
+        url: clickUrl,
+        title: payload.title,
+        body: payload.body,
       },
-      actions: data.actions || [],
-      tag: data.tag || 'transafrik-notif',
+      actions: payload.actions || [],
+      tag: payload.tag || 'transafrik-notif',
       renotify: true,
-      requireInteraction: data.requireInteraction || false,
+      requireInteraction: payload.requireInteraction || false,
     };
     event.waitUntil(
-      self.registration.showNotification(data.title || 'TransAfrik', options)
+      self.registration.showNotification(payload.title || 'TransAfrik', options)
     );
   } catch (e) {
     console.warn('[SW] Erreur notification push:', e);
@@ -318,12 +322,43 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || '/';
+  let url = event.notification.data?.url || '/';
+  console.log('[SW] Notification cliquée — url:', url);
+
+  // Convertir les chemins relatifs en URL absolue
+  try {
+    url = new URL(url, self.location.origin).href;
+  } catch (_) {
+    // Si URL invalide, fallback vers /
+    url = self.location.origin + '/';
+  }
+
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      const existing = clients.find(c => c.url.includes(url) && 'focus' in c);
-      if (existing) return existing.focus();
+      // Chercher un onglet existant avec exactement cette URL
+      const existing = clients.find(c => {
+        try {
+          const clientUrl = new URL(c.url);
+          const targetUrl = new URL(url);
+          // Comparer origin + pathname + search (ignorer les hash/ancres)
+          return clientUrl.origin === targetUrl.origin &&
+                 clientUrl.pathname === targetUrl.pathname &&
+                 clientUrl.search === targetUrl.search &&
+                 'focus' in c;
+        } catch (_) {
+          return false;
+        }
+      });
+      if (existing) {
+        console.log('[SW] Onglet existant trouvé — focus');
+        return existing.focus();
+      }
+      console.log('[SW] Ouverture nouvelle fenêtre:', url);
       return self.clients.openWindow(url);
+    }).catch(err => {
+      console.error('[SW] Erreur ouverture fenêtre:', err);
+      // Fallback: ouvrir l'accueil
+      return self.clients.openWindow(self.location.origin + '/');
     })
   );
 });

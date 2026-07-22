@@ -29,7 +29,8 @@ logger = logging.getLogger(__name__)
 # --------------------------
 # Constantes
 # --------------------------
-MIN_WITHDRAWAL_AMOUNT = 500  # unités mineures (5 XOF/USD/...)
+MIN_WITHDRAWAL_AMOUNT = 5000   # unités mineures (5000 XOF = 5 000 F CFA)
+MAX_WITHDRAWAL_AMOUNT = 100000  # unités mineures (100000 XOF = 100 000 F CFA)
 
 
 def _generate_external_reference() -> str:
@@ -136,9 +137,24 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
         return {"success": False, "error": "Montant invalide."}
 
     amount_minor = int(amount_display)
+
+    logger.info(f"WITHDRAW DIAG | user_id={user.id} | phone={phone[:4]}*** | "
+                f"amount_minor={amount_minor} | currency={currency} | "
+                f"operator={op_info.get('name', '?')} | country={op_info.get('country', '?')}")
+
     if amount_minor < MIN_WITHDRAWAL_AMOUNT:
+        logger.warning(f"WITHDRAW REJECTED | user_id={user.id} | reason=montant_trop_bas | "
+                       f"amount={amount_minor} | min={MIN_WITHDRAWAL_AMOUNT}")
         return {"success": False,
-                "error": f"Montant minimum : {MIN_WITHDRAWAL_AMOUNT} {currency}."}
+                "error": f"Montant minimum : {MIN_WITHDRAWAL_AMOUNT // 100:,.0f} {currency}. "
+                         f"Votre saisie : {amount_minor // 100:,.0f} {currency}."}
+
+    if amount_minor > MAX_WITHDRAWAL_AMOUNT:
+        logger.warning(f"WITHDRAW REJECTED | user_id={user.id} | reason=montant_trop_haut | "
+                       f"amount={amount_minor} | max={MAX_WITHDRAWAL_AMOUNT}")
+        return {"success": False,
+                "error": f"Montant maximum : {MAX_WITHDRAWAL_AMOUNT // 100:,.0f} {currency}. "
+                         f"Votre saisie : {amount_minor // 100:,.0f} {currency}."}
 
     # ---- Validation 3 : Numéro ----
     phone = phone.replace(" ", "").replace("-", "").replace(".", "")
