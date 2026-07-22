@@ -322,25 +322,55 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  let url = event.notification.data?.url || '/';
-  console.log('[SW] Notification cliquée — url:', url);
+  let rawUrl = event.notification.data?.url || '/';
+  console.log('[SW] Notification cliquée — url brute:', rawUrl);
 
-  // Convertir les chemins relatifs en URL absolue
+  // Construire l'URL absolue
+  let targetUrl;
   try {
-    url = new URL(url, self.location.origin).href;
+    targetUrl = new URL(rawUrl, self.location.origin);
   } catch (_) {
-    // Si URL invalide, fallback vers /
-    url = self.location.origin + '/';
+    console.warn('[SW] URL invalide, fallback vers /');
+    targetUrl = new URL('/', self.location.origin);
   }
 
+  const isExternal = targetUrl.origin !== self.location.origin;
+  console.log('[SW] isExternal:', isExternal, '— origin:', targetUrl.origin, 'vs', self.location.origin);
+
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      // Chercher un onglet existant avec exactement cette URL
+    (async () => {
+      // ── URL EXTERNE (ex: TikTok, Google...) ──
+      if (isExternal) {
+        // Pour les URLs externes, on ne cherche pas d'onglet existant
+        // (on ne peut pas focuser un onglet d'un autre domaine)
+        try {
+          await self.clients.openWindow(targetUrl.href);
+          console.log('[SW] URL externe ouverte:', targetUrl.href);
+          return;
+        } catch (err) {
+          console.error('[SW] Échec openWindow externe:', err.message);
+          // Tenter d'ouvrir un onglet existant du site + envoyer un message
+          const ourClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+          if (ourClients.length > 0) {
+            const client = ourClients[0];
+            // Envoyer un message au client pour qu'il ouvre l'URL externe
+            client.postMessage({ type: 'NAVIGATE_EXTERNAL', url: targetUrl.href });
+            await client.focus();
+            console.log('[SW] Ouverture externe déléguée au client existant');
+          } else {
+            // Ouvrir notre site (pas de fallback silencieux)
+            await self.clients.openWindow(self.location.origin + '/');
+            console.log('[SW] Fallback: page d\'accueil (aucun client trouvé)');
+          }
+          return;
+        }
+      }
+
+      // ── URL INTERNE (notre site) ──
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       const existing = clients.find(c => {
         try {
           const clientUrl = new URL(c.url);
-          const targetUrl = new URL(url);
-          // Comparer origin + pathname + search (ignorer les hash/ancres)
           return clientUrl.origin === targetUrl.origin &&
                  clientUrl.pathname === targetUrl.pathname &&
                  clientUrl.search === targetUrl.search &&
@@ -349,15 +379,17 @@ self.addEventListener('notificationclick', (event) => {
           return false;
         }
       });
+
       if (existing) {
         console.log('[SW] Onglet existant trouvé — focus');
         return existing.focus();
       }
-      console.log('[SW] Ouverture nouvelle fenêtre:', url);
-      return self.clients.openWindow(url);
-    }).catch(err => {
-      console.error('[SW] Erreur ouverture fenêtre:', err);
-      // Fallback: ouvrir l'accueil
+
+      console.log('[SW] Ouverture nouvelle fenêtre interne:', targetUrl.href);
+      return self.clients.openWindow(targetUrl.href);
+    })().catch(err => {
+      console.error('[SW] Erreur critique notificationclick:', err);
+      // Dernier recours
       return self.clients.openWindow(self.location.origin + '/');
     })
   );

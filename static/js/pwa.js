@@ -935,6 +935,25 @@
       console.error(LOG, '❌ autoSyncOnAuthPages() exception:', err.message);
     }
 
+    // ── ÉCOUTEUR : MESSAGES DU SERVICE WORKER ──
+    try {
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          console.log(LOG, 'MSG SW → client reçu:', event.data);
+          if (event.data && event.data.type === 'NAVIGATE_EXTERNAL') {
+            const extUrl = event.data.url;
+            console.log(LOG, 'MSG → NAVIGATE_EXTERNAL:', extUrl);
+            if (extUrl) {
+              window.location.href = extUrl;
+            }
+          }
+        });
+        console.log(LOG, '  → SW message listener installé');
+      }
+    } catch (err) {
+      console.error(LOG, '❌ SW message listener exception:', err.message);
+    }
+
     console.log(LOG, '✅ INIT terminé');
   });
 
