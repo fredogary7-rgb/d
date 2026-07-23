@@ -50,6 +50,10 @@ from services.withdraw_service import (
 )
 from admin import admin_bp
 from admin.models import AdminUser, AdminLog, SystemConfig
+from services.seo_service import (
+    get_seo_context, generate_sitemap_xml, ROBOTS_TXT,
+    SITE_NAME, SITE_DOMAIN, SITE_LOGO, SITE_THEME_COLOR, SITE_BG_COLOR
+)
 
 load_dotenv()
 
@@ -93,6 +97,16 @@ def inject_now():
 @app.context_processor
 def inject_config():
     return {"config_value": lambda key, default=None: SystemConfig.get(key, default)}
+
+@app.context_processor
+def inject_seo():
+    """Injecte les variables SEO dans tous les templates."""
+    seo = get_seo_context()
+    # Ajouter des variables utiles pour les templates
+    seo["site_name"] = SITE_NAME
+    seo["site_domain"] = SITE_DOMAIN
+    seo["site_logo"] = SITE_LOGO
+    return seo
 
 # Flask-Login
 login_manager = LoginManager()
@@ -3943,6 +3957,198 @@ def api_scan_pay():
             'email': receiver.email,
         },
     })
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SEO ROUTES — sitemap.xml, robots.txt, manifest.webmanifest
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/sitemap.xml')
+def seo_sitemap():
+    """Génère dynamiquement le sitemap XML."""
+    xml = generate_sitemap_xml()
+    response = app.response_class(
+        response=xml,
+        status=200,
+        mimetype='application/xml'
+    )
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+@app.route('/robots.txt')
+def seo_robots():
+    """Sert le fichier robots.txt."""
+    response = app.response_class(
+        response=ROBOTS_TXT,
+        status=200,
+        mimetype='text/plain'
+    )
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+@app.route('/manifest.webmanifest')
+def seo_manifest():
+    """Sert le manifest PWA au format .webmanifest."""
+    manifest = {
+        "name": "TransAfrik",
+        "short_name": "TransAfrik",
+        "description": SITE_DESCRIPTION,
+        "start_url": "/",
+        "display": "standalone",
+        "orientation": "portrait",
+        "background_color": SITE_BG_COLOR,
+        "theme_color": SITE_THEME_COLOR,
+        "lang": "fr",
+        "scope": "/",
+        "icons": [
+            {
+                "src": f"/static/img/icons/icon-72x72.png",
+                "sizes": "72x72",
+                "type": "image/png"
+            },
+            {
+                "src": f"/static/img/icons/icon-96x96.png",
+                "sizes": "96x96",
+                "type": "image/png"
+            },
+            {
+                "src": f"/static/img/icons/icon-128x128.png",
+                "sizes": "128x128",
+                "type": "image/png"
+            },
+            {
+                "src": f"/static/img/icons/icon-144x144.png",
+                "sizes": "144x144",
+                "type": "image/png"
+            },
+            {
+                "src": f"/static/img/icons/icon-152x152.png",
+                "sizes": "152x152",
+                "type": "image/png"
+            },
+            {
+                "src": f"/static/img/icons/icon-192x192.png",
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any maskable"
+            },
+            {
+                "src": f"/static/img/icons/icon-384x384.png",
+                "sizes": "384x384",
+                "type": "image/png"
+            },
+            {
+                "src": f"/static/img/icons/icon-512x512.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable"
+            },
+            {
+                "src": SITE_LOGO,
+                "sizes": "512x512",
+                "type": "image/jpeg",
+                "purpose": "any"
+            }
+        ],
+        "categories": ["finance", "utilities"],
+        "prefer_related_applications": False,
+        "related_applications": [],
+        "shortcuts": [
+            {
+                "name": "Envoyer de l'argent",
+                "short_name": "Envoyer",
+                "description": "Envoyez de l'argent en Afrique",
+                "url": "/send-money",
+                "icons": [{"src": "/static/img/icons/icon-96x96.png", "sizes": "96x96"}]
+            },
+            {
+                "name": "Scanner un QR Code",
+                "short_name": "Scanner",
+                "description": "Scannez pour payer",
+                "url": "/scan",
+                "icons": [{"src": "/static/img/icons/icon-96x96.png", "sizes": "96x96"}]
+            }
+        ]
+    }
+    response = app.response_class(
+        response=json.dumps(manifest, indent=2, ensure_ascii=False),
+        status=200,
+        mimetype='application/manifest+json'
+    )
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# ERROR HANDLERS — Pages d'erreur SEO-friendly
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.errorhandler(404)
+def not_found_error(e):
+    """Page 404 personnalisée."""
+    seo = get_seo_context(path="/404")
+    seo["seo_title"] = "Page introuvable — Erreur 404 | TransAfrik"
+    seo["seo_description"] = "La page que vous cherchez n'existe pas ou a été déplacée."
+    seo["seo_robots"] = "noindex, follow"
+    seo["error_code"] = 404
+    seo["error_title"] = "Page introuvable"
+    seo["error_message"] = "La page que vous cherchez n'existe pas ou a été déplacée."
+    return render_template('error.html', **seo), 404
+
+
+@app.errorhandler(403)
+def forbidden_error(e):
+    """Page 403 personnalisée."""
+    seo = get_seo_context(path="/403")
+    seo["seo_title"] = "Accès refusé — Erreur 403 | TransAfrik"
+    seo["seo_description"] = "Vous n'avez pas les permissions nécessaires pour accéder à cette page."
+    seo["seo_robots"] = "noindex, follow"
+    seo["error_code"] = 403
+    seo["error_title"] = "Accès refusé"
+    seo["error_message"] = "Vous n'avez pas les permissions pour accéder à cette ressource."
+    return render_template('error.html', **seo), 403
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    """Page 500 personnalisée."""
+    seo = get_seo_context(path="/500")
+    seo["seo_title"] = "Erreur serveur — Erreur 500 | TransAfrik"
+    seo["seo_description"] = "Une erreur interne est survenue. Notre équipe a été notifiée."
+    seo["seo_robots"] = "noindex, follow"
+    seo["error_code"] = 500
+    seo["error_title"] = "Erreur serveur"
+    seo["error_message"] = "Une erreur interne est survenue. Veuillez réessayer dans quelques instants."
+    return render_template('error.html', **seo), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SECURITY HEADERS (after_request)
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.after_request
+def add_security_headers(response):
+    """Ajoute les en-têtes de sécurité à toutes les réponses."""
+    # X-Content-Type-Options
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    # Referrer-Policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # Permissions-Policy
+    response.headers['Permissions-Policy'] = (
+        'camera=(self), microphone=(), geolocation=(self), '
+        'payment=(self), usb=(), bluetooth=(), '
+        'accelerometer=(), gyroscope=(), magnetometer=()'
+    )
+    # Strict-Transport-Security (uniquement si HTTPS)
+    if request.is_secure or request.headers.get('X-Forwarded-Proto', '') == 'https':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    # X-Frame-Options
+    response.headers['X-Frame-Options'] = 'DENY'
+    # X-XSS-Protection
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
 
 
 # ══════════════════════════════════════════════════════════════════════════
