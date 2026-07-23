@@ -145,6 +145,39 @@ def service_worker():
 def index():
     return render_template('index.html')
 
+# --- Pages statiques publiques ---
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/faq')
+def faq():
+    return render_template('faq.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+@app.route('/security')
+def security():
+    return render_template('security.html')
+
+@app.route('/features')
+def features():
+    return render_template('features.html')
+
+@app.route('/services')
+def services():
+    return render_template('services.html')
+
 # --- LOGIN (connexion directe email + password) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():

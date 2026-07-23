@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include "_seo_head.html" %}
+    {% include "_pwa_head.html" %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE;
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5;
+            --yellow: #F59E0B; --orange: #F97316; --red: #EF4444; --red-light: #FEE2E2;
+            --bg: #FAFBFC; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px;
+            --transition: .35s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B; --border: #1E293B;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.6}
+        .container{max-width:1280px;width:100%;margin:0 auto;padding:0 40px}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none;color:inherit}
+        .navbar{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(255,255,255,.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+        [data-theme="dark"] .navbar{background:rgba(11,17,32,.88)}
+        .logo-container{display:flex;align-items:center;gap:10px}
+        .logo-text{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .nav-actions{display:flex;align-items:center;gap:10px}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:100px;font-weight:600;font-size:13px;cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif}
+        .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.25)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.35)}
+        .btn-outline{border:2px solid var(--border);background:var(--surface);color:var(--text)}
+        .btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+        .theme-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
+        .theme-btn:hover{background:var(--surface-hover)}
+        .page-header{padding:80px 40px 60px;text-align:center;position:relative;overflow:hidden}
+        .page-header::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:var(--blue-light);border-radius:50%;filter:blur(120px);opacity:.3;pointer-events:none}
+        .page-header h1{font-size:clamp(32px,5vw,48px);font-weight:900;margin-bottom:12px}
+        .page-header h1 .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .page-header p{font-size:16px;color:var(--text-3);max-width:550px;margin:0 auto}
+        .content-section{padding:0 0 100px}
+        .content-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:60px;max-width:900px;margin:0 auto;box-shadow:var(--shadow-sm)}
+        .content-card h2{font-size:28px;font-weight:800;margin:40px 0 16px;color:var(--text);letter-spacing:-.02em}
+        .content-card h2:first-child{margin-top:0}
+        .content-card p{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:16px}
+
+        .faq-categories{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}
+        .faq-cat{padding:8px 18px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-2);transition:all var(--transition);font-family:'Inter',sans-serif}
+        .faq-cat.active,.faq-cat:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+        .faq-item{border-bottom:1px solid var(--border);padding:0}
+        .faq-question{width:100%;padding:18px 0;text-align:left;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:center;gap:12px;transition:all var(--transition)}
+        .faq-question:hover{color:var(--blue)}
+        .faq-question .arrow{font-size:12px;transition:transform var(--transition);color:var(--text-4)}
+        .faq-item.open .faq-question .arrow{transform:rotate(180deg);color:var(--blue)}
+        .faq-answer{max-height:0;overflow:hidden;transition:max-height .4s ease}
+        .faq-item.open .faq-answer{max-height:400px;padding-bottom:18px}
+        .faq-answer p{font-size:14px;color:var(--text-2);line-height:1.8;padding:0}
+
+        .footer{padding:40px 40px 24px;border-top:1px solid var(--border);text-align:center}
+        .footer p{font-size:12px;color:var(--text-4)}
+
+        @media(max-width:768px){
+            .container,.navbar,.page-header{padding-left:20px;padding-right:20px}
+            .content-card{padding:32px 24px}
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="/" class="logo-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" width="36" height="36" style="border-radius:10px">
+        <span class="logo-text">TransAfrik</span>
+    </a>
+    <div class="nav-actions">
+        <button class="theme-btn" id="themeToggle" aria-label="Changer le thème">🌙</button>
+        {% if current_user.is_authenticated %}
+        <a href="/dashboard" class="btn btn-primary">Tableau de bord</a>
+        {% else %}
+        <a href="/login" class="btn btn-outline">Connexion</a>
+        <a href="/register" class="btn btn-primary">S'inscrire</a>
+        {% endif %}
+    </div>
+</nav>
+
+<section class="page-header">
+    <h1>Foire aux <span class="gradient-text">Questions</span></h1>
+    <p>Trouvez rapidement les réponses à vos questions les plus fréquentes.</p>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="content-card">
+
+            <div class="faq-categories">
+                <button class="faq-cat active" data-cat="all">Toutes</button>
+                <button class="faq-cat" data-cat="general">Général</button>
+                <button class="faq-cat" data-cat="account">Compte</button>
+                <button class="faq-cat" data-cat="transactions">Transactions</button>
+                <button class="faq-cat" data-cat="fees">Frais & Limites</button>
+                <button class="faq-cat" data-cat="security">Sécurité</button>
+            </div>
+
+            <div id="faqList">
+                <div class="faq-item" data-cat="general">
+                    <button class="faq-question">Qu'est-ce que TransAfrik ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>TransAfrik est une plateforme fintech de transfert d'argent 100% Mobile Money qui connecte plus de 20 pays africains. Nous permettons des transferts instantanés entre opérateurs comme TMoney, Orange Money, MTN MoMo, Wave, Moov Money, Airtel Money et bien d'autres.</p></div>
+                </div>
+                <div class="faq-item" data-cat="general">
+                    <button class="faq-question">Quels pays sont couverts ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Nous couvrons actuellement : Togo, Bénin, Côte d'Ivoire, Burkina Faso, Sénégal, Mali, Cameroun, Congo, RDC, Gabon, Ghana, Nigeria, Ouganda, Zambie, Tanzanie et plusieurs autres. Consultez la page <a href="/features" style="color:var(--blue)">Fonctionnalités</a> pour la liste complète.</p></div>
+                </div>
+                <div class="faq-item" data-cat="general">
+                    <button class="faq-question">Ai-je besoin d'un compte bancaire ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Non ! TransAfrik fonctionne exclusivement avec le Mobile Money. Vous avez seulement besoin d'un numéro de téléphone enregistré auprès d'un opérateur Mobile Money partenaire et d'un compte TransAfrik.</p></div>
+                </div>
+                <div class="faq-item" data-cat="account">
+                    <button class="faq-question">Comment créer un compte ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Cliquez sur "S'inscrire" en haut à droite, remplissez le formulaire avec votre email, numéro de téléphone et mot de passe. Vous recevrez un code de vérification par email pour activer votre compte.</p></div>
+                </div>
+                <div class="faq-item" data-cat="account">
+                    <button class="faq-question">Qu'est-ce que la vérification KYC ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Le KYC (Know Your Customer) est une procédure de vérification d'identité obligatoire pour débloquer des limites de transaction plus élevées. Vous devrez fournir une pièce d'identité valide (CNI, passeport, carte d'électeur) et un selfie. La vérification prend généralement moins de 24h.</p></div>
+                </div>
+                <div class="faq-item" data-cat="account">
+                    <button class="faq-question">J'ai oublié mon mot de passe, que faire ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Cliquez sur "Mot de passe oublié" sur la page de connexion. Entrez l'email associé à votre compte et vous recevrez un lien de réinitialisation valable 30 minutes.</p></div>
+                </div>
+                <div class="faq-item" data-cat="transactions">
+                    <button class="faq-question">Combien de temps prend un transfert ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>La plupart des transferts sont traités en <strong>moins de 2 minutes</strong>. Dans de rares cas (problèmes réseau opérateur), cela peut prendre jusqu'à 30 minutes. Vous recevez une notification dès que le transfert est complété.</p></div>
+                </div>
+                <div class="faq-item" data-cat="transactions">
+                    <button class="faq-question">Comment suivre mes transferts ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Connectez-vous à votre tableau de bord et allez dans <strong>Historique</strong>. Chaque transaction y est listée avec son statut (en cours, réussie, échouée) et un identifiant unique pour le suivi.</p></div>
+                </div>
+                <div class="faq-item" data-cat="transactions">
+                    <button class="faq-question">Puis-je annuler un transfert ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Une fois un transfert initié et confirmé par code OTP, il est irréversible. Vérifiez toujours attentivement le numéro du destinataire avant de confirmer. En cas d'erreur, contactez immédiatement notre support.</p></div>
+                </div>
+                <div class="faq-item" data-cat="transactions">
+                    <button class="faq-question">Que faire si le destinataire n'a pas reçu l'argent ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Vérifiez d'abord le statut de la transaction dans votre historique. Si le statut est "réussie" mais que le destinataire n'a rien reçu, contactez notre support par WhatsApp au +228 92 87 47 47 avec l'ID de transaction.</p></div>
+                </div>
+                <div class="faq-item" data-cat="fees">
+                    <button class="faq-question">Quels sont vos frais ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Nos frais varient selon le pays d'origine et de destination, ainsi que le montant. En moyenne, ils sont <strong>3x moins chers</strong> que les solutions traditionnelles. Utilisez notre <a href="/fees_calculator" style="color:var(--blue)">calculateur de frais</a> pour une estimation précise avant chaque transfert.</p></div>
+                </div>
+                <div class="faq-item" data-cat="fees">
+                    <button class="faq-question">Quelles sont les limites de transfert ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Sans KYC : 100 000 FCFA/jour. Avec KYC vérifié : jusqu'à 5 000 000 FCFA/jour selon votre pays. Les limites exactes sont visibles dans les paramètres de votre compte.</p></div>
+                </div>
+                <div class="faq-item" data-cat="security">
+                    <button class="faq-question">Mes données sont-elles protégées ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Absolument. Nous utilisons un cryptage SSL/TLS 256-bit pour toutes les communications. Les données sensibles sont chiffrées au repos. Nous sommes conformes aux normes de sécurité internationales. Consultez notre page <a href="/security" style="color:var(--blue)">Sécurité</a> pour plus de détails.</p></div>
+                </div>
+                <div class="faq-item" data-cat="security">
+                    <button class="faq-question">Comment activer la double authentification ? <span class="arrow">▼</span></button>
+                    <div class="faq-answer"><p>Allez dans <strong>Paramètres > Sécurité</strong> et activez l'authentification à deux facteurs (2FA). Chaque connexion nécessitera alors votre mot de passe + un code OTP envoyé par email, renforçant considérablement la sécurité de votre compte.</p></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>&copy; 2026 TransAfrik — Développé par Nina Academy. Tous droits réservés.</p>
+</footer>
+
+<script>
+const themeToggle=document.getElementById('themeToggle');
+const html=document.documentElement;
+const saved=localStorage.getItem('transafrik-theme')||'light';
+html.setAttribute('data-theme',saved);
+themeToggle.textContent=saved==='dark'?'☀️':'🌙';
+themeToggle.addEventListener('click',()=>{
+    const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+    html.setAttribute('data-theme',next);
+    localStorage.setItem('transafrik-theme',next);
+    themeToggle.textContent=next==='dark'?'☀️':'🌙';
+});
+
+// FAQ accordion
+document.querySelectorAll('.faq-question').forEach(q=>{
+    q.addEventListener('click',()=>{
+        const item=q.parentElement;
+        item.classList.toggle('open');
+    });
+});
+
+// FAQ category filter
+document.querySelectorAll('.faq-cat').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        document.querySelectorAll('.faq-cat').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const cat=btn.dataset.cat;
+        document.querySelectorAll('.faq-item').forEach(item=>{
+            item.style.display=(cat==='all'||item.dataset.cat===cat)?'block':'none';
+        });
+    });
+});
+</script>
+</body>
+</html>

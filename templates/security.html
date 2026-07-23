@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include "_seo_head.html" %}
+    {% include "_pwa_head.html" %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE;
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5;
+            --orange: #F97316; --yellow: #F59E0B; --red: #EF4444; --red-light: #FEE2E2;
+            --bg: #FAFBFC; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px;
+            --transition: .35s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B; --border: #1E293B;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.6}
+        .container{max-width:1280px;width:100%;margin:0 auto;padding:0 40px}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none;color:inherit}
+        .navbar{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(255,255,255,.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+        [data-theme="dark"] .navbar{background:rgba(11,17,32,.88)}
+        .logo-container{display:flex;align-items:center;gap:10px}
+        .logo-text{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .nav-actions{display:flex;align-items:center;gap:10px}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:100px;font-weight:600;font-size:13px;cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif}
+        .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.25)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.35)}
+        .btn-outline{border:2px solid var(--border);background:var(--surface);color:var(--text)}
+        .btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+        .theme-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
+        .theme-btn:hover{background:var(--surface-hover)}
+        .page-header{padding:80px 40px 60px;text-align:center;position:relative;overflow:hidden}
+        .page-header::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:var(--green-light);border-radius:50%;filter:blur(120px);opacity:.3;pointer-events:none}
+        .page-header h1{font-size:clamp(32px,5vw,48px);font-weight:900;margin-bottom:12px}
+        .page-header h1 .gradient-text{background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .page-header p{font-size:16px;color:var(--text-3);max-width:550px;margin:0 auto}
+        .content-section{padding:0 0 100px}
+        .content-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:60px;max-width:900px;margin:0 auto;box-shadow:var(--shadow-sm)}
+        .content-card h2{font-size:28px;font-weight:800;margin:40px 0 16px;color:var(--text);letter-spacing:-.02em}
+        .content-card h2:first-child{margin-top:0}
+        .content-card h3{font-size:18px;font-weight:700;margin:24px 0 10px;color:var(--text)}
+        .content-card p{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:16px}
+        .content-card ul{list-style:none;padding:0;margin:16px 0}
+        .content-card ul li{padding:10px 0 10px 28px;position:relative;font-size:15px;color:var(--text-2);line-height:1.7}
+        .content-card ul li::before{content:'🛡️';position:absolute;left:0;font-size:13px;top:12px}
+
+        .security-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:32px 0}
+        .security-item{background:var(--surface-hover);border:1px solid var(--border);border-radius:var(--radius);padding:28px 22px;text-align:center;transition:all var(--transition)}
+        .security-item:hover{border-color:var(--green);box-shadow:var(--shadow)}
+        .security-item .sec-icon{font-size:40px;margin-bottom:12px}
+        .security-item h3{font-size:16px;font-weight:700;margin-bottom:6px}
+        .security-item p{font-size:12px;color:var(--text-3);line-height:1.6}
+
+        .badge-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:32px 0}
+        .badge{padding:10px 20px;border-radius:100px;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+        .badge-green{background:var(--green-light);color:var(--green-dark)}
+        .badge-blue{background:var(--blue-light);color:var(--blue-dark)}
+
+        .footer{padding:40px;border-top:1px solid var(--border);text-align:center}
+        .footer p{font-size:12px;color:var(--text-4)}
+        @media(max-width:768px){
+            .container,.navbar,.page-header{padding-left:20px;padding-right:20px}
+            .content-card{padding:32px 24px}
+            .security-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="/" class="logo-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" width="36" height="36" style="border-radius:10px">
+        <span class="logo-text">TransAfrik</span>
+    </a>
+    <div class="nav-actions">
+        <button class="theme-btn" id="themeToggle" aria-label="Changer le thème">🌙</button>
+        {% if current_user.is_authenticated %}
+        <a href="/dashboard" class="btn btn-primary">Tableau de bord</a>
+        {% else %}
+        <a href="/login" class="btn btn-outline">Connexion</a>
+        <a href="/register" class="btn btn-primary">S'inscrire</a>
+        {% endif %}
+    </div>
+</nav>
+
+<section class="page-header">
+    <h1>Sécurité <span class="gradient-text">TransAfrik</span></h1>
+    <p>Votre argent et vos données sont protégés par des technologies de sécurité de niveau bancaire.</p>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="content-card">
+
+            <div class="badge-bar">
+                <span class="badge badge-green">🔐 ISO 27001 Conforme</span>
+                <span class="badge badge-green">🔒 SSL 256-bit</span>
+                <span class="badge badge-blue">✅ 2FA</span>
+                <span class="badge badge-blue">🛡️ Anti-Fraude</span>
+                <span class="badge badge-green">📊 Monitoring 24/7</span>
+            </div>
+
+            <div class="security-grid">
+                <div class="security-item">
+                    <div class="sec-icon">🔐</div>
+                    <h3>Cryptage SSL/TLS</h3>
+                    <p>Chiffrement 256-bit de toutes les communications entre votre navigateur et nos serveurs.</p>
+                </div>
+                <div class="security-item">
+                    <div class="sec-icon">🗄️</div>
+                    <h3>Données chiffrées</h3>
+                    <p>Vos informations sensibles sont chiffrées au repos avec AES-256. Même nous ne pouvons pas les lire en clair.</p>
+                </div>
+                <div class="security-item">
+                    <div class="sec-icon">🔑</div>
+                    <h3>Double authentification (2FA)</h3>
+                    <p>Ajoutez une couche de sécurité supplémentaire avec l'authentification à deux facteurs par email/OTP.</p>
+                </div>
+                <div class="security-item">
+                    <div class="sec-icon">🛡️</div>
+                    <h3>Anti-fraude</h3>
+                    <p>Système de détection de fraude en temps réel analysant chaque transaction pour bloquer les activités suspectes.</p>
+                </div>
+                <div class="security-item">
+                    <div class="sec-icon">📊</div>
+                    <h3>Monitoring 24/7</h3>
+                    <p>Surveillance continue de notre infrastructure par une équipe dédiée. Alertes instantanées en cas d'anomalie.</p>
+                </div>
+                <div class="security-item">
+                    <div class="sec-icon">🔍</div>
+                    <h3>Audits réguliers</h3>
+                    <p>Tests de pénétration et audits de sécurité trimestriels par des cabinets externes indépendants.</p>
+                </div>
+            </div>
+
+            <h2>Protection des transactions</h2>
+            <ul>
+                <li><strong>Confirmation OTP :</strong> Chaque transfert nécessite un code à usage unique envoyé par email. Aucune transaction ne peut être effectuée sans votre validation explicite.</li>
+                <li><strong>Limites journalières :</strong> Des plafonds de transaction protègent votre compte contre les mouvements non autorisés.</li>
+                <li><strong>Notifications instantanées :</strong> Vous recevez une alerte pour chaque connexion et transaction. Si quelque chose semble anormal, vous le savez immédiatement.</li>
+                <li><strong>Session sécurisée :</strong> Déconnexion automatique après 30 minutes d'inactivité. Cookies de session HttpOnly et Secure.</li>
+            </ul>
+
+            <h2>Sécurité infrastructure</h2>
+            <ul>
+                <li><strong>Hébergement certifié :</strong> Nos serveurs sont hébergés dans des data centers certifiés ISO 27001 avec redondance et backups quotidiens.</li>
+                <li><strong>Pare-feu applicatif (WAF) :</strong> Protection contre les attaques DDoS, injections SQL, XSS, CSRF et autres menaces OWASP Top 10.</li>
+                <li><strong>HTTPS obligatoire :</strong> Tout le trafic est forcé en HTTPS avec HSTS (HTTP Strict Transport Security).</li>
+                <li><strong>Mises à jour continues :</strong> Notre infrastructure est mise à jour en continu contre les dernières vulnérabilités connues.</li>
+            </ul>
+
+            <h2>Ce que vous pouvez faire</h2>
+            <ul>
+                <li><strong>Activez la double authentification :</strong> Dans Paramètres > Sécurité, activez le 2FA pour une protection maximale.</li>
+                <li><strong>Utilisez un mot de passe fort :</strong> Minimum 10 caractères avec majuscules, minuscules, chiffres et symboles.</li>
+                <li><strong>Ne partagez jamais vos codes OTP :</strong> TransAfrik ne vous demandera jamais votre code OTP par téléphone, email ou message.</li>
+                <li><strong>Vérifiez l'URL :</strong> Assurez-vous d'être sur transafrik.org avant d'entrer vos identifiants. Méfiez-vous des sites imitateurs.</li>
+                <li><strong>Signalez toute activité suspecte :</strong> Contactez-nous immédiatement au +228 92 87 47 47 si vous remarquez quelque chose d'anormal.</li>
+            </ul>
+
+            <h2>Signaler une vulnérabilité</h2>
+            <p>Si vous découvrez une faille de sécurité, merci de nous en informer de manière responsable via <a href="mailto:security@transafrik.org" style="color:var(--blue);font-weight:600">security@transafrik.org</a>. Nous nous engageons à traiter votre signalement dans les 48 heures et à ne pas engager de poursuites contre les chercheurs en sécurité agissant de bonne foi.</p>
+
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>&copy; 2026 TransAfrik — Développé par Nina Academy. Tous droits réservés.</p>
+</footer>
+
+<script>
+const themeToggle=document.getElementById('themeToggle');
+const html=document.documentElement;
+const saved=localStorage.getItem('transafrik-theme')||'light';
+html.setAttribute('data-theme',saved);
+themeToggle.textContent=saved==='dark'?'☀️':'🌙';
+themeToggle.addEventListener('click',()=>{
+    const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+    html.setAttribute('data-theme',next);
+    localStorage.setItem('transafrik-theme',next);
+    themeToggle.textContent=next==='dark'?'☀️':'🌙';
+});
+</script>
+</body>
+</html>

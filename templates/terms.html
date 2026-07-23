@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include "_seo_head.html" %}
+    {% include "_pwa_head.html" %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE;
+            --green: #10B981; --orange: #F97316;
+            --bg: #FAFBFC; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px;
+            --transition: .35s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B; --border: #1E293B;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.7}
+        .container{max-width:1000px;width:100%;margin:0 auto;padding:0 40px}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none;color:var(--blue)}
+        .navbar{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(255,255,255,.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+        [data-theme="dark"] .navbar{background:rgba(11,17,32,.88)}
+        .logo-container{display:flex;align-items:center;gap:10px}
+        .logo-text{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .nav-actions{display:flex;align-items:center;gap:10px}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:100px;font-weight:600;font-size:13px;cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif}
+        .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.25)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.35)}
+        .btn-outline{border:2px solid var(--border);background:var(--surface);color:var(--text)}
+        .btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+        .theme-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
+        .theme-btn:hover{background:var(--surface-hover)}
+        .page-header{padding:80px 40px 60px;text-align:center;position:relative;overflow:hidden}
+        .page-header::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:var(--blue-light);border-radius:50%;filter:blur(120px);opacity:.3;pointer-events:none}
+        .page-header h1{font-size:clamp(32px,5vw,48px);font-weight:900;margin-bottom:12px}
+        .page-header h1 .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .page-header p{font-size:16px;color:var(--text-3);max-width:550px;margin:0 auto}
+        .content-section{padding:0 0 100px}
+        .content-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:60px;box-shadow:var(--shadow-sm)}
+        .content-card .last-updated{font-size:13px;color:var(--text-4);margin-bottom:30px;font-style:italic}
+        .content-card h2{font-size:26px;font-weight:800;margin:36px 0 14px;color:var(--text);letter-spacing:-.02em}
+        .content-card h2:first-of-type{margin-top:0}
+        .content-card h3{font-size:18px;font-weight:700;margin:24px 0 10px;color:var(--text)}
+        .content-card p,.content-card li{font-size:14px;color:var(--text-2);line-height:1.9;margin-bottom:12px}
+        .content-card ul,.content-card ol{padding-left:24px;margin:12px 0}
+        .content-card li{margin-bottom:8px}
+        .footer{padding:40px;border-top:1px solid var(--border);text-align:center}
+        .footer p{font-size:12px;color:var(--text-4)}
+        @media(max-width:768px){
+            .container,.navbar,.page-header{padding-left:20px;padding-right:20px}
+            .content-card{padding:32px 24px}
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="/" class="logo-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" width="36" height="36" style="border-radius:10px">
+        <span class="logo-text">TransAfrik</span>
+    </a>
+    <div class="nav-actions">
+        <button class="theme-btn" id="themeToggle" aria-label="Changer le thème">🌙</button>
+        {% if current_user.is_authenticated %}
+        <a href="/dashboard" class="btn btn-primary">Tableau de bord</a>
+        {% else %}
+        <a href="/login" class="btn btn-outline">Connexion</a>
+        <a href="/register" class="btn btn-primary">S'inscrire</a>
+        {% endif %}
+    </div>
+</nav>
+
+<section class="page-header">
+    <h1>Conditions <span class="gradient-text">d'Utilisation</span></h1>
+    <p>Les règles qui régissent l'utilisation de la plateforme TransAfrik.</p>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="content-card">
+            <p class="last-updated">Dernière mise à jour : 15 juillet 2026</p>
+
+            <h2>1. Acceptation des conditions</h2>
+            <p>En accédant et en utilisant TransAfrik (transafrik.org), vous acceptez d'être lié par les présentes Conditions Générales d'Utilisation (CGU). Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services.</p>
+            <p>Ces CGU constituent un contrat légalement contraignant entre vous et TransAfrik, développé par Nina Academy, enregistré à Lomé, Togo.</p>
+
+            <h2>2. Description du service</h2>
+            <p>TransAfrik est une plateforme de transfert d'argent Mobile Money permettant aux utilisateurs de :</p>
+            <ul>
+                <li>Envoyer de l'argent vers des numéros Mobile Money dans 20+ pays africains</li>
+                <li>Recevoir de l'argent via Mobile Money</li>
+                <li>Convertir des devises en temps réel (FCFA ↔ Naira ↔ Cedi, etc.)</li>
+                <li>Gérer des bénéficiaires pour des transferts récurrents</li>
+                <li>Suivre l'historique complet des transactions</li>
+            </ul>
+
+            <h2>3. Éligibilité</h2>
+            <p>Pour utiliser TransAfrik, vous devez :</p>
+            <ul>
+                <li>Avoir au moins 18 ans</li>
+                <li>Posséder un numéro de téléphone Mobile Money actif dans un pays couvert</li>
+                <li>Fournir des informations exactes et complètes lors de l'inscription</li>
+                <li>Ne pas utiliser le service pour des activités illégales ou frauduleuses</li>
+            </ul>
+            <p>TransAfrik se réserve le droit de refuser ou de suspendre l'accès à tout utilisateur qui ne respecte pas ces conditions.</p>
+
+            <h2>4. Compte utilisateur</h2>
+            <ul>
+                <li>Vous êtes responsable de la confidentialité de vos identifiants de connexion</li>
+                <li>Vous devez notifier immédiatement TransAfrik en cas d'utilisation non autorisée de votre compte</li>
+                <li>Vous êtes responsable de toutes les activités effectuées sous votre compte</li>
+                <li>Un compte peut être suspendu après 6 mois d'inactivité</li>
+            </ul>
+
+            <h2>5. Transactions</h2>
+            <h3>5.1 Initiation des transferts</h3>
+            <ul>
+                <li>Tout transfert nécessite une confirmation par code OTP</li>
+                <li>Les montants saisis doivent être exacts ; TransAfrik n'est pas responsable des erreurs de saisie du numéro destinataire</li>
+                <li>Les frais de transaction sont clairement affichés avant confirmation</li>
+            </ul>
+            <h3>5.2 Limites</h3>
+            <ul>
+                <li>Sans vérification KYC : 100 000 FCFA/jour</li>
+                <li>Avec KYC vérifié : limites variables selon le pays (jusqu'à 5 000 000 FCFA/jour)</li>
+                <li>TransAfrik se réserve le droit d'appliquer des limites supplémentaires pour des raisons de sécurité</li>
+            </ul>
+            <h3>5.3 Remboursements</h3>
+            <ul>
+                <li>Les transferts confirmés sont irréversibles</li>
+                <li>En cas d'échec technique dû à TransAfrik, un remboursement intégral est effectué sous 24-48h</li>
+                <li>Les réclamations doivent être soumises dans un délai de 7 jours</li>
+            </ul>
+
+            <h2>6. Frais</h2>
+            <ul>
+                <li>Les frais varient selon les pays d'origine et de destination</li>
+                <li>Les frais sont calculés et affichés avant la confirmation de chaque transaction</li>
+                <li>TransAfrik se réserve le droit de modifier sa grille tarifaire avec un préavis de 15 jours</li>
+            </ul>
+
+            <h2>7. Vérification KYC</h2>
+            <p>Pour débloquer des limites de transaction plus élevées, les utilisateurs doivent compléter une vérification KYC (Know Your Customer) en fournissant :</p>
+            <ul>
+                <li>Une pièce d'identité officielle valide</li>
+                <li>Une photo selfie</li>
+                <li>Un justificatif de domicile (optionnel selon les pays)</li>
+            </ul>
+            <p>La vérification est traitée sous 24-48h. TransAfrik se réserve le droit de refuser une vérification KYC en cas de documents non conformes.</p>
+
+            <h2>8. Activités interdites</h2>
+            <p>Il est strictement interdit d'utiliser TransAfrik pour :</p>
+            <ul>
+                <li>Blanchiment d'argent ou financement du terrorisme</li>
+                <li>Fraude ou escroquerie</li>
+                <li>Activités liées aux jeux d'argent non autorisés</li>
+                <li>Commerce de biens ou services illégaux</li>
+                <li>Toute activité violant les lois applicables dans votre pays</li>
+            </ul>
+            <p>TransAfrik coopère pleinement avec les autorités judiciaires et signale toute activité suspecte aux organismes compétents.</p>
+
+            <h2>9. Propriété intellectuelle</h2>
+            <p>Tous les contenus, marques, logos, designs et codes sources de TransAfrik sont la propriété exclusive de Nina Academy. Toute reproduction, modification ou distribution sans autorisation préalable est interdite.</p>
+
+            <h2>10. Limitation de responsabilité</h2>
+            <ul>
+                <li>TransAfrik s'engage à fournir un service fiable mais ne peut garantir une disponibilité de 100%</li>
+                <li>TransAfrik n'est pas responsable des retards causés par les opérateurs Mobile Money tiers</li>
+                <li>La responsabilité maximale de TransAfrik est limitée au montant de la transaction concernée</li>
+                <li>TransAfrik n'est pas responsable des pertes indirectes, consécutives ou des dommages punitifs</li>
+            </ul>
+
+            <h2>11. Résiliation</h2>
+            <p>Vous pouvez fermer votre compte à tout moment en contactant le support. TransAfrik se réserve le droit de suspendre ou résilier un compte sans préavis en cas de :</p>
+            <ul>
+                <li>Violation des présentes CGU</li>
+                <li>Activité frauduleuse ou suspecte</li>
+                <li>Non-respect des obligations KYC</li>
+                <li>Inactivité prolongée (plus de 12 mois)</li>
+            </ul>
+
+            <h2>12. Modifications des CGU</h2>
+            <p>TransAfrik se réserve le droit de modifier ces CGU à tout moment. Les utilisateurs seront notifiés par email des modifications substantielles 15 jours avant leur entrée en vigueur. L'utilisation continue de la plateforme après modification constitue une acceptation des nouvelles conditions.</p>
+
+            <h2>13. Loi applicable</h2>
+            <p>Les présentes CGU sont régies par les lois de la République Togolaise. Tout litige sera soumis à la compétence exclusive des tribunaux de Lomé, Togo.</p>
+
+            <h2>14. Contact</h2>
+            <p>Pour toute question concernant ces conditions :</p>
+            <ul>
+                <li><strong>Email :</strong> <a href="mailto:contact@transafrik.org">contact@transafrik.org</a></li>
+                <li><strong>WhatsApp :</strong> <a href="https://wa.me/22892874747">+228 92 87 47 47</a></li>
+            </ul>
+
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>&copy; 2026 TransAfrik — Développé par Nina Academy. Tous droits réservés.</p>
+</footer>
+
+<script>
+const themeToggle=document.getElementById('themeToggle');
+const html=document.documentElement;
+const saved=localStorage.getItem('transafrik-theme')||'light';
+html.setAttribute('data-theme',saved);
+themeToggle.textContent=saved==='dark'?'☀️':'🌙';
+themeToggle.addEventListener('click',()=>{
+    const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+    html.setAttribute('data-theme',next);
+    localStorage.setItem('transafrik-theme',next);
+    themeToggle.textContent=next==='dark'?'☀️':'🌙';
+});
+</script>
+</body>
+</html>

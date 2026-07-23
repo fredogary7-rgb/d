@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include "_seo_head.html" %}
+    {% include "_pwa_head.html" %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE;
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5;
+            --yellow: #F59E0B; --orange: #F97316;
+            --bg: #FAFBFC; --surface: #FFFFFF; --surface-hover: #F8FAFC;
+            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09);
+            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
+            --transition: .35s cubic-bezier(.25,.46,.45,.94);
+        }
+        [data-theme="dark"] {
+            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
+            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
+            --border: #1E293B;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 20px rgba(0,0,0,.3); --shadow-md: 0 8px 30px rgba(0,0,0,.4); --shadow-lg: 0 16px 50px rgba(0,0,0,.5);
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.6}
+        .container{max-width:1280px;width:100%;margin:0 auto;padding:0 40px}
+        h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        a{text-decoration:none;color:inherit}
+
+        /* ===== NAVBAR ===== */
+        .navbar{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(255,255,255,.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+        [data-theme="dark"] .navbar{background:rgba(11,17,32,.88)}
+        .logo-container{display:flex;align-items:center;gap:10px}
+        .logo-text{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .nav-actions{display:flex;align-items:center;gap:10px}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:100px;font-weight:600;font-size:13px;cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif}
+        .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.25)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.35)}
+        .btn-outline{border:2px solid var(--border);background:var(--surface);color:var(--text)}
+        .btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+        .theme-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
+        .theme-btn:hover{background:var(--surface-hover)}
+
+        /* ===== PAGE HEADER ===== */
+        .page-header{padding:80px 40px 60px;text-align:center;position:relative;overflow:hidden}
+        .page-header::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:var(--blue-light);border-radius:50%;filter:blur(120px);opacity:.3;pointer-events:none}
+        .page-header h1{font-size:clamp(32px,5vw,48px);font-weight:900;margin-bottom:12px}
+        .page-header h1 .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .page-header p{font-size:16px;color:var(--text-3);max-width:550px;margin:0 auto}
+
+        /* ===== CONTENT ===== */
+        .content-section{padding:0 0 100px}
+        .content-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:60px;max-width:900px;margin:0 auto;box-shadow:var(--shadow-sm)}
+        .content-card h2{font-size:28px;font-weight:800;margin:40px 0 16px;color:var(--text);letter-spacing:-.02em}
+        .content-card h2:first-child{margin-top:0}
+        .content-card p{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:16px}
+        .content-card ul{list-style:none;padding:0;margin:16px 0}
+        .content-card ul li{padding:10px 0 10px 28px;position:relative;font-size:15px;color:var(--text-2);line-height:1.7}
+        .content-card ul li::before{content:'✦';position:absolute;left:0;color:var(--blue);font-size:12px;top:14px}
+
+        /* ===== STATS ROW ===== */
+        .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0}
+        .stat-box{text-align:center;padding:28px 16px;background:var(--surface-hover);border-radius:var(--radius)}
+        .stat-box .stat-number{font-family:'Outfit',sans-serif;font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .stat-box .stat-label{font-size:12px;color:var(--text-4);margin-top:4px;font-weight:500}
+
+        /* ===== TIMELINE ===== */
+        .timeline{position:relative;padding-left:32px;margin:32px 0}
+        .timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--blue),var(--green));opacity:.3}
+        .timeline-item{position:relative;padding-bottom:32px}
+        .timeline-item::before{content:'';position:absolute;left:-28px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--blue);border:3px solid var(--bg)}
+        .timeline-item .tl-date{font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em}
+        .timeline-item .tl-title{font-size:17px;font-weight:700;margin:4px 0 6px}
+        .timeline-item .tl-desc{font-size:13px;color:var(--text-3)}
+
+        /* ===== MISSION BOX ===== */
+        .mission-box{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;border-radius:var(--radius-lg);padding:40px;margin:32px 0;text-align:center}
+        .mission-box h3{font-size:22px;margin-bottom:10px}
+        .mission-box p{font-size:15px;opacity:.9;line-height:1.7}
+
+        /* ===== FOOTER ===== */
+        .footer{padding:40px 40px 24px;border-top:1px solid var(--border);text-align:center}
+        .footer p{font-size:12px;color:var(--text-4)}
+
+        @media(max-width:768px){
+            .container,.navbar,.page-header{padding-left:20px;padding-right:20px}
+            .content-card{padding:32px 24px}
+            .stats-row{grid-template-columns:1fr 1fr}
+            .timeline{padding-left:24px}
+            .timeline-item::before{left:-20px;width:11px;height:11px}
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="/" class="logo-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" width="36" height="36" style="border-radius:10px">
+        <span class="logo-text">TransAfrik</span>
+    </a>
+    <div class="nav-actions">
+        <button class="theme-btn" id="themeToggle" aria-label="Changer le thème">🌙</button>
+        {% if current_user.is_authenticated %}
+        <a href="/dashboard" class="btn btn-primary">Tableau de bord</a>
+        {% else %}
+        <a href="/login" class="btn btn-outline">Connexion</a>
+        <a href="/register" class="btn btn-primary">S'inscrire</a>
+        {% endif %}
+    </div>
+</nav>
+
+<section class="page-header">
+    <h1>À propos de <span class="gradient-text">TransAfrik</span></h1>
+    <p>La fintech africaine qui démocratise les transferts d'argent instantanés à travers le continent.</p>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="content-card">
+
+            <h2>Notre histoire</h2>
+            <p>TransAfrik est née en 2023 d'une idée simple mais puissante : permettre aux Africains de transférer de l'argent aussi facilement qu'ils envoient un message WhatsApp. Fondée par une équipe basée au Togo et en Côte d'Ivoire, notre plateforme connecte aujourd'hui plus de 20 pays africains avec +50 opérateurs Mobile Money.</p>
+            <p>Nous avons constaté que les solutions existantes de transfert d'argent étaient trop chères, trop lentes, et souvent inaccessibles aux personnes non-bancarisées. TransAfrik a été conçue pour résoudre ces problèmes : une plateforme 100% Mobile Money, avec des frais ultra-compétitifs et des transferts instantanés.</p>
+
+            <div class="stats-row">
+                <div class="stat-box"><div class="stat-number">20+</div><div class="stat-label">Pays couverts</div></div>
+                <div class="stat-box"><div class="stat-number">50+</div><div class="stat-label">Opérateurs</div></div>
+                <div class="stat-box"><div class="stat-number">100K+</div><div class="stat-label">Utilisateurs</div></div>
+                <div class="stat-box"><div class="stat-number"><2min</div><div class="stat-label">Par transfert</div></div>
+            </div>
+
+            <h2>Notre mission</h2>
+            <div class="mission-box">
+                <h3>🚀 Démocratiser l'accès aux services financiers en Afrique</h3>
+                <p>Nous croyons que chaque Africain mérite un accès simple, rapide et abordable aux transferts d'argent, quel que soit son pays ou son opérateur mobile. Notre mission est d'éliminer les frontières financières et de connecter les communautés africaines.</p>
+            </div>
+
+            <h2>Notre équipe</h2>
+            <p>TransAfrik est développée et maintenue par <strong>Nina Academy</strong>, un incubateur tech basé en Afrique de l'Ouest. Notre équipe multidisciplinaire combine expertise en fintech, sécurité, design UX et développement logiciel. Nous travaillons chaque jour pour vous offrir une expérience de transfert d'argent simple, agréable et sécurisée.</p>
+
+            <h2>Notre parcours</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="tl-date">Janvier 2023</div>
+                    <div class="tl-title">Création du projet</div>
+                    <div class="tl-desc">Idéation et prototypage de la plateforme TransAfrik. Premiers partenariats avec les opérateurs Mobile Money.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="tl-date">Juin 2023</div>
+                    <div class="tl-title">Lancement pilote — Togo & Bénin</div>
+                    <div class="tl-desc">Déploiement bêta avec TMoney et Moov Money. Premiers transferts réussis entre Lomé et Cotonou.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="tl-date">Octobre 2023</div>
+                    <div class="tl-title">Expansion en Côte d'Ivoire & Burkina Faso</div>
+                    <div class="tl-desc">Ajout d'Orange Money, MTN MoMo, Moov. Croissance rapide du nombre d'utilisateurs.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="tl-date">Mars 2024</div>
+                    <div class="tl-title">Afrique Centrale</div>
+                    <div class="tl-desc">Couverture du Cameroun, Congo, Gabon et RDC. Partenariat avec MTN, Airtel, Vodacom, Orange.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="tl-date">Juillet 2024</div>
+                    <div class="tl-title">Sénégal & Afrique de l'Est</div>
+                    <div class="tl-desc">Lancement Wave, Orange Money Sénégal. Expansion planifiée vers l'Ouganda et la Zambie.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="tl-date">2025</div>
+                    <div class="tl-title">Application mobile & nouveaux marchés</div>
+                    <div class="tl-desc">Lancement des applications iOS et Android. Couverture panafricaine en ligne de mire.</div>
+                </div>
+            </div>
+
+            <h2>Nos valeurs</h2>
+            <ul>
+                <li><strong>Transparence —</strong> Frais affichés avant chaque transaction. Pas de mauvaise surprise.</li>
+                <li><strong>Rapidité —</strong> L'argent arrive en moins de 2 minutes. Nous optimisons constamment nos flux.</li>
+                <li><strong>Inclusion —</strong> Fonctionne avec n'importe quel téléphone, sur n'importe quel réseau. Pas besoin de compte bancaire.</li>
+                <li><strong>Sécurité —</strong> Cryptage SSL 256-bit, surveillance 24/7. Vos données sont protégées aux normes internationales.</li>
+                <li><strong>Innovation —</strong> Nous investissons dans la technologie pour offrir la meilleure expérience de transfert en Afrique.</li>
+            </ul>
+
+            <h2>Contact presse</h2>
+            <p>Pour toute demande presse ou partenariat, écrivez-nous à : <a href="mailto:contact@transafrik.org" style="color:var(--blue);font-weight:600">contact@transafrik.org</a></p>
+
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>&copy; 2026 TransAfrik — Développé par Nina Academy. Tous droits réservés.</p>
+</footer>
+
+<script>
+const themeToggle=document.getElementById('themeToggle');
+const html=document.documentElement;
+const saved=localStorage.getItem('transafrik-theme')||'light';
+html.setAttribute('data-theme',saved);
+themeToggle.textContent=saved==='dark'?'☀️':'🌙';
+themeToggle.addEventListener('click',()=>{
+    const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+    html.setAttribute('data-theme',next);
+    localStorage.setItem('transafrik-theme',next);
+    themeToggle.textContent=next==='dark'?'☀️':'🌙';
+});
+</script>
+</body>
+</html>
