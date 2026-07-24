@@ -312,6 +312,31 @@ def verify_otp_page(purpose='login'):
             login_user(user)
 
             app.logger.info(f"Nouveau compte créé via OTP : {user.email}")
+
+            # Notification push de bienvenue
+            try:
+                send_push_to_user(
+                    user_id=user.id,
+                    title="Bienvenue sur TransAfrik ! 🎉",
+                    body=f"Bonjour {user.fullname}, votre compte a été créé avec succès. Commencez à envoyer de l'argent dès maintenant.",
+                    url="/dashboard",
+                    tag="welcome",
+                    data={"type": "welcome", "user_id": user.id},
+                )
+                # Notification in-app
+                notif = Notification(
+                    user_id=user.id,
+                    title="Bienvenue sur TransAfrik ! 🎉",
+                    message="Votre compte a été créé avec succès. Découvrez nos services de transfert d'argent.",
+                    type="account_created",
+                    data={"user_id": user.id},
+                )
+                db.session.add(notif)
+                db.session.commit()
+                app.logger.info(f"PUSH | Notification bienvenue envoyée | user={user.id}")
+            except Exception as push_err:
+                app.logger.warning(f"[PUSH] Échec notification bienvenue: {push_err}")
+
             return jsonify({
                 'success': True,
                 'message': 'Compte créé avec succès !',
