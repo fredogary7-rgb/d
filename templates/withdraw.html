@@ -308,7 +308,7 @@
         <div class="balance-card-top">
             <div>
                 <div class="balance-label">Solde disponible</div>
-                <div class="balance-amount">{{ "%.2f"|format(user.balance / 100) }}</div>
+                <div class="balance-amount">{{ "%.2f"|format(user.balance) }}</div>
                 <div class="balance-currency">{{ user.currency }}</div>
             </div>
         </div>
@@ -360,8 +360,8 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="fg-label"><i class="fas fa-coins"></i> Montant</label>
-                    <input type="number" class="fg-input" id="amountInput" placeholder="Ex: 5000" min="5" step="0.01" />
-                    <div class="fg-error" id="amountError">Montant minimum : 5.00 {{ user.currency }}.</div>
+                    <input type="number" class="fg-input" id="amountInput" placeholder="Ex: 5000" min="500" step="1" />
+                    <div class="fg-error" id="amountError">Montant minimum : 500 {{ user.currency }}.</div>
                 </div>
                 <div class="form-group">
                     <label class="fg-label"><i class="fas fa-money-bill-wave"></i> Devise</label>
@@ -572,7 +572,7 @@ $phoneInput.addEventListener('input', function() {
 // Amount
 $amountInput.addEventListener('input', function() {
     var v = parseFloat(this.value);
-    if (isNaN(v) || v < 5) {
+    if (isNaN(v) || v < 500) {
         this.classList.add('error');
         document.getElementById('amountError').classList.add('visible');
     } else {
@@ -585,7 +585,7 @@ $amountInput.addEventListener('input', function() {
 // Recalc fees
 async function recalcFees() {
     var amount = parseFloat($amountInput.value);
-    if (!selectedOperator || isNaN(amount) || amount < 5) {
+    if (!selectedOperator || isNaN(amount) || amount < 500) {
         $feeSummary.classList.remove('visible');
         $btnReview.disabled = true;
         return;
@@ -623,7 +623,7 @@ async function recalcFees() {
 function validateForm() {
     var amount = parseFloat($amountInput.value);
     var phoneOk = $phoneInput.value && isValidPhone($phoneInput.value);
-    var amountOk = !isNaN(amount) && amount >= 5;
+    var amountOk = !isNaN(amount) && amount >= 500;
     var opOk = !!selectedOperator;
     $btnReview.disabled = !(phoneOk && amountOk && opOk);
 }
@@ -732,8 +732,8 @@ async function loadHistory(page) {
                 '<td><code style="font-size:11px;color:var(--blue)">' + w.reference + '</code></td>' +
                 '<td>' + w.recipient_phone + (w.recipient_name ? '<br><small style="color:var(--text-4)">' + w.recipient_name + '</small>' : '') + '</td>' +
                 '<td>' + w.recipient_operator + '</td>' +
-                '<td>' + (w.amount / 100).toFixed(2) + ' ' + (w.currency || '') + '</td>' +
-                '<td>' + (w.fees / 100).toFixed(2) + ' ' + (w.currency || '') + '</td>' +
+                '<td>' + (w.amount || 0).toLocaleString() + ' ' + (w.currency || '') + '</td>' +
+                '<td>' + (w.fees || 0).toLocaleString() + ' ' + (w.currency || '') + '</td>' +
                 '<td><span class="status-badge ' + statusClass + '"><span class="status-dot ' + statusClass + '"></span>' + statusLabel + '</span></td>' +
                 '</tr>';
         }).join('');

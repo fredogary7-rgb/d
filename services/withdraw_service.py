@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 # --------------------------
 # Constantes
 # --------------------------
-MIN_WITHDRAWAL_AMOUNT = 5000   # unités mineures (5000 XOF = 5 000 F CFA)
-MAX_WITHDRAWAL_AMOUNT = 100000  # unités mineures (100000 XOF = 100 000 F CFA)
+MIN_WITHDRAWAL_AMOUNT = 500   # 500 FCFA
+MAX_WITHDRAWAL_AMOUNT = 100000  # 100 000 FCFA
 
 
 def _generate_external_reference() -> str:
@@ -136,7 +136,7 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
     except (TypeError, ValueError):
         return {"success": False, "error": "Montant invalide."}
 
-    amount_minor = int(amount_display * 100)
+    amount_minor = int(amount_display)
 
     logger.info(f"WITHDRAW DIAG | user_id={user.id} | phone={phone[:4]}*** | "
                 f"amount_minor={amount_minor} | currency={currency} | "
@@ -146,15 +146,15 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
         logger.warning(f"WITHDRAW REJECTED | user_id={user.id} | reason=montant_trop_bas | "
                        f"amount={amount_minor} | min={MIN_WITHDRAWAL_AMOUNT}")
         return {"success": False,
-                "error": f"Montant minimum : {MIN_WITHDRAWAL_AMOUNT // 100:,.0f} {currency}. "
-                         f"Votre saisie : {amount_minor // 100:,.0f} {currency}."}
+                "error": f"Montant minimum : {MIN_WITHDRAWAL_AMOUNT:,} {currency}. "
+                         f"Votre saisie : {amount_minor:,} {currency}."}
 
     if amount_minor > MAX_WITHDRAWAL_AMOUNT:
         logger.warning(f"WITHDRAW REJECTED | user_id={user.id} | reason=montant_trop_haut | "
                        f"amount={amount_minor} | max={MAX_WITHDRAWAL_AMOUNT}")
         return {"success": False,
-                "error": f"Montant maximum : {MAX_WITHDRAWAL_AMOUNT // 100:,.0f} {currency}. "
-                         f"Votre saisie : {amount_minor // 100:,.0f} {currency}."}
+                "error": f"Montant maximum : {MAX_WITHDRAWAL_AMOUNT:,} {currency}. "
+                         f"Votre saisie : {amount_minor:,} {currency}."}
 
     # ---- Validation 3 : Numéro ----
     phone = phone.replace(" ", "").replace("-", "").replace(".", "")
