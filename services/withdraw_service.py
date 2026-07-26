@@ -136,7 +136,7 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
     except (TypeError, ValueError):
         return {"success": False, "error": "Montant invalide."}
 
-    amount_minor = int(amount_display)
+    amount_minor = int(amount_display * 100)
 
     logger.info(f"WITHDRAW DIAG | user_id={user.id} | phone={phone[:4]}*** | "
                 f"amount_minor={amount_minor} | currency={currency} | "
