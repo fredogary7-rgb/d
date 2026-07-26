@@ -8,304 +8,399 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.25);
-            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.25);
-            --yellow: #F59E0B; --orange: #F97316;
+            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.3);
+            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.3);
+            --gold: #F59E0B; --orange: #F97316; --orange-light: #FFEDD5;
+            --purple: #7C3AED; --purple-light: #EDE9FE;
+            --pink: #EC4899; --pink-light: #FCE7F3;
+            --danger: #EF4444; --danger-light: #FEE2E2;
             --bg: #FAFBFC; --surface: #FFFFFF; --surface-hover: #F8FAFC;
             --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
             --border: #E2E8F0; --border-light: #F1F5F9;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09); --shadow-xl: 0 24px 70px rgba(0,0,0,.11);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.06);
+            --shadow-md: 0 8px 30px rgba(0,0,0,.08); --shadow-lg: 0 16px 50px rgba(0,0,0,.1);
+            --shadow-xl: 0 24px 70px rgba(0,0,0,.12);
             --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
             --transition: .35s cubic-bezier(.25,.46,.45,.94);
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
         }
         [data-theme="dark"] {
             --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
             --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
             --border: #1E293B; --border-light: #1A2332;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 20px rgba(0,0,0,.3); --shadow-md: 0 8px 30px rgba(0,0,0,.4); --shadow-lg: 0 16px 50px rgba(0,0,0,.5); --shadow-xl: 0 24px 70px rgba(0,0,0,.6);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 20px rgba(0,0,0,.3);
+            --shadow-md: 0 8px 30px rgba(0,0,0,.4); --shadow-lg: 0 16px 50px rgba(0,0,0,.5);
+            --shadow-xl: 0 24px 70px rgba(0,0,0,.6);
+            --blue-light: rgba(37,99,235,.15); --green-light: rgba(16,185,129,.15);
+            --orange-light: rgba(249,115,22,.15); --purple-light: rgba(124,58,237,.15);
+            --danger-light: rgba(239,68,68,.15);
         }
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
         html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden;max-width:100vw}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;max-width:100vw;width:100%;-webkit-font-smoothing:antialiased;transition:background .5s,color .5s;line-height:1.6}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;max-width:100vw;width:100%;-webkit-font-smoothing:antialiased;transition:background .5s,color .5s;line-height:1.6;min-height:100vh}
         .container{max-width:1280px;width:100%;margin:0 auto;padding:0 40px;overflow:visible}
-        h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        h1,h2,h3,h4,h5{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         a{text-decoration:none;color:inherit}
         img,svg,video,canvas{max-width:100%;height:auto}
+        ::selection{background:var(--blue);color:#fff}
+        /* Scrollbar */
+        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}::-webkit-scrollbar-thumb:hover{background:var(--text-4)}
 
         /* ===== BUTTONS ===== */
-        .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 30px;border-radius:100px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:all var(--transition);font-family:'Inter',sans-serif;text-decoration:none;white-space:nowrap}
+        .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 30px;border-radius:100px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:all var(--transition);font-family:'Inter',sans-serif;text-decoration:none;white-space:nowrap;position:relative;overflow:hidden}
         .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 6px 24px var(--blue-glow)}
         .btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 36px var(--blue-glow)}
+        .btn-primary:active{transform:translateY(0)}
         .btn-outline{border:2px solid var(--border);background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
-        .btn-outline:hover{border-color:var(--blue);color:var(--blue);box-shadow:var(--shadow)}
-        .btn-white{background:#fff;color:var(--blue);font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.08)}
-        .btn-white:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+        .btn-outline:hover{border-color:var(--blue);color:var(--blue);box-shadow:var(--shadow);transform:translateY(-2px)}
+        .btn-white{background:#fff;color:var(--blue);font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+        .btn-white:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.15)}
+        .btn-glass{background:rgba(255,255,255,.15);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:600}
+        .btn-glass:hover{background:rgba(255,255,255,.25);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+        .pulse-ring{position:absolute;inset:-4px;border-radius:100px;border:2px solid var(--blue);animation:pulseRing 2s ease-out infinite;opacity:0}
+        @keyframes pulseRing{0%{opacity:.5;transform:scale(1)}100%{opacity:0;transform:scale(1.15)}}
 
         /* ===== LOGO ===== */
-        .logo-svg{display:block;flex-shrink:0}
         .logo-container{display:flex;align-items:center;gap:12px}
         .logo-text{font-family:'Outfit',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 
         /* ===== NAVBAR ===== */
-        .navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:18px 0;transition:all var(--transition);max-width:100vw}
-        .navbar.scrolled{background:rgba(255,255,255,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm)}
-        [data-theme="dark"] .navbar.scrolled{background:rgba(11,17,32,.88)}
+        .navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:18px 0;transition:all .4s var(--ease-out-expo);max-width:100vw}
+        .navbar.scrolled{background:rgba(255,255,255,.85);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border-bottom:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+        [data-theme="dark"] .navbar.scrolled{background:rgba(11,17,32,.9);backdrop-filter:blur(28px) saturate(180%)}
         .navbar .container{display:flex;align-items:center;justify-content:space-between}
-        .nav-links{display:flex;align-items:center;gap:8px;list-style:none}
-        .nav-links a{color:var(--text-2);font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:8px;transition:all .2s}
+        .nav-links{display:flex;align-items:center;gap:4px;list-style:none}
+        .nav-links a{color:var(--text-2);font-size:13.5px;font-weight:500;padding:10px 16px;border-radius:10px;transition:all .25s;position:relative}
         .nav-links a:hover{color:var(--blue);background:var(--blue-light)}
-        .nav-theme-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all var(--transition);flex-shrink:0}
-        .nav-theme-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
-        .mobile-menu-btn{display:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex-shrink:0}
-        .mobile-menu-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+        .nav-links a::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%) scaleX(0);width:20px;height:2px;background:var(--blue);border-radius:2px;transition:transform .3s var(--ease-out-expo)}
+        .nav-links a:hover::after{transform:translateX(-50%) scaleX(1)}
+        .nav-theme-btn{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all var(--transition);flex-shrink:0;position:relative}
+        .nav-theme-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);transform:scale(1.05)}
+        .nav-lang{display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--text-2);transition:all var(--transition);position:relative;margin-right:8px}
+        .nav-lang:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .nav-lang-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);padding:6px;min-width:150px;display:none;z-index:200;animation:fadeInUp .25s var(--ease-out-expo)}
+        .nav-lang-dropdown.show{display:block}
+        .nav-lang-dropdown button{width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;text-align:left;font-size:13px;font-family:'Inter',sans-serif;border-radius:8px;transition:all .2s;color:var(--text-2);display:flex;align-items:center;gap:8px}
+        .nav-lang-dropdown button:hover{background:var(--surface-hover);color:var(--blue)}
+        .nav-lang-dropdown button.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+        .mobile-menu-btn{display:none;width:42px;height:42px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex-shrink:0;transition:all var(--transition)}
+        .mobile-menu-btn span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .3s var(--ease-out-expo)}
+        .mobile-menu-btn.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+        .mobile-menu-btn.open span:nth-child(2){opacity:0}
+        .mobile-menu-btn.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
 
         /* ===== SECTIONS ===== */
         .section{padding:120px 0;position:relative;overflow:hidden}
-        .section-label{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:20px}
-        .label-blue{background:var(--blue-light);color:var(--blue)}.label-green{background:var(--green-light);color:var(--green-dark)}.label-yellow{background:#FEF3C7;color:#D97706}.label-orange{background:#FFEDD5;color:var(--orange)}
+        .section-label{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:100px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:20px}
+        .label-blue{background:var(--blue-light);color:var(--blue)}.label-green{background:var(--green-light);color:var(--green-dark)}.label-gold{background:#FEF3C7;color:#D97706}.label-orange{background:var(--orange-light);color:var(--orange)}.label-purple{background:var(--purple-light);color:var(--purple)}
 
         /* ===== HERO ===== */
         .hero{min-height:100vh;display:flex;align-items:center;padding:140px 0 80px;position:relative;overflow:clip;max-width:100vw}
-        .hero-bg-glow{position:absolute;border-radius:50%;filter:blur(120px);opacity:.22;z-index:0;pointer-events:none;max-width:100vw}
-        .hero-bg-1{width:500px;height:500px;background:var(--blue-light);top:-150px;right:-150px;animation:floatGlow 8s ease-in-out infinite}
-        .hero-bg-2{width:400px;height:400px;background:#FEF3C7;bottom:-100px;left:-80px;animation:floatGlow 10s ease-in-out infinite reverse}
-        .hero-bg-3{width:280px;height:280px;background:var(--green-light);top:50%;left:30%;animation:floatGlow 12s ease-in-out infinite 4s}
-        @keyframes floatGlow{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-20px) scale(1.06)}}
+        .hero-bg-glow{position:absolute;border-radius:50%;filter:blur(140px);opacity:.18;z-index:0;pointer-events:none;max-width:100vw;will-change:transform}
+        .hero-bg-1{width:600px;height:600px;background:var(--blue);top:-200px;right:-150px;animation:floatGlow 10s ease-in-out infinite}
+        .hero-bg-2{width:450px;height:450px;background:var(--green);bottom:-150px;left:-100px;animation:floatGlow 12s ease-in-out infinite 3s}
+        .hero-bg-3{width:300px;height:300px;background:var(--orange);top:40%;left:30%;animation:floatGlow 14s ease-in-out infinite 6s}
+        .hero-bg-4{width:200px;height:200px;background:var(--purple);top:20%;right:25%;animation:floatGlow 11s ease-in-out infinite 8s}
+        @keyframes floatGlow{0%,100%{transform:translate(0,0) scale(1);opacity:.18}33%{transform:translate(30px,-25px) scale(1.08);opacity:.25}66%{transform:translate(-20px,15px) scale(.95);opacity:.14}}
+        .hero-grid-bg{position:absolute;inset:0;background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:60px 60px;opacity:.4;z-index:0;pointer-events:none}
+        [data-theme="dark"] .hero-grid-bg{opacity:.15}
         .hero .container{display:grid;grid-template-columns:1fr 1.1fr;gap:80px;align-items:center;position:relative;z-index:1}
-        .hero-text h1{font-size:clamp(40px,5.5vw,64px);font-weight:900;line-height:1.08;letter-spacing:-.03em;margin-bottom:20px}
-        .hero-text h1 .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .hero-text p{font-size:18px;color:var(--text-3);line-height:1.7;margin-bottom:36px;max-width:480px}
-        .hero-buttons{display:flex;gap:14px;flex-wrap:wrap}
+        .hero-text h1{font-size:clamp(42px,5.8vw,68px);font-weight:900;line-height:1.06;letter-spacing:-.04em;margin-bottom:22px}
+        .hero-text h1 .gradient-text{background:linear-gradient(135deg,var(--blue) 0%,var(--purple) 40%,var(--orange) 75%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 200%;animation:gradientShift 6s ease-in-out infinite}
+        @keyframes gradientShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .hero-text .hero-subtitle{font-size:18px;color:var(--text-3);line-height:1.75;margin-bottom:38px;max-width:500px}
+        .hero-text .hero-subtitle .highlight{color:var(--green);font-weight:600}
+        .hero-buttons{display:flex;gap:16px;flex-wrap:wrap}
+        .hero-trust{display:flex;align-items:center;gap:16px;margin-top:32px;flex-wrap:wrap}
+        .hero-trust .trust-avatars{display:flex;margin-right:4px}
+        .hero-trust .trust-avatars span{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;margin-left:-8px;border:2px solid var(--surface);background:linear-gradient(135deg,var(--blue),var(--green))}
+        .hero-trust .trust-avatars span:first-child{margin-left:0}
+        .hero-trust .trust-text{font-size:12px;color:var(--text-3);font-weight:500}
+        .hero-trust .trust-stars{color:var(--gold);font-size:12px;letter-spacing:2px}
 
         /* HERO VISUAL */
-        .hero-visual{position:relative;height:520px;display:flex;align-items:center;justify-content:center;max-width:100%}
-        .hero-phone{position:absolute;width:180px;height:380px;border-radius:28px;background:linear-gradient(145deg,#1E1E2F,#0A0A15);box-shadow:0 30px 60px rgba(0,0,0,.25);padding:3px;animation:phoneFloat 6s ease-in-out infinite}
-        .hero-phone.left{left:5%;top:30px;transform:rotate(-8deg);animation-delay:0s;z-index:3}
-        .hero-phone.right{right:5%;top:60px;transform:rotate(8deg);animation-delay:-3s;z-index:3}
-        @keyframes phoneFloat{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(-7deg) translateY(-12px)}}
-        .hero-phone.right{animation-name:phoneFloatRight}@keyframes phoneFloatRight{0%,100%{transform:rotate(8deg) translateY(0)}50%{transform:rotate(7deg) translateY(-12px)}}
-        .phone-inner{width:100%;height:100%;border-radius:26px;background:linear-gradient(180deg,var(--blue),var(--blue-dark) 28%,#0A0A15 28%);display:flex;flex-direction:column;padding:40px 8px 8px;gap:6px;position:relative;overflow:hidden}
-        .phone-inner.right-phone{background:linear-gradient(180deg,var(--green),var(--green-dark) 28%,#0A0A15 28%)}
-        .phone-notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:44px;height:14px;background:#0A0A15;border-radius:10px;z-index:5}
-        .phone-balance{background:rgba(255,255,255,.1);border-radius:12px;padding:12px 14px}
-        .phone-balance .bal-label{font-size:8px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.15em;font-weight:600}
-        .phone-balance .bal-amount{font-size:17px;font-weight:800;color:#fff;margin-top:1px}
-        .phone-tx{background:rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:6px;font-size:9px;color:rgba(255,255,255,.7)}
-        .phone-tx .tx-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-        .tx-sent .tx-dot{background:#F59E0B}.tx-received .tx-dot{background:#10B981}
-        .phone-tx .tx-amount{font-weight:700;color:#fff;font-size:10px;margin-left:auto}
-        .phone-tx .tx-ok{color:#10B981;font-size:11px;flex-shrink:0}
+        .hero-visual{position:relative;height:540px;display:flex;align-items:center;justify-content:center;max-width:100%}
+        .hero-phone{position:absolute;width:190px;height:390px;border-radius:30px;background:linear-gradient(145deg,#1E1E2F,#0A0A15);box-shadow:0 35px 70px rgba(0,0,0,.28);padding:4px;animation:phoneFloat 6.5s ease-in-out infinite}
+        .hero-phone.left{left:4%;top:25px;transform:rotate(-9deg);animation-delay:0s;z-index:3}
+        .hero-phone.right{right:4%;top:55px;transform:rotate(9deg);animation-delay:-3.2s;z-index:3}
+        @keyframes phoneFloat{0%,100%{transform:rotate(-9deg) translateY(0)}50%{transform:rotate(-7.5deg) translateY(-14px)}}
+        .hero-phone.right{animation-name:phoneFloatRight}@keyframes phoneFloatRight{0%,100%{transform:rotate(9deg) translateY(0)}50%{transform:rotate(7.5deg) translateY(-14px)}}
+        .phone-inner{width:100%;height:100%;border-radius:27px;background:linear-gradient(180deg,var(--blue),var(--blue-dark) 26%,#0A0A15 26%);display:flex;flex-direction:column;padding:44px 9px 9px;gap:7px;position:relative;overflow:hidden}
+        .phone-inner.right-phone{background:linear-gradient(180deg,var(--green),var(--green-dark) 26%,#0A0A15 26%)}
+        .phone-notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:48px;height:16px;background:#0A0A15;border-radius:10px;z-index:5}
+        .phone-balance{background:rgba(255,255,255,.12);border-radius:12px;padding:13px 15px;backdrop-filter:blur(4px)}
+        .phone-balance .bal-label{font-size:8px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.16em;font-weight:600}
+        .phone-balance .bal-amount{font-size:18px;font-weight:800;color:#fff;margin-top:2px;font-family:'Outfit',sans-serif}
+        .phone-tx{background:rgba(255,255,255,.09);border-radius:9px;padding:9px 11px;display:flex;align-items:center;gap:7px;font-size:9px;color:rgba(255,255,255,.65)}
+        .phone-tx .tx-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+        .tx-sent .tx-dot{background:var(--gold)}.tx-received .tx-dot{background:var(--green)}
+        .phone-tx .tx-amount{font-weight:700;color:#fff;font-size:10px;margin-left:auto;font-family:'Outfit',sans-serif}
+        .phone-tx .tx-ok{color:var(--green);font-size:12px;flex-shrink:0}
 
         /* PARTICLES */
         .particle{position:absolute;pointer-events:none;z-index:2}
-        .particle-dot{width:6px;height:6px;border-radius:50%;animation:particleDrift 4s ease-in-out infinite}
-        .particle-coin{font-size:18px;animation:particleDrift 5s ease-in-out infinite}
-        .particle-bill{font-size:22px;animation:particleDrift 6s ease-in-out infinite}
-        @keyframes particleDrift{0%,100%{opacity:.3;transform:translate(0,0)}50%{opacity:.8;transform:translate(15px,-15px)}}
+        .particle-dot{width:7px;height:7px;border-radius:50%;animation:particleDrift 5s ease-in-out infinite}
+        .particle-coin{font-size:20px;animation:particleDrift 6s ease-in-out infinite}
+        .particle-bill{font-size:24px;animation:particleDrift 7s ease-in-out infinite}
+        @keyframes particleDrift{0%,100%{opacity:.25;transform:translate(0,0)}50%{opacity:.9;transform:translate(18px,-18px)}}
 
-        /* FLOW LINE */
-        .flow-line{position:absolute;top:50%;left:20%;right:20%;height:2px;z-index:1;overflow:hidden}
-        .flow-line-inner{width:100%;height:100%;background:linear-gradient(90deg,transparent,var(--blue),var(--green),var(--orange),transparent);animation:flowPulse 2s ease-in-out infinite}
-        @keyframes flowPulse{0%,100%{opacity:.4;transform:scaleX(.8)}50%{opacity:1;transform:scaleX(1)}}
-        .flow-amount{position:absolute;top:50%;left:50%;transform:translate(-50%,-130%);font-weight:800;font-size:14px;white-space:nowrap;padding:7px 16px;background:var(--surface);border-radius:100px;box-shadow:var(--shadow-md);z-index:5;animation:amountBounce 2s ease-in-out infinite}
-        @keyframes amountBounce{0%,100%{opacity:.7;transform:translate(-50%,-130%) scale(.95)}50%{opacity:1;transform:translate(-50%,-140%) scale(1.05)}}
-        .flow-notif{position:absolute;top:52%;left:50%;transform:translate(-50%,40px);font-size:9px;font-weight:700;padding:5px 12px;border-radius:100px;background:#D1FAE5;color:#059669;z-index:5;white-space:nowrap;animation:notifPop 2.5s ease-in-out infinite}
+        /* FLOW */
+        .flow-line{position:absolute;top:50%;left:15%;right:15%;height:2px;z-index:1;overflow:hidden}
+        .flow-line-inner{width:100%;height:100%;background:linear-gradient(90deg,transparent,var(--blue),var(--purple),var(--green),var(--orange),transparent);animation:flowPulse 2.5s ease-in-out infinite}
+        @keyframes flowPulse{0%,100%{opacity:.35;transform:scaleX(.75)}50%{opacity:1;transform:scaleX(1)}}
+        .flow-amount{position:absolute;top:50%;left:50%;transform:translate(-50%,-140%);font-weight:800;font-size:15px;white-space:nowrap;padding:8px 18px;background:var(--surface);border-radius:100px;box-shadow:var(--shadow-md);z-index:5;animation:amountBounce 2.5s ease-in-out infinite;font-family:'Outfit',sans-serif;color:var(--blue)}
+        @keyframes amountBounce{0%,100%{opacity:.6;transform:translate(-50%,-140%) scale(.93)}50%{opacity:1;transform:translate(-50%,-155%) scale(1.06)}}
+        .flow-notif{position:absolute;top:52%;left:50%;transform:translate(-50%,45px);font-size:10px;font-weight:700;padding:6px 14px;border-radius:100px;background:var(--green-light);color:var(--green-dark);z-index:5;white-space:nowrap;animation:notifPop 3s ease-in-out infinite}
 
         /* ===== STATS BAND ===== */
-        .stats-band{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0;overlow:hidden}
-        .stats-band .container{display:grid;grid-template-columns:repeat(4,1fr);min-height:120px}
-        .stat-item{display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border);padding:30px 20px}
+        .stats-band{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0;overflow:hidden;position:relative}
+        .stats-band::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--blue-light),transparent);opacity:.3;pointer-events:none}
+        .stats-band .container{display:grid;grid-template-columns:repeat(4,1fr);min-height:130px}
+        .stat-item{display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border);padding:32px 20px;transition:all var(--transition)}
         .stat-item:last-child{border-right:none}
-        .stat-item .stat-number{font-family:'Outfit',sans-serif;font-weight:900;font-size:clamp(28px,4vw,40px);line-height:1;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .stat-item .stat-label{font-size:13px;color:var(--text-3);font-weight:500;margin-top:4px}
+        .stat-item:hover{background:var(--surface-hover)}
+        .stat-item .stat-number{font-family:'Outfit',sans-serif;font-weight:900;font-size:clamp(30px,4.5vw,44px);line-height:1;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .stat-item .stat-label{font-size:13px;color:var(--text-3);font-weight:500;margin-top:6px}
 
         /* ===== HOW IT WORKS ===== */
         .section-header{text-align:center;margin-bottom:72px}
-        .section-header h2{font-size:clamp(32px,4vw,48px);font-weight:900;margin-bottom:14px;letter-spacing:-.02em}
+        .section-header h2{font-size:clamp(32px,4.5vw,50px);font-weight:900;margin-bottom:16px;letter-spacing:-.03em}
         .section-header h2 .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .section-header p{font-size:16px;color:var(--text-3);max-width:500px;margin:0 auto}
-        .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
-        .steps-grid::before{content:'';position:absolute;top:60px;left:25%;right:25%;height:2px;background:linear-gradient(90deg,var(--blue),var(--green),var(--orange));z-index:0;opacity:.3}
-        .step-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px 30px;text-align:center;position:relative;z-index:1;transition:all var(--transition)}
-        .step-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
-        .step-number{width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;margin:0 auto 24px;position:relative}
+        .section-header p{font-size:16px;color:var(--text-3);max-width:520px;margin:0 auto}
+        .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;position:relative}
+        .steps-grid::before{content:'';position:absolute;top:64px;left:28%;right:28%;height:2px;background:linear-gradient(90deg,var(--blue),var(--green),var(--orange));z-index:0;opacity:.35;border-radius:2px}
+        .step-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:44px 32px;text-align:center;position:relative;z-index:1;transition:all .4s var(--ease-out-expo);cursor:default}
+        .step-card:hover{transform:translateY(-10px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+        .step-card::before{content:'';position:absolute;inset:0;border-radius:var(--radius-lg);background:linear-gradient(135deg,var(--blue-light),transparent);opacity:0;transition:opacity .4s}
+        .step-card:hover::before{opacity:1}
+        .step-number{width:60px;height:60px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;margin:0 auto 26px;position:relative;font-family:'Outfit',sans-serif}
         .step-card:nth-child(1) .step-number{background:var(--blue-light);color:var(--blue)}
-        .step-card:nth-child(2) .step-number{background:#FEF3C7;color:var(--yellow)}
+        .step-card:nth-child(2) .step-number{background:#FEF3C7;color:var(--gold)}
         .step-card:nth-child(3) .step-number{background:var(--green-light);color:var(--green-dark)}
-        .step-card h3{font-size:18px;font-weight:700;margin-bottom:8px}
-        .step-card p{font-size:13px;color:var(--text-3)}
+        .step-card h3{font-size:19px;font-weight:700;margin-bottom:10px}
+        .step-card p{font-size:13.5px;color:var(--text-3);line-height:1.7}
 
-        /* ===== 3D GLOBE ===== */
-        .globe-section{position:relative;background:linear-gradient(180deg,#0A0F1E 0%,#111827 50%,#0A0F1E 100%);overflow:hidden}
+        /* ===== GLOBE ===== */
+        .globe-section{position:relative;background:linear-gradient(180deg,#080C1A 0%,#0F172A 50%,#080C1A 100%);overflow:hidden}
+        .globe-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(37,99,235,.08),transparent 60%);pointer-events:none}
         .globe-container{position:relative;width:100%;max-width:100%;height:650px;border-radius:var(--radius-xl);overflow:hidden}
         #globeViz{width:100%;height:100%;cursor:grab}
         #globeViz:active{cursor:grabbing}
         .globe-legend{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:12px;flex-wrap:wrap;justify-content:center;z-index:10}
-        .globe-legend-item{display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(17,24,39,.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:100px;font-size:11px;color:#CBD5E1;font-weight:500;white-space:nowrap}
+        .globe-legend-item{display:flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(17,24,39,.88);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:100px;font-size:11px;color:#CBD5E1;font-weight:500;white-space:nowrap}
         .globe-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-        .globe-tooltip{position:absolute;pointer-events:none;background:rgba(17,24,39,.92);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 18px;z-index:20;transition:opacity .2s;box-shadow:0 12px 40px rgba(0,0,0,.5);max-width:260px}
+        .globe-tooltip{position:absolute;pointer-events:none;background:rgba(17,24,39,.94);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 18px;z-index:20;transition:opacity .25s;box-shadow:0 14px 44px rgba(0,0,0,.55);max-width:260px}
         .globe-tooltip .tt-country{font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:8px}
         .globe-tooltip .tt-ops{font-size:11px;color:#94A3B8;line-height:1.6}
-        .globe-tooltip .tt-ops span{display:inline-block;padding:2px 8px;background:rgba(255,255,255,.06);border-radius:6px;margin:2px 4px 2px 0;color:#CBD5E1}
+        .globe-tooltip .tt-ops span{display:inline-block;padding:3px 9px;background:rgba(255,255,255,.06);border-radius:6px;margin:2px 5px 2px 0;color:#CBD5E1}
         .globe-title-section{text-align:center;padding:80px 20px 0;position:relative;z-index:2}
-        .globe-title-section .section-label{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:20px}
+        .globe-title-section .section-label{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:100px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:20px}
         .globe-title-section h2{color:#F1F5F9}
         .globe-title-section p{color:#94A3B8}
 
         /* ===== OPERATORS ===== */
-        .ops-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-        .op-card{padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-align:center;transition:all var(--transition);cursor:default}
-        .op-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
-        .op-card .op-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-weight:800;font-size:15px;color:#fff}
+        .ops-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+        .op-card{padding:28px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-align:center;transition:all .35s var(--ease-out-expo);cursor:default;position:relative;overflow:hidden}
+        .op-card:hover{transform:translateY(-7px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+        .op-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--green),var(--orange));transform:scaleX(0);transition:transform .4s var(--ease-out-expo)}
+        .op-card:hover::after{transform:scaleX(1)}
+        .op-card .op-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-weight:800;font-size:16px;color:#fff;transition:transform .3s}
+        .op-card:hover .op-icon{transform:scale(1.12) rotate(-5deg)}
         .op-icon-mtn{background:linear-gradient(135deg,#FFCC00,#FF9900)}.op-icon-orange{background:linear-gradient(135deg,#FF6600,#FF3300)}
         .op-icon-moov{background:linear-gradient(135deg,#00A3E0,#006699)}.op-icon-wave{background:linear-gradient(135deg,#1E90FF,#0055CC)}
         .op-icon-airtel{background:linear-gradient(135deg,#EE0000,#BB0000)}.op-icon-tmoney{background:linear-gradient(135deg,#FFD700,#FFB300)}
         .op-icon-momo{background:linear-gradient(135deg,#FFCC00,#E6B800)}.op-icon-voda{background:linear-gradient(135deg,#E60000,#CC0000)}
-        .op-card .op-name{font-weight:700;font-size:14px;margin-bottom:3px}
+        .op-card .op-name{font-weight:700;font-size:14px;margin-bottom:4px}
         .op-card .op-desc{font-size:11px;color:var(--text-4)}
 
         /* ===== DEMO ===== */
-        .demo-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:60px;align-items:center;max-width:900px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:60px 50px;box-shadow:var(--shadow)}
-        .demo-phone-mini{width:150px;height:300px;border-radius:22px;background:linear-gradient(145deg,#1E1E2F,#0A0A15);margin:0 auto;box-shadow:0 20px 40px rgba(0,0,0,.2);position:relative;padding:3px}
-        .demo-phone-mini-inner{width:100%;height:100%;border-radius:20px;padding:36px 8px 8px;display:flex;flex-direction:column;gap:6px}
+        .demo-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:60px;align-items:center;max-width:920px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:64px 54px;box-shadow:var(--shadow-sm)}
+        .demo-phone-mini{width:155px;height:310px;border-radius:24px;background:linear-gradient(145deg,#1E1E2F,#0A0A15);margin:0 auto;box-shadow:0 22px 44px rgba(0,0,0,.22);position:relative;padding:3px}
+        .demo-phone-mini-inner{width:100%;height:100%;border-radius:22px;padding:38px 9px 9px;display:flex;flex-direction:column;gap:7px}
         .demo-phone-mini.left .demo-phone-mini-inner{background:linear-gradient(180deg,var(--blue),var(--blue-dark) 25%,#0A0A15 25%)}
         .demo-phone-mini.right .demo-phone-mini-inner{background:linear-gradient(180deg,var(--green),var(--green-dark) 25%,#0A0A15 25%)}
-        .demo-phone-mini .mini-notch{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:35px;height:12px;background:#0A0A15;border-radius:8px;z-index:2}
-        .mini-balance{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 12px}
+        .demo-phone-mini .mini-notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:38px;height:14px;background:#0A0A15;border-radius:8px;z-index:2}
+        .mini-balance{background:rgba(255,255,255,.1);border-radius:10px;padding:11px 13px}
         .mini-balance .mini-lbl{font-size:7px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
-        .mini-balance .mini-amt{font-size:15px;font-weight:800;color:#fff}
-        .mini-tx{background:rgba(255,255,255,.06);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:6px;font-size:8px;color:rgba(255,255,255,.6)}
-        .mini-tx .mini-amt-val{font-weight:700;color:#fff;margin-left:auto}
-        .demo-flow-center{display:flex;flex-direction:column;align-items:center;gap:16px}
-        .demo-amount-animated{font-size:22px;font-weight:800;padding:10px 24px;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:amountScale 2s ease-in-out infinite}
-        @keyframes amountScale{0%,100%{transform:scale(.9);opacity:.5}50%{transform:scale(1.1);opacity:1}}
-        .demo-arrows{font-size:24px;animation:bounceArrow 1s ease-in-out infinite;color:var(--blue)}
-        @keyframes bounceArrow{0%,100%{transform:translateX(0)}50%{transform:translateX(10px)}}
-        .demo-notif-badge{font-size:11px;font-weight:700;padding:6px 16px;border-radius:100px;background:var(--green-light);color:var(--green-dark);animation:notifPop 2s ease-in-out infinite}
-        @keyframes notifPop{0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:1;transform:scale(1.05)}}
+        .mini-balance .mini-amt{font-size:16px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif}
+        .mini-tx{background:rgba(255,255,255,.07);border-radius:8px;padding:8px 11px;display:flex;align-items:center;gap:7px;font-size:8px;color:rgba(255,255,255,.6)}
+        .mini-tx .mini-amt-val{font-weight:700;color:#fff;margin-left:auto;font-family:'Outfit',sans-serif}
+        .demo-flow-center{display:flex;flex-direction:column;align-items:center;gap:18px}
+        .demo-amount-animated{font-size:23px;font-weight:800;font-family:'Outfit',sans-serif;padding:10px 26px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:amountScale 2.5s ease-in-out infinite}
+        @keyframes amountScale{0%,100%{transform:scale(.88);opacity:.5}50%{transform:scale(1.12);opacity:1}}
+        .demo-arrows{font-size:26px;animation:bounceArrow 1.2s ease-in-out infinite;color:var(--blue)}
+        @keyframes bounceArrow{0%,100%{transform:translateX(0);opacity:.6}50%{transform:translateX(14px);opacity:1}}
+        .demo-notif-badge{font-size:11px;font-weight:700;padding:7px 18px;border-radius:100px;background:var(--green-light);color:var(--green-dark);animation:notifPop 2.5s ease-in-out infinite}
 
         /* ===== WHY ===== */
         .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-        .why-card{padding:36px 30px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);transition:all var(--transition)}
-        .why-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
-        .why-card .why-icon{font-size:36px;margin-bottom:18px}
-        .why-card h3{font-size:18px;font-weight:700;margin-bottom:8px}
-        .why-card p{font-size:13px;color:var(--text-3);line-height:1.7}
+        .why-card{padding:40px 32px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);transition:all .35s var(--ease-out-expo);cursor:default;position:relative}
+        .why-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+        .why-card .why-icon{font-size:40px;margin-bottom:20px;display:inline-block;transition:transform .35s}
+        .why-card:hover .why-icon{transform:scale(1.15)}
+        .why-card h3{font-size:19px;font-weight:700;margin-bottom:10px}
+        .why-card p{font-size:13.5px;color:var(--text-3);line-height:1.75}
 
         /* ===== APP ===== */
         .app-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
-        .app-phones-container{position:relative;height:500px;max-width:100%}
-        .app-phone-big{position:absolute;width:210px;height:440px;border-radius:30px;background:linear-gradient(145deg,#1E1E2F,#0A0A15);left:50%;top:50%;transform:translate(-50%,-50%) rotate(-5deg);box-shadow:0 30px 60px rgba(0,0,0,.25);padding:4px;z-index:2}
-        .app-phone-big.second{transform:translate(-30%,-50%) rotate(6deg);z-index:1}
-        .app-phone-big-inner{width:100%;height:100%;border-radius:27px;background:linear-gradient(180deg,#F59E0B,#D97706 25%,#0A0A15 25%);display:flex;flex-direction:column;padding:46px 10px 10px;gap:8px}
-        .app-phone-big .big-notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:55px;height:18px;background:#0A0A15;border-radius:10px;z-index:3}
-        .store-buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:24px}
-        .store-btn{display:flex;align-items:center;gap:12px;padding:14px 22px;border-radius:16px;background:var(--surface);border:1.5px solid var(--border);transition:all var(--transition);cursor:pointer}
+        .app-phones-container{position:relative;height:520px;max-width:100%}
+        .app-phone-big{position:absolute;width:220px;height:455px;border-radius:32px;background:linear-gradient(145deg,#1E1E2F,#0A0A15);left:50%;top:50%;transform:translate(-50%,-50%) rotate(-5deg);box-shadow:0 35px 70px rgba(0,0,0,.28);padding:4px;z-index:2}
+        .app-phone-big.second{transform:translate(-28%,-50%) rotate(7deg);z-index:1}
+        .app-phone-big-inner{width:100%;height:100%;border-radius:29px;background:linear-gradient(180deg,#F59E0B,#D97706 25%,#0A0A15 25%);display:flex;flex-direction:column;padding:50px 11px 11px;gap:8px}
+        .app-phone-big .big-notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:58px;height:20px;background:#0A0A15;border-radius:10px;z-index:3}
+        .store-buttons{display:flex;gap:16px;flex-wrap:wrap;margin-top:28px}
+        .store-btn{display:flex;align-items:center;gap:14px;padding:16px 26px;border-radius:16px;background:var(--surface);border:1.5px solid var(--border);transition:all var(--transition);cursor:pointer}
         .store-btn:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--blue)}
-        .store-btn .store-icon{font-size:28px}
+        .store-btn .store-icon{font-size:30px}
 
         /* ===== TESTIMONIALS ===== */
-        .testimonials-slider{display:flex;gap:20px;overflow-x:auto;padding:10px 0 20px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+        .testimonials-slider{display:flex;gap:22px;overflow-x:auto;padding:12px 4px 24px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
         .testimonials-slider::-webkit-scrollbar{display:none}
-        .t-card{flex-shrink:0;width:380px;padding:32px 28px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);scroll-snap-align:start;transition:all var(--transition)}
-        .t-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-5px)}
-        .t-stars{color:#F59E0B;font-size:14px;letter-spacing:2px;margin-bottom:12px}
-        .t-text{font-size:14px;color:var(--text-3);line-height:1.75;font-style:italic;margin-bottom:18px;quotes:none}
+        .t-card{flex-shrink:0;width:400px;padding:36px 30px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);scroll-snap-align:start;transition:all .35s var(--ease-out-expo);position:relative;overflow:hidden}
+        .t-card::before{content:'\201C';position:absolute;top:8px;right:20px;font-size:72px;line-height:1;color:var(--blue-light);font-family:Georgia,serif;pointer-events:none}
+        .t-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-6px);border-color:var(--blue)}
+        .t-stars{color:#F59E0B;font-size:14px;letter-spacing:3px;margin-bottom:14px}
+        .t-text{font-size:14px;color:var(--text-3);line-height:1.75;font-style:italic;margin-bottom:20px}
         .t-author{display:flex;align-items:center;gap:12px}
-        .t-avatar{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--green))}
-        .t-name{font-size:14px;font-weight:700}.t-loc{font-size:11px;color:var(--text-4)}
+        .t-avatar{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:21px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));background-size:200% 200%;animation:gradientShift 4s ease-in-out infinite}
 
         /* ===== FAQ ===== */
-        .faq-list{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
-        .faq-item{border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);overflow:hidden;transition:all var(--transition)}
+        .faq-list{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+        .faq-item{border:1.5px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);overflow:hidden;transition:all var(--transition)}
         .faq-item:hover{border-color:var(--blue)}
-        .faq-item.open{border-color:var(--blue);box-shadow:var(--shadow)}
-        .faq-q{width:100%;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;text-align:left;color:var(--text)}
-        .faq-q .faq-icon{width:28px;height:28px;border-radius:8px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all var(--transition)}
+        .faq-item.open{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-light)}
+        .faq-q{width:100%;padding:24px 30px;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;text-align:left;color:var(--text);gap:16px}
+        .faq-q .faq-icon{width:30px;height:30px;border-radius:10px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all .35s var(--ease-out-expo)}
         .faq-item.open .faq-q .faq-icon{transform:rotate(45deg);background:var(--blue);color:#fff}
-        .faq-a{max-height:0;overflow:hidden;transition:max-height .5s ease,padding .5s ease;padding:0 28px}
-        .faq-item.open .faq-a{max-height:250px;padding:0 28px 22px}
-        .faq-a p{font-size:13px;color:var(--text-3);line-height:1.7}
+        .faq-a{max-height:0;overflow:hidden;transition:max-height .5s var(--ease-out-expo),padding .5s var(--ease-out-expo);padding:0 30px}
+        .faq-item.open .faq-a{max-height:300px;padding:0 30px 24px}
+        .faq-a p{font-size:13.5px;color:var(--text-3);line-height:1.75}
 
         /* ===== CTA ===== */
-        .cta-section{text-align:center;padding:100px 40px;background:linear-gradient(135deg,var(--blue),var(--blue-dark),#1E3A8A);color:#fff;border-radius:var(--radius-xl);position:relative;overflow:hidden;max-width:calc(100% - 80px);margin:0 auto 100px}
-        .cta-section h2{font-size:clamp(30px,4vw,44px);font-weight:900;margin-bottom:12px;letter-spacing:-.02em}
-        .cta-section p{font-size:16px;opacity:.85;margin-bottom:32px;max-width:460px;margin-left:auto;margin-right:auto}
-        .cta-section .btn{background:#fff;color:var(--blue);font-size:15px;padding:16px 36px}
+        .cta-section{text-align:center;padding:100px 50px;background:linear-gradient(135deg,#1E3A8A 0%,var(--blue) 30%,var(--purple) 60%,#1E3A8A 100%);background-size:300% 300%;animation:gradientShift 8s ease-in-out infinite;color:#fff;border-radius:var(--radius-xl);position:relative;overflow:hidden;max-width:calc(100% - 80px);margin:0 auto 100px}
+        .cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.08),transparent 50%),radial-gradient(circle at 70% 80%,rgba(16,185,129,.1),transparent 50%);pointer-events:none}
+        .cta-section h2{font-size:clamp(30px,4.5vw,46px);font-weight:900;margin-bottom:14px;letter-spacing:-.03em;position:relative}
+        .cta-section p{font-size:16px;opacity:.85;margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto;position:relative}
+        .cta-section .btn-white{background:#fff;color:var(--blue);font-size:15px;padding:18px 40px;position:relative}
 
         /* ===== FOOTER ===== */
-        .footer{padding:80px 0 30px;border-top:1px solid var(--border)}
-        .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:40px;padding-bottom:40px;margin-bottom:28px;border-bottom:1px solid var(--border)}
-        .footer-brand .logo-container{margin-bottom:12px}
-        .footer-brand p{font-size:12px;color:var(--text-4);line-height:1.6}
-        .footer h5{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;color:var(--text-2)}
-        .footer ul{list-style:none;display:flex;flex-direction:column;gap:8px}
-        .footer ul li a{color:var(--text-3);font-size:12px;transition:color .2s}
-        .footer ul li a:hover{color:var(--blue)}
-        .footer-bottom{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-4)}
-        .footer-social{display:flex;gap:12px}
-        .footer-social a{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all var(--transition);color:var(--text-3)}
-        .footer-social a:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+        .footer{background:var(--surface);border-top:1px solid var(--border);padding:80px 0 0;position:relative}
+        .footer-wave{position:absolute;top:-1px;left:0;right:0;height:40px;overflow:hidden;pointer-events:none}
+        .footer-wave svg{width:100%;height:100%;display:block}
+        .footer-wave svg path{fill:var(--bg)}
+        .footer-grid{display:grid;grid-template-columns:1.8fr 1fr 1fr 1.2fr 1.4fr;gap:40px;padding-bottom:50px;margin-bottom:30px;border-bottom:1px solid var(--border)}
+        .footer-brand .logo-container{margin-bottom:14px}
+        .footer-brand p{font-size:12px;color:var(--text-4);line-height:1.7;margin-bottom:16px}
+        .footer h5{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;margin-bottom:18px;color:var(--text-2)}
+        .footer ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+        .footer ul li a{color:var(--text-3);font-size:12.5px;transition:color .25s;display:inline-flex;align-items:center;gap:6px}
+        .footer ul li a:hover{color:var(--blue);transform:translateX(4px)}
+        .footer-contact-info{display:flex;flex-direction:column;gap:12px}
+        .footer-contact-item{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text-2);transition:color .25s}
+        .footer-contact-item:hover{color:var(--blue)}
+        .footer-contact-item i{width:32px;height:32px;border-radius:10px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+        .footer-contact-item.tiktok i{background:#fce7f3;color:#ff0050}
+        .footer-contact-item.whatsapp i{background:var(--green-light);color:#25D366}
+        .footer-social{display:flex;gap:10px;margin-top:16px}
+        .footer-social a{width:38px;height:38px;border-radius:11px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;transition:all var(--transition);color:var(--text-3);position:relative;overflow:hidden}
+        .footer-social a::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--blue),var(--purple));opacity:0;transition:opacity .3s}
+        .footer-social a:hover::before{opacity:1}
+        .footer-social a:hover{color:#fff;border-color:transparent;transform:translateY(-3px);box-shadow:0 8px 20px var(--blue-glow)}
+        .footer-social a i{position:relative;z-index:1}
+        .footer-bottom{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-4);padding:0 0 30px;flex-wrap:wrap;gap:12px}
+        .footer-bottom .made-with{display:flex;align-items:center;gap:4px}
+        .footer-bottom .made-with .heart{color:var(--danger);animation:heartBeat 1.5s ease-in-out infinite}
+        @keyframes heartBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.3)}30%{transform:scale(1)}45%{transform:scale(1.2)}60%{transform:scale(1)}}
 
-        /* ===== ANIMATIONS ===== */
-        .reveal{opacity:0;transform:translateY(40px);transition:all .8s cubic-bezier(.25,.46,.45,.94)}
+        /* ===== FLOATING ACTIONS ===== */
+        .floating-whatsapp{position:fixed;bottom:28px;right:28px;width:58px;height:58px;border-radius:18px;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;z-index:900;box-shadow:0 8px 28px rgba(37,211,102,.4);transition:all .35s var(--ease-out-expo);cursor:pointer;border:none;animation:floatWiggle 3s ease-in-out infinite}
+        .floating-whatsapp:hover{transform:scale(1.12);box-shadow:0 12px 36px rgba(37,211,102,.55)}
+        @keyframes floatWiggle{0%,100%{transform:rotate(0)}5%{transform:rotate(-8deg)}10%{transform:rotate(8deg)}15%{transform:rotate(0)}}
+        .scroll-to-top{position:fixed;bottom:28px;right:100px;width:46px;height:46px;border-radius:14px;background:var(--surface);border:1.5px solid var(--border);color:var(--text-3);display:flex;align-items:center;justify-content:center;font-size:18px;z-index:900;box-shadow:var(--shadow);transition:all .35s var(--ease-out-expo);cursor:pointer;opacity:0;transform:translateY(20px);pointer-events:none}
+        .scroll-to-top.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+        .scroll-to-top:hover{background:var(--blue);color:#fff;border-color:var(--blue);transform:translateY(-4px);box-shadow:0 8px 24px var(--blue-glow)}
+
+        /* ===== REVEAL ANIMATIONS ===== */
+        .reveal{opacity:0;transform:translateY(50px);transition:all .9s var(--ease-out-expo)}
         .reveal.visible{opacity:1;transform:translateY(0)}
-        .reveal-left{opacity:0;transform:translateX(-60px);transition:all .8s cubic-bezier(.25,.46,.45,.94)}
+        .reveal-left{opacity:0;transform:translateX(-70px);transition:all .9s var(--ease-out-expo)}
         .reveal-left.visible{opacity:1;transform:translateX(0)}
-        .reveal-right{opacity:0;transform:translateX(60px);transition:all .8s cubic-bezier(.25,.46,.45,.94)}
+        .reveal-right{opacity:0;transform:translateX(70px);transition:all .9s var(--ease-out-expo)}
         .reveal-right.visible{opacity:1;transform:translateX(0)}
-        .reveal-scale{opacity:0;transform:scale(.9);transition:all .8s cubic-bezier(.25,.46,.45,.94)}
+        .reveal-scale{opacity:0;transform:scale(.88);transition:all .9s var(--ease-out-expo)}
         .reveal-scale.visible{opacity:1;transform:scale(1)}
+        @keyframes notifPop{0%,100%{opacity:.4;transform:scale(.88)}50%{opacity:1;transform:scale(1.06)}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
         /* ===== RESPONSIVE ===== */
         @media(max-width:1024px){
             .hero .container{grid-template-columns:1fr;text-align:center;gap:48px}
-            .hero-visual{height:360px;margin-top:20px}
+            .hero-visual{height:380px;margin-top:20px}
             .hero-text p{margin-left:auto;margin-right:auto}
-            .hero-buttons{justify-content:center}
-            .steps-grid{grid-template-columns:1fr;max-width:450px;margin:0 auto}
+            .hero-buttons,.hero-trust{justify-content:center}
+            .steps-grid{grid-template-columns:1fr;max-width:480px;margin:0 auto}
             .steps-grid::before{display:none}
             .ops-grid{grid-template-columns:repeat(3,1fr)}
             .why-grid{grid-template-columns:repeat(2,1fr)}
             .stats-band .container{grid-template-columns:repeat(2,1fr);min-height:auto}
-            .stat-item{border-right:none;border-bottom:1px solid var(--border);padding:30px 20px}
+            .stat-item{border-right:none;border-bottom:1px solid var(--border);padding:32px 20px}
             .stat-item:nth-child(3),.stat-item:nth-child(4){border-bottom:none}
             .app-grid{grid-template-columns:1fr;text-align:center}
-            .app-phones-container{height:350px}
-            .demo-grid{grid-template-columns:1fr;gap:30px;padding:40px 30px}
+            .app-phones-container{height:380px}
+            .demo-grid{grid-template-columns:1fr;gap:32px;padding:44px 32px}
             .demo-flow-center{flex-direction:row}
             .footer-grid{grid-template-columns:repeat(3,1fr)}
             .globe-container{height:500px}
+            .scroll-to-top{right:96px}
         }
         @media(max-width:768px){
             .container{padding:0 20px}
             .section{padding:80px 0}
-            .navbar .nav-links{display:none}
+            .navbar .nav-links,.nav-lang{display:none}
             .mobile-menu-btn{display:flex}
             .hero{min-height:auto;padding:120px 0 60px}
-            .hero-phone{width:120px;height:260px;border-radius:22px}
-            .phone-inner{border-radius:20px;padding:32px 6px 6px;gap:5px}
-            .phone-notch{width:35px;height:10px;top:6px}
-            .phone-balance{padding:8px 10px;border-radius:10px}
-            .phone-balance .bal-amount{font-size:14px}
-            .phone-tx{padding:6px 8px;font-size:7px;gap:4px}
-            .hero-visual{height:280px}
-            .ops-grid{grid-template-columns:repeat(2,1fr)}
-            .why-grid{grid-template-columns:1fr}
-            .cta-section{max-width:calc(100% - 32px);padding:60px 24px}
-            .t-card{width:300px}
-            .footer-grid{grid-template-columns:1fr 1fr;gap:30px}
-            .footer-bottom{flex-direction:column;gap:12px;text-align:center}
-            .globe-container{height:400px}
+            .hero-phone{width:130px;height:270px;border-radius:24px}
             .hero-phone.left{left:0}
             .hero-phone.right{right:0}
+            .phone-inner{border-radius:22px;padding:34px 7px 7px;gap:5px}
+            .phone-notch{width:38px;height:11px;top:6px}
+            .phone-balance{padding:10px 12px;border-radius:10px}
+            .phone-balance .bal-amount{font-size:15px}
+            .phone-tx{padding:7px 9px;font-size:7px;gap:5px}
+            .hero-visual{height:300px}
+            .ops-grid{grid-template-columns:repeat(2,1fr)}
+            .why-grid{grid-template-columns:1fr}
+            .cta-section{max-width:calc(100% - 32px);padding:64px 28px;border-radius:var(--radius)}
+            .t-card{width:320px}
+            .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+            .footer-bottom{flex-direction:column;text-align:center}
+            .globe-container{height:400px}
+            .flow-amount{font-size:12px;padding:6px 14px}
+            .flow-notif{font-size:8px;transform:translate(-50%,35px)}
+            .floating-whatsapp{width:50px;height:50px;border-radius:16px;font-size:22px;bottom:20px;right:20px}
+            .scroll-to-top{width:40px;height:40px;border-radius:12px;font-size:16px;bottom:20px;right:82px}
+        }
+        @media(max-width:480px){
+            .hero-text h1{font-size:36px}
+            .hero-phone{width:100px;height:210px;border-radius:20px}
+            .phone-inner{border-radius:18px;padding:28px 6px 6px;gap:4px}
+            .phone-balance .bal-amount{font-size:12px}
+            .phone-tx{padding:5px 7px;font-size:6px}
+            .hero-visual{height:250px}
+            .footer-grid{grid-template-columns:1fr;gap:28px}
+            .ops-grid{grid-template-columns:1fr 1fr;gap:10px}
+            .op-card{padding:20px 14px}
+            .demo-grid{padding:32px 20px}
+            .demo-phone-mini{width:120px;height:240px;border-radius:20px}
+            .demo-phone-mini-inner{border-radius:18px;padding:30px 7px 7px}
         }
         @media(min-width:1600px){
             .container{max-width:1400px}
-            .hero-phone{width:220px;height:440px}
-            .hero-visual{height:580px}
+            .hero-phone{width:230px;height:450px}
+            .hero-visual{height:600px}
         }
     </style>
 </head>
@@ -315,18 +410,28 @@
 <nav class="navbar" id="navbar">
     <div class="container">
         <a href="#" class="logo-container">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" class="logo-svg" width="42" height="42" style="border-radius:12px">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" width="44" height="44" style="border-radius:12px;flex-shrink:0">
             <span class="logo-text">TransAfrik</span>
         </a>
-        <ul class="nav-links">
+        <ul class="nav-links" id="navLinks">
             <li><a href="#how">Fonctionnement</a></li>
             <li><a href="#ops">Opérateurs</a></li>
             <li><a href="#demo">Démo</a></li>
             <li><a href="#why">Pourquoi</a></li>
             <li><a href="#app">Application</a></li>
+            <li><a href="#countries">Pays</a></li>
             <li><a href="#faq">FAQ</a></li>
         </ul>
         <div style="display:flex;align-items:center;gap:8px">
+            <div style="position:relative">
+                <button class="nav-lang" id="langBtn" onclick="document.getElementById('langDropdown').classList.toggle('show')">
+                    <i class="fa-solid fa-globe"></i> FR
+                </button>
+                <div class="nav-lang-dropdown" id="langDropdown">
+                    <button class="active" onclick="switchLang('fr',this)"><i class="fa-solid fa-check" style="font-size:10px"></i> Français</button>
+                    <button onclick="switchLang('en',this)"><i class="fa-solid fa-check" style="font-size:10px;visibility:hidden"></i> English</button>
+                </div>
+            </div>
             <button class="nav-theme-btn" id="themeToggle" aria-label="Toggle theme" title="Changer le thème">🌙</button>
             <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
         </div>
@@ -335,21 +440,34 @@
 
 <!-- ========== HERO ========== -->
 <section class="hero" id="hero">
+    <div class="hero-grid-bg"></div>
     <div class="hero-bg-glow hero-bg-1"></div>
     <div class="hero-bg-glow hero-bg-2"></div>
     <div class="hero-bg-glow hero-bg-3"></div>
+    <div class="hero-bg-glow hero-bg-4"></div>
     <div class="container">
         <div class="hero-text reveal-left">
-            <span class="section-label label-green">Transfert Instantané</span>
+            <span class="section-label label-green">🌍 Transfert Instantané</span>
             <h1>Envoyez de l'argent <span class="gradient-text">partout en Afrique</span> en quelques secondes</h1>
-            <p>Une seule plateforme pour transférer entre Mobile Money, banques et opérateurs africains. Rapide, sécurisé, frais transparents.</p>
+            <p class="hero-subtitle">Une seule plateforme pour transférer entre <span class="highlight">Mobile Money, banques et opérateurs africains</span>. Rapide, sécurisé, frais transparents. Déjà <span class="highlight">+50 opérateurs</span> dans <span class="highlight">+20 pays</span>.</p>
             <div class="hero-buttons">
-                <a href="/register" class="btn btn-primary">Commencer maintenant</a>
-                <a href="#how" class="btn btn-outline">Voir comment ça marche →</a>
+                <a href="/register" class="btn btn-primary" style="position:relative">
+                    <span class="pulse-ring"></span>
+                    Commencer maintenant <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a href="#how" class="btn btn-outline">Comment ça marche <i class="fa-solid fa-circle-play"></i></a>
+            </div>
+            <div class="hero-trust">
+                <div class="trust-avatars">
+                    <span>AK</span><span>MO</span><span>FT</span><span>KD</span>
+                </div>
+                <div>
+                    <div class="trust-stars">★★★★★</div>
+                    <div class="trust-text">+10 000 utilisateurs satisfaits</div>
+                </div>
             </div>
         </div>
         <div class="hero-visual reveal-right">
-            <!-- Phone 1 (left - sender) -->
             <div class="hero-phone left">
                 <div class="phone-notch"></div>
                 <div class="phone-inner">
@@ -359,7 +477,6 @@
                     <div class="phone-tx tx-received"><span class="tx-dot"></span>Reçu TG<div class="tx-amount">+100K</div><span class="tx-ok">✓</span></div>
                 </div>
             </div>
-            <!-- Phone 2 (right - receiver) -->
             <div class="hero-phone right">
                 <div class="phone-notch"></div>
                 <div class="phone-inner right-phone">
@@ -369,17 +486,15 @@
                     <div class="phone-tx tx-sent"><span class="tx-dot"></span>Wave<div class="tx-amount">-20K</div></div>
                 </div>
             </div>
-            <!-- Flow elements -->
             <div class="flow-line"><div class="flow-line-inner"></div></div>
             <div class="flow-amount">50 000 XOF</div>
             <div class="flow-notif">✓ Argent envoyé</div>
-            <!-- Particles -->
-            <div class="particle" style="top:15%;left:25%"><div class="particle-dot" style="background:var(--blue);width:8px;height:8px"></div></div>
-            <div class="particle" style="top:20%;right:25%"><div class="particle-dot" style="background:var(--green);width:5px;height:5px;animation-duration:3s"></div></div>
-            <div class="particle" style="top:65%;left:15%"><div class="particle-coin">💵</div></div>
-            <div class="particle" style="top:70%;right:18%"><div class="particle-coin" style="animation-delay:-2s">🪙</div></div>
-            <div class="particle" style="top:40%;left:40%"><div class="particle-bill" style="animation-delay:-1s">💳</div></div>
-            <div class="particle" style="bottom:15%;left:45%"><div class="particle-dot" style="background:var(--orange);width:7px;height:7px;animation-duration:3.5s"></div></div>
+            <div class="particle" style="top:12%;left:22%"><div class="particle-dot" style="background:var(--blue);width:9px;height:9px"></div></div>
+            <div class="particle" style="top:18%;right:22%"><div class="particle-dot" style="background:var(--green);width:6px;height:6px;animation-duration:3.5s"></div></div>
+            <div class="particle" style="top:62%;left:12%"><div class="particle-coin">💵</div></div>
+            <div class="particle" style="top:68%;right:15%"><div class="particle-coin" style="animation-delay:-2.5s">🪙</div></div>
+            <div class="particle" style="top:38%;left:42%"><div class="particle-bill" style="animation-delay:-1.5s">💳</div></div>
+            <div class="particle" style="bottom:12%;left:48%"><div class="particle-dot" style="background:var(--orange);width:8px;height:8px;animation-duration:4s"></div></div>
         </div>
     </div>
 </section>
@@ -388,9 +503,9 @@
 <section class="stats-band">
     <div class="container">
         <div class="stat-item reveal-scale"><div class="stat-number" data-count="20">0</div><div class="stat-label">Pays couverts</div></div>
-        <div class="stat-item reveal-scale" style="animation-delay:.2s"><div class="stat-number" data-count="50">0</div><div class="stat-label">Opérateurs</div></div>
-        <div class="stat-item reveal-scale" style="animation-delay:.4s"><div class="stat-number" data-count="1">0M</div><div class="stat-label">Transactions</div></div>
-        <div class="stat-item reveal-scale" style="animation-delay:.6s"><div class="stat-number" data-count="99">0%</div><div class="stat-label">Disponibilité</div></div>
+        <div class="stat-item reveal-scale" style="animation-delay:.2s"><div class="stat-number" data-count="50">0</div><div class="stat-label">Opérateurs partenaires</div></div>
+        <div class="stat-item reveal-scale" style="animation-delay:.4s"><div class="stat-number" data-count="1">0M</div><div class="stat-label">Transactions traitées</div></div>
+        <div class="stat-item reveal-scale" style="animation-delay:.6s"><div class="stat-number" data-count="99">0%</div><div class="stat-label">Disponibilité garantie</div></div>
     </div>
 </section>
 
@@ -398,7 +513,7 @@
 <section class="section" id="how">
     <div class="container">
         <div class="section-header reveal">
-            <span class="section-label label-blue">Comment ça marche</span>
+            <span class="section-label label-blue">⚡ Comment ça marche</span>
             <h2>Envoyez de l'argent en <span class="gradient-text">3 étapes</span></h2>
             <p>Simple comme un message. L'argent arrive avant que vous n'ayez rangé votre téléphone.</p>
         </div>
@@ -425,9 +540,9 @@
 <!-- ========== 3D GLOBE ========== -->
 <section class="section globe-section" id="countries">
     <div class="globe-title-section">
-        <span class="section-label" style="background:rgba(16,185,129,.15);color:#10B981">Disponibilité</span>
+        <span class="section-label" style="background:rgba(16,185,129,.15);color:#10B981">🌍 Disponibilité</span>
         <h2>Disponible dans <span class="gradient-text">plusieurs pays</span></h2>
-        <p style="max-width:500px;margin:12px auto 0;color:#94A3B8;font-size:16px">TransAfrik couvre l'Afrique de l'Ouest, du Centre et de l'Est, et s'étend chaque mois.</p>
+        <p style="max-width:520px;margin:14px auto 0;color:#94A3B8;font-size:16px">TransAfrik couvre l'Afrique de l'Ouest, du Centre et de l'Est, et s'étend chaque mois.</p>
     </div>
     <div class="globe-container reveal-scale" id="globeContainer">
         <div id="globeViz"></div>
@@ -437,7 +552,7 @@
         </div>
         <div class="globe-legend">
             <div class="globe-legend-item"><span class="globe-legend-dot" style="background:#2563EB"></span> Pays actif</div>
-            <div class="globe-legend-item"><span class="globe-legend-dot" style="background:#10B981"></span> Transferts</div>
+            <div class="globe-legend-item"><span class="globe-legend-dot" style="background:#10B981"></span> Transferts en cours</div>
             <div class="globe-legend-item"><span class="globe-legend-dot" style="background:#F59E0B"></span> Prochainement</div>
         </div>
     </div>
@@ -478,85 +593,38 @@
     const globe=new ThreeGlobe()
         .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
         .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-        .pointLat(lats)
-        .pointLng(lngs)
-        .pointColor(()=>'#2563EB')
-        .pointAltitude(0.015)
-        .pointRadius(.3)
-        .pointResolution(12)
-        .pointsMerge(true)
-        .atmosphereColor('#2563EB')
-        .atmosphereAltitude(.12)
-        .showGraticules(false)
-        .showAtmosphere(true);
+        .pointLat(lats).pointLng(lngs).pointColor(()=>'#2563EB')
+        .pointAltitude(0.015).pointRadius(.3).pointResolution(12).pointsMerge(true)
+        .atmosphereColor('#2563EB').atmosphereAltitude(.12)
+        .showGraticules(false).showAtmosphere(true);
     scene.add(globe);
-    const ambientLight=new THREE.AmbientLight(0x4040a0,.6);
-    scene.add(ambientLight);
+    scene.add(new THREE.AmbientLight(0x4040a0,.6));
     const dirLight=new THREE.DirectionalLight(0xffffff,.9);
-    dirLight.position.set(1,0,1);
-    scene.add(dirLight);
+    dirLight.position.set(1,0,1);scene.add(dirLight);
     const arcPairs=[];
     for(let i=0;i<activeCountries.length;i++)
         for(let j=i+1;j<activeCountries.length;j++)
             arcPairs.push({startLat:activeCountries[i].lat,startLng:activeCountries[i].lng,endLat:activeCountries[j].lat,endLng:activeCountries[j].lng});
     const filteredPairs=arcPairs.filter((_,i)=>i%3===0);
-    globe
-        .arcsData(filteredPairs.map((p,i)=>({startLat:p.startLat,startLng:p.startLng,endLat:p.endLat,endLng:p.endLng,color:['#10B981','#F59E0B','#3B82F6'][i%3]})))
-        .arcColor('color')
-        .arcAltitude(.25)
-        .arcStroke(.4)
-        .arcCurveResolution(64)
-        .arcDashLength(.6)
-        .arcDashGap(.3)
-        .arcDashAnimateTime(4000)
-        .arcsTransitionDuration(0);
+    globe.arcsData(filteredPairs.map((p,i)=>({startLat:p.startLat,startLng:p.startLng,endLat:p.endLat,endLng:p.endLng,color:['#10B981','#F59E0B','#3B82F6'][i%3]})))
+        .arcColor('color').arcAltitude(.25).arcStroke(.4).arcCurveResolution(64).arcDashLength(.6).arcDashGap(.3).arcDashAnimateTime(4000).arcsTransitionDuration(0);
     globe.rotation.y=Math.PI/4;
-    function animate(){
-        requestAnimationFrame(animate);
-        globe.rotation.y+=.0007;
-        renderer.render(scene,camera);
-    }
+    function animate(){requestAnimationFrame(animate);globe.rotation.y+=.0007;renderer.render(scene,camera);}
     animate();
     let isDragging=false,prevX=0,prevY=0,rotSpeed=.0025;
     const canvas=renderer.domElement;
     canvas.addEventListener('mousedown',e=>{isDragging=true;prevX=e.clientX;prevY=e.clientY});
     canvas.addEventListener('mouseup',()=>{isDragging=false});
     canvas.addEventListener('mouseleave',()=>{isDragging=false});
-    canvas.addEventListener('mousemove',e=>{
-        if(!isDragging){updateTooltip(e);return}
-        const dx=e.clientX-prevX;const dy=e.clientY-prevY;
-        globe.rotation.y+=dx*rotSpeed;globe.rotation.x+=dy*rotSpeed*.7;
-        prevX=e.clientX;prevY=e.clientY;
-    });
+    canvas.addEventListener('mousemove',e=>{if(!isDragging){updateTooltip(e);return}const dx=e.clientX-prevX;const dy=e.clientY-prevY;globe.rotation.y+=dx*rotSpeed;globe.rotation.x+=dy*rotSpeed*.7;prevX=e.clientX;prevY=e.clientY});
     canvas.addEventListener('touchstart',e=>{isDragging=true;prevX=e.touches[0].clientX;prevY=e.touches[0].clientY});
     canvas.addEventListener('touchend',()=>{isDragging=false});
-    canvas.addEventListener('touchmove',e=>{
-        if(!isDragging)return;
-        const dx=e.touches[0].clientX-prevX;const dy=e.touches[0].clientY-prevY;
-        globe.rotation.y+=dx*rotSpeed;globe.rotation.x+=dy*rotSpeed*.7;
-        prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;
-    });
+    canvas.addEventListener('touchmove',e=>{if(!isDragging)return;const dx=e.touches[0].clientX-prevX;const dy=e.touches[0].clientY-prevY;globe.rotation.y+=dx*rotSpeed;globe.rotation.x+=dy*rotSpeed*.7;prevX=e.touches[0].clientX;prevY=e.touches[0].clientY});
     const tooltip=document.getElementById('globeTooltip');
     const ttCountry=document.getElementById('ttCountry');
     const ttOps=document.getElementById('ttOps');
-    function updateTooltip(e){
-        const rect=container.getBoundingClientRect();
-        const x=e.clientX-rect.left;const y=e.clientY-rect.top;
-        const idx=Math.min(Math.floor((x/rect.width)*activeCountries.length),activeCountries.length-1);
-        const country=activeCountries[idx];
-        if(country){
-            ttCountry.innerHTML=country.flag+' '+country.name;
-            ttOps.innerHTML=country.ops.map(o=>'<span>'+o+'</span>').join(' ');
-            tooltip.style.opacity='1';
-            tooltip.style.left=Math.min(x+20,rect.width-270)+'px';
-            tooltip.style.top=(y-10)+'px';
-        }else{tooltip.style.opacity='0'}
-    }
-    window.addEventListener('resize',()=>{
-        const nw=Math.min(container.clientWidth,window.innerWidth);
-        const nh=container.clientHeight||500;
-        camera.aspect=nw/nh;camera.updateProjectionMatrix();renderer.setSize(nw,nh);
-    });
+    function updateTooltip(e){const rect=container.getBoundingClientRect();const x=e.clientX-rect.left;const y=e.clientY-rect.top;const idx=Math.min(Math.floor((x/rect.width)*activeCountries.length),activeCountries.length-1);const country=activeCountries[idx];if(country){ttCountry.innerHTML=country.flag+' '+country.name;ttOps.innerHTML=country.ops.map(o=>'<span>'+o+'</span>').join(' ');tooltip.style.opacity='1';tooltip.style.left=Math.min(x+20,rect.width-270)+'px';tooltip.style.top=(y-10)+'px';}else{tooltip.style.opacity='0'}}
+    window.addEventListener('resize',()=>{const nw=Math.min(container.clientWidth,window.innerWidth);const nh=container.clientHeight||500;camera.aspect=nw/nh;camera.updateProjectionMatrix();renderer.setSize(nw,nh);});
 })();
 </script>
 
@@ -564,7 +632,7 @@
 <section class="section" id="ops">
     <div class="container">
         <div class="section-header reveal">
-            <span class="section-label label-orange">Mobile Money</span>
+            <span class="section-label label-orange">📱 Mobile Money</span>
             <h2>Compatible avec <span class="gradient-text">tous les opérateurs</span></h2>
             <p>TransAfrik fonctionne avec tous les grands opérateurs Mobile Money en Afrique.</p>
         </div>
@@ -574,7 +642,7 @@
             <div class="op-card reveal-scale" style="transition-delay:.15s"><div class="op-icon op-icon-orange">O</div><div class="op-name">Orange Money</div><div class="op-desc">Afrique & Moyen-Orient</div></div>
             <div class="op-card reveal-scale" style="transition-delay:.2s"><div class="op-icon op-icon-wave">W</div><div class="op-name">Wave</div><div class="op-desc">Afrique francophone</div></div>
             <div class="op-card reveal-scale" style="transition-delay:.25s"><div class="op-icon op-icon-airtel">A</div><div class="op-name">Airtel Money</div><div class="op-desc">Afrique de l'Est & Centre</div></div>
-            <div class="op-card reveal-scale" style="transition-delay:.3s"><div class="op-icon op-icon-mtm">MTN</div><div class="op-name">MTN MoMo</div><div class="op-desc">Panafricain</div></div>
+            <div class="op-card reveal-scale" style="transition-delay:.3s"><div class="op-icon op-icon-mtn" style="background:linear-gradient(135deg,#FFCC00,#E6A800)">MTN</div><div class="op-name">MTN MoMo</div><div class="op-desc">Panafricain</div></div>
             <div class="op-card reveal-scale" style="transition-delay:.35s"><div class="op-icon op-icon-voda">V</div><div class="op-name">Vodacom M-Pesa</div><div class="op-desc">Afrique de l'Est</div></div>
             <div class="op-card reveal-scale" style="transition-delay:.4s"><div class="op-icon op-icon-momo">M</div><div class="op-name">MoMo</div><div class="op-desc">Multi-pays</div></div>
         </div>
@@ -585,7 +653,7 @@
 <section class="section" style="background:var(--surface-hover)" id="demo">
     <div class="container">
         <div class="section-header reveal">
-            <span class="section-label label-blue">Démonstration</span>
+            <span class="section-label label-blue">🎬 Démonstration</span>
             <h2>Voyez l'argent <span class="gradient-text">circuler</span></h2>
             <p>Un transfert typique de la Côte d'Ivoire vers le Cameroun.</p>
         </div>
@@ -597,12 +665,12 @@
                         <div class="mini-tx">Envoi vers CM<div class="mini-amt-val">-100K</div></div>
                     </div>
                 </div>
-                <div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--text-3)">Expéditeur<br>🇨🇮 Côte d'Ivoire</div>
+                <div style="margin-top:14px;font-size:13px;font-weight:600;color:var(--text-3)">Expéditeur<br>🇨🇮 Côte d'Ivoire</div>
             </div>
             <div class="demo-flow-center">
                 <div class="demo-amount-animated">100 000 XOF</div>
                 <div class="demo-arrows">→</div>
-                <div class="demo-amount-animated">100 000 XOF</div>
+                <div class="demo-amount-animated">100 000 XAF</div>
                 <div class="demo-notif-badge">✓ Transaction réussie</div>
             </div>
             <div style="text-align:center">
@@ -612,7 +680,7 @@
                         <div class="mini-tx">Reçu de CI<div class="mini-amt-val">+100K</div></div>
                     </div>
                 </div>
-                <div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--text-3)">Bénéficiaire<br>🇨🇲 Cameroun</div>
+                <div style="margin-top:14px;font-size:13px;font-weight:600;color:var(--text-3)">Bénéficiaire<br>🇨🇲 Cameroun</div>
             </div>
         </div>
     </div>
@@ -622,17 +690,17 @@
 <section class="section" id="why">
     <div class="container">
         <div class="section-header reveal">
-            <span class="section-label label-green">Pourquoi TransAfrik</span>
+            <span class="section-label label-green">💎 Pourquoi TransAfrik</span>
             <h2>Construit <span class="gradient-text">pour l'Afrique</span></h2>
-            <p>Une expérience pensée pour vous, avec les standards des plus grandes fintechs.</p>
+            <p>Une expérience pensée pour vous, avec les standards des plus grandes fintechs mondiales.</p>
         </div>
         <div class="why-grid">
-            <div class="why-card reveal-scale" style="transition-delay:.05s"><div class="why-icon">⚡</div><h3>Rapide</h3><p>Transferts exécutés en moins de 2 minutes. L'argent arrive avant le reçu.</p></div>
-            <div class="why-card reveal-scale" style="transition-delay:.15s"><div class="why-icon">🔒</div><h3>Sécurisé</h3><p>Cryptage SSL 256-bit, surveillance en temps réel. Vos données sont protégées.</p></div>
-            <div class="why-card reveal-scale" style="transition-delay:.25s"><div class="why-icon">🌍</div><h3>Multi-pays</h3><p>Déjà disponible dans plus de 20 pays africains. Nous couvrons tout le continent.</p></div>
-            <div class="why-card reveal-scale" style="transition-delay:.35s"><div class="why-icon">💰</div><h3>Frais transparents</h3><p>Aucun frais caché. Le taux et les frais sont affichés avant chaque transaction.</p></div>
-            <div class="why-card reveal-scale" style="transition-delay:.45s"><div class="why-icon">📱</div><h3>Mobile Money natif</h3><p>100% intégré aux opérateurs africains. Pas besoin de carte bancaire.</p></div>
-            <div class="why-card reveal-scale" style="transition-delay:.55s"><div class="why-icon">🛡</div><h3>Transactions protégées</h3><p>Chaque transaction est vérifiée et tracée. Satisfaction garantie.</p></div>
+            <div class="why-card reveal-scale" style="transition-delay:.05s"><div class="why-icon">⚡</div><h3>Ultra Rapide</h3><p>Transferts exécutés en moins de 2 minutes. L'argent arrive avant même le reçu de confirmation.</p></div>
+            <div class="why-card reveal-scale" style="transition-delay:.15s"><div class="why-icon">🔒</div><h3>Sécurisé 256-bit</h3><p>Cryptage SSL bancaire, surveillance anti-fraude en temps réel. Vos données sont protégées.</p></div>
+            <div class="why-card reveal-scale" style="transition-delay:.25s"><div class="why-icon">🌍</div><h3>Multi-pays</h3><p>Déjà disponible dans +20 pays africains. Nous couvrons tout le continent, d'Abidjan à Nairobi.</p></div>
+            <div class="why-card reveal-scale" style="transition-delay:.35s"><div class="why-icon">💰</div><h3>Frais Transparents</h3><p>Aucun frais caché. Le taux de change et les frais sont affichés avant chaque transaction.</p></div>
+            <div class="why-card reveal-scale" style="transition-delay:.45s"><div class="why-icon">📱</div><h3>Mobile Money Natif</h3><p>100% intégré aux opérateurs africains. Pas besoin de carte bancaire pour envoyer de l'argent.</p></div>
+            <div class="why-card reveal-scale" style="transition-delay:.55s"><div class="why-icon">🛡</div><h3>Protection Garantie</h3><p>Chaque transaction est vérifiée, tracée et remboursée en cas de problème. Satisfaction garantie.</p></div>
         </div>
     </div>
 </section>
@@ -645,24 +713,24 @@
                 <div class="app-phone-big"><div class="big-notch"></div>
                     <div class="app-phone-big-inner">
                         <div class="mini-balance"><div class="mini-lbl">Portefeuille</div><div class="mini-amt">500K XOF</div></div>
-                        <div class="mini-tx" style="margin-top:4px">🍎 App Store<div class="mini-amt-val" style="color:#10B981">Bientôt</div></div>
-                        <div class="mini-tx">▶️ Play Store<div class="mini-amt-val" style="color:#10B981">Bientôt</div></div>
+                        <div class="mini-tx" style="margin-top:5px;background:rgba(16,185,129,.12)">🍎 App Store<div class="mini-amt-val" style="color:#10B981">Prochainement</div></div>
+                        <div class="mini-tx" style="background:rgba(16,185,129,.12)">▶️ Play Store<div class="mini-amt-val" style="color:#10B981">Prochainement</div></div>
                     </div>
                 </div>
                 <div class="app-phone-big second"><div class="big-notch"></div>
                     <div class="app-phone-big-inner" style="background:linear-gradient(180deg,var(--blue),var(--blue-dark) 25%,#0A0A15 25%)">
                         <div class="mini-balance"><div class="mini-lbl">Balance</div><div class="mini-amt">$1,250</div></div>
-                        <div class="mini-tx" style="margin-top:4px;background:rgba(16,185,129,.15)">Reçu<div class="mini-amt-val">+200</div></div>
+                        <div class="mini-tx" style="margin-top:5px;background:rgba(16,185,129,.15)">Reçu<div class="mini-amt-val">+200</div></div>
                     </div>
                 </div>
             </div>
             <div class="reveal-right">
-                <span class="section-label label-blue">Bientôt disponible</span>
-                <h2 style="font-size:clamp(28px,4vw,40px);font-weight:900;margin-bottom:16px;letter-spacing:-.02em">Téléchargez <span class="gradient-text">TransAfrik</span></h2>
-                <p style="font-size:16px;color:var(--text-3);margin-bottom:28px">Disponible bientôt sur iOS et Android. Une expérience premium pensée pour l'Afrique.</p>
+                <span class="section-label label-blue">📲 Bientôt disponible</span>
+                <h2 style="font-size:clamp(28px,4vw,42px);font-weight:900;margin-bottom:18px;letter-spacing:-.03em">Téléchargez <span class="gradient-text" style="background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent">TransAfrik</span></h2>
+                <p style="font-size:16px;color:var(--text-3);margin-bottom:30px;line-height:1.7">Disponible bientôt sur iOS et Android. Une expérience premium pensée pour l'Afrique, avec toutes les fonctionnalités que vous aimez.</p>
                 <div class="store-buttons">
-                    <div class="store-btn"><span class="store-icon">🍎</span><div><div style="font-size:9px;color:var(--text-4);font-weight:600;letter-spacing:.05em">TÉLÉCHARGER</div><div style="font-size:15px;font-weight:700">App Store</div></div></div>
-                    <div class="store-btn"><span class="store-icon">▶️</span><div><div style="font-size:9px;color:var(--text-4);font-weight:600;letter-spacing:.05em">DISPONIBLE</div><div style="font-size:15px;font-weight:700">Google Play</div></div></div>
+                    <div class="store-btn"><span class="store-icon">🍎</span><div><div style="font-size:9px;color:var(--text-4);font-weight:600;letter-spacing:.05em">TÉLÉCHARGER SUR</div><div style="font-size:16px;font-weight:700">App Store</div></div></div>
+                    <div class="store-btn"><span class="store-icon">▶️</span><div><div style="font-size:9px;color:var(--text-4);font-weight:600;letter-spacing:.05em">DISPONIBLE SUR</div><div style="font-size:16px;font-weight:700">Google Play</div></div></div>
                 </div>
             </div>
         </div>
@@ -673,34 +741,34 @@
 <section class="section" id="testimonials">
     <div class="container">
         <div class="section-header reveal">
-            <span class="section-label label-yellow">Témoignages</span>
+            <span class="section-label label-gold">⭐ Témoignages</span>
             <h2>Ils nous font <span class="gradient-text">confiance</span></h2>
-            <p>Des milliers d'Africains utilisent TransAfrik chaque jour.</p>
+            <p>Des milliers d'Africains utilisent TransAfrik chaque jour pour leurs transferts.</p>
         </div>
         <div class="testimonials-slider reveal" id="testimonialsSlider">
             <div class="t-card">
                 <div class="t-stars">★★★★★</div>
-                <p class="t-text">TransAfrik a changé ma vie. J'envoie de l'argent à ma famille au Cameroun en quelques secondes. Les frais sont vraiment bas !</p>
+                <p class="t-text">"TransAfrik a changé ma vie. J'envoie de l'argent à ma famille au Cameroun en quelques secondes. Les frais sont vraiment bas et le service est impeccable !"</p>
                 <div class="t-author"><div class="t-avatar">AK</div><div><div class="t-name">Awa Koné</div><div class="t-loc">🇨🇮 Abidjan, Côte d'Ivoire</div></div></div>
             </div>
             <div class="t-card">
                 <div class="t-stars">★★★★★</div>
-                <p class="t-text">Service impeccable. J'ai envoyé 200 000 XOF au Burkina, arrivé immédiatement. L'application est magnifique.</p>
-                <div class="t-author"><div class="t-avatar">MO</div><div><div class="t-name">Moussa Ouédraogo</div><div class="t-loc">🇧🇫 Ouagadougou, Burkina Faso</div></div></div>
+                <p class="t-text">"Service impeccable. J'ai envoyé 200 000 XOF au Burkina Faso, arrivé immédiatement. L'interface est magnifique et très intuitive."</p>
+                <div class="t-author"><div class="t-avatar" style="background:linear-gradient(135deg,var(--green),var(--blue))">MO</div><div><div class="t-name">Moussa Ouédraogo</div><div class="t-loc">🇧🇫 Ouagadougou, Burkina Faso</div></div></div>
             </div>
             <div class="t-card">
                 <div class="t-stars">★★★★★</div>
-                <p class="t-text">Enfin une solution africaine fiable et pas chère. L'interface est digne des applis européennes. Bravo !</p>
-                <div class="t-author"><div class="t-avatar">FT</div><div><div class="t-name">Fatou Touré</div><div class="t-loc">🇨🇲 Douala, Cameroun</div></div></div>
+                <p class="t-text">"Enfin une solution africaine fiable et pas chère. L'interface est digne des plus grandes apps européennes. Bravo à toute l'équipe !"</p>
+                <div class="t-author"><div class="t-avatar" style="background:linear-gradient(135deg,var(--orange),var(--purple))">FT</div><div><div class="t-name">Fatou Touré</div><div class="t-loc">🇨🇲 Douala, Cameroun</div></div></div>
             </div>
             <div class="t-card">
                 <div class="t-stars">★★★★★</div>
-                <p class="t-text">Je transfère de l'argent vers le Bénin chaque semaine. TransAfrik est de loin le plus rapide que j'ai utilisé.</p>
-                <div class="t-author"><div class="t-avatar">KD</div><div><div class="t-name">Koffi Danho</div><div class="t-loc">🇨🇮 Yamoussoukro, Côte d'Ivoire</div></div></div>
+                <p class="t-text">"Je transfère de l'argent vers le Bénin chaque semaine. TransAfrik est de loin le plus rapide et le moins cher que j'ai utilisé."</p>
+                <div class="t-author"><div class="t-avatar" style="background:linear-gradient(135deg,var(--purple),var(--pink))">KD</div><div><div class="t-name">Koffi Danho</div><div class="t-loc">🇨🇮 Yamoussoukro, Côte d'Ivoire</div></div></div>
             </div>
             <div class="t-card">
                 <div class="t-stars">★★★★★</div>
-                <p class="t-text">Support réactif, interface intuitive. J'ai recommandé à tous mes amis commerçants. Vraiment top.</p>
+                <p class="t-text">"Support client réactif, interface intuitive. J'ai recommandé TransAfrik à tous mes amis commerçants. Vraiment top !"</p>
                 <div class="t-author"><div class="t-avatar">SD</div><div><div class="t-name">Sophie Dossou</div><div class="t-loc">🇧🇯 Cotonou, Bénin</div></div></div>
             </div>
         </div>
@@ -711,24 +779,24 @@
 <section class="section" style="background:var(--surface-hover)" id="faq">
     <div class="container">
         <div class="section-header reveal">
-            <span class="section-label label-blue">FAQ</span>
+            <span class="section-label label-purple">❓ FAQ</span>
             <h2>Questions <span class="gradient-text">fréquentes</span></h2>
         </div>
         <div class="faq-list reveal">
-            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Comment envoyer de l'argent avec TransAfrik ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Créez un compte, choisissez le pays de destination, entrez le numéro Mobile Money du bénéficiaire, confirmez le montant et payez. L'argent arrive en moins de 2 minutes.</p></div></div>
-            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Quels sont les frais de transfert ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Les frais sont transparents et affichés avant chaque transaction. Ils varient selon le pays et le montant. Aucun frais caché.</p></div></div>
-            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Quels opérateurs sont compatibles ?<span class="faq-icon">+</span></button><div class="faq-a"><p>MTN, Orange Money, Moov, Wave, Airtel, TMoney, Vodacom, Free Money et +50 opérateurs à travers l'Afrique.</p></div></div>
-            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Mes données sont-elles sécurisées ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Oui. Toutes les transactions sont cryptées en SSL 256-bit. Vos données personnelles ne sont jamais partagées avec des tiers.</p></div></div>
-            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">L'application mobile est-elle disponible ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Bientôt disponible sur iOS et Android. En attendant, utilisez la plateforme web optimisée pour mobile.</p></div></div>
+            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Comment envoyer de l'argent avec TransAfrik ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Créez un compte gratuitement, choisissez le pays de destination, entrez le numéro Mobile Money du bénéficiaire, confirmez le montant et payez. L'argent arrive en moins de 2 minutes sur le compte du destinataire.</p></div></div>
+            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Quels sont les frais de transfert ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Les frais sont transparents et affichés avant chaque transaction. Ils varient selon le pays, l'opérateur et le montant. Aucun frais caché — vous voyez exactement ce que le destinataire recevra.</p></div></div>
+            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Quels opérateurs sont compatibles ?<span class="faq-icon">+</span></button><div class="faq-a"><p>MTN Mobile Money, Orange Money, Moov Money, Wave, Airtel Money, TMoney, Vodacom M-Pesa, Free Money, Wizall, Expresso et +50 autres opérateurs à travers toute l'Afrique.</p></div></div>
+            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Mes données personnelles sont-elles sécurisées ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Oui, absolument. Toutes les transactions sont cryptées en SSL 256-bit, le même standard que les banques. Vos données ne sont jamais partagées avec des tiers. Nous respectons les réglementations les plus strictes.</p></div></div>
+            <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Comment contacter le support client ?<span class="faq-icon">+</span></button><div class="faq-a"><p>Notre équipe est disponible 24h/24 et 7j/7. Contactez-nous par WhatsApp au <strong>+228 71 33 93 25</strong>, par email à <strong>contact@transafrik.org</strong>, ou via notre compte TikTok @transafrik.org. Nous répondons en moins de 5 minutes.</p></div></div>
         </div>
     </div>
 </section>
 
 <!-- ========== CTA ========== -->
 <section class="cta-section reveal-scale" id="cta">
-    <h2>Prêt à envoyer de l'argent ?</h2>
-    <p>Rejoignez les milliers d'Africains qui font confiance à TransAfrik. Transferts rapides, sécurisés et transparents.</p>
-    <a href="#" class="btn btn-white">Commencer maintenant →</a>
+    <h2>Prêt à envoyer de l'argent ? 🚀</h2>
+    <p>Rejoignez les milliers d'Africains qui font confiance à TransAfrik. Transferts rapides, sécurisés et transparents. Inscrivez-vous gratuitement en 30 secondes.</p>
+    <a href="/register" class="btn btn-white">Commencer maintenant →</a>
 </section>
 
 <!-- ========== FOOTER ========== -->
@@ -737,54 +805,240 @@
         <div class="footer-grid">
             <div class="footer-brand">
                 <div class="logo-container">
-                    <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" width="36" height="36" style="border-radius:10px;flex-shrink:0">
-                    <span class="logo-text" style="font-size:18px">TransAfrik</span>
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="TransAfrik" width="40" height="40" style="border-radius:11px;flex-shrink:0">
+                    <span class="logo-text" style="font-size:19px">TransAfrik</span>
                 </div>
-                <p style="margin-top:8px">La solution de transfert d'argent<br>100% africaine.</p>
+                <p style="margin-top:12px">La solution de transfert d'argent<br>100% africaine. Rapide, sécurisé,<br>et transparent.</p>
             </div>
-            <div><h5>Produit</h5><ul><li><a href="#how">Fonctionnement</a></li><li><a href="#ops">Opérateurs</a></li><li><a href="#demo">Démonstration</a></li><li><a href="#faq">FAQ</a></li></ul></div>
-            <div><h5>Entreprise</h5><ul><li><a href="#">À propos</a></li><li><a href="#">Contact</a></li><li><a href="#">Carrières</a></li><li><a href="#">Blog</a></li></ul></div>
-            <div><h5>Légal</h5><ul><li><a href="#">Confidentialité</a></li><li><a href="#">Conditions d'utilisation</a></li><li><a href="#">Mentions légales</a></li></ul></div>
-            <div><h5>Suivez-nous</h5><div class="footer-social" style="display:flex;gap:8px;margin-top:8px"><a href="#">𝕏</a><a href="#">in</a><a href="#">f</a><a href="#">📷</a></div></div>
+            <div>
+                <h5>Produit</h5>
+                <ul>
+                    <li><a href="#how">Fonctionnement</a></li>
+                    <li><a href="#ops">Opérateurs</a></li>
+                    <li><a href="#demo">Démonstration</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="{{ url_for('fees_calculator') if 'fees_calculator' in url_for.__self__ else '#' }}">Calculateur de frais</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>Entreprise</h5>
+                <ul>
+                    <li><a href="{{ url_for('about') if 'about' in url_for.__self__ else '#' }}">À propos</a></li>
+                    <li><a href="{{ url_for('blog') if 'blog' in url_for.__self__ else '#' }}">Blog</a></li>
+                    <li><a href="{{ url_for('careers') if 'careers' in url_for.__self__ else '#' }}">Carrières</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>Légal</h5>
+                <ul>
+                    <li><a href="{{ url_for('privacy') if 'privacy' in url_for.__self__ else '#' }}">Confidentialité</a></li>
+                    <li><a href="{{ url_for('terms') if 'terms' in url_for.__self__ else '#' }}">Conditions</a></li>
+                    <li><a href="{{ url_for('legal') if 'legal' in url_for.__self__ else '#' }}">Mentions légales</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>📞 Contact</h5>
+                <div class="footer-contact-info">
+                    <a href="https://wa.me/22871339325" target="_blank" rel="noopener" class="footer-contact-item whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>+228 71 33 93 25</span>
+                    </a>
+                    <a href="mailto:contact@transafrik.org" class="footer-contact-item">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>contact@transafrik.org</span>
+                    </a>
+                    <a href="https://www.tiktok.com/@transafrik.org?_r=1&_t=ZS-98LoY4Br3Kf" target="_blank" rel="noopener" class="footer-contact-item tiktok">
+                        <i class="fa-brands fa-tiktok"></i>
+                        <span>@transafrik.org</span>
+                    </a>
+                </div>
+                <div class="footer-social">
+                    <a href="https://www.tiktok.com/@transafrik.org" target="_blank" rel="noopener" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="https://wa.me/22871339325" target="_blank" rel="noopener" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                    <a href="#" title="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+            </div>
         </div>
         <div class="footer-bottom">
             <span>&copy; 2026 TransAfrik. Tous droits réservés.</span>
-<span>Développé par Nina Academy</span>
+            <span class="made-with">Fait avec <span class="heart">❤️</span> par <strong>Nina Academy</strong></span>
         </div>
     </div>
 </footer>
 
+<!-- ========== FLOATING ACTION BUTTONS ========== -->
+<a href="https://wa.me/22871339325" target="_blank" rel="noopener" class="floating-whatsapp" title="Discuter sur WhatsApp" aria-label="WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+</a>
+<button class="scroll-to-top" id="scrollToTop" title="Haut de page" aria-label="Retour en haut">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+
 <script>
 /* ===== NAVBAR SCROLL ===== */
-window.addEventListener('scroll',()=>document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>50));
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+    document.getElementById('scrollToTop').classList.toggle('visible', window.scrollY > 600);
+});
 
 /* ===== THEME TOGGLE ===== */
-const themeToggle=document.getElementById('themeToggle');
-const html=document.documentElement;
-const savedTheme=localStorage.getItem('transafrik-theme')||'light';
-html.setAttribute('data-theme',savedTheme);
-themeToggle.textContent=savedTheme==='dark'?'☀️':'🌙';
-themeToggle.addEventListener('click',()=>{const next=html.getAttribute('data-theme')==='dark'?'light':'dark';html.setAttribute('data-theme',next);localStorage.setItem('transafrik-theme',next);themeToggle.textContent=next==='dark'?'☀️':'🌙'});
+const themeToggle = document.getElementById('themeToggle');
+const html = document.documentElement;
+const savedTheme = localStorage.getItem('transafrik-theme') || 'light';
+html.setAttribute('data-theme', savedTheme);
+themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+themeToggle.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('transafrik-theme', next);
+    themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+});
 
-/* ===== SCROLL REVEAL ===== */
-const revealObserver=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObserver.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale').forEach(el=>revealObserver.observe(el));
+/* ===== SCROLL TO TOP ===== */
+document.getElementById('scrollToTop').addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ===== SCROLL REVEAL (Intersection Observer) ===== */
+const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            revealObserver.unobserve(e.target);
+        }
+    });
+}, { threshold: .1, rootMargin: '0px 0px -50px 0px' });
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale').forEach(el => revealObserver.observe(el));
 
 /* ===== SMOOTH SCROLL ===== */
-document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}));
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', function(e) {
+        e.preventDefault();
+        const t = document.querySelector(this.getAttribute('href'));
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
 
 /* ===== ANIMATED COUNTERS ===== */
-const counterObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){const el=entry.target;const target=parseInt(el.getAttribute('data-count'));const isPercent=el.textContent.includes('%');const isM=el.textContent.includes('M');let current=0;const step=target>50?2:1;const interval=setInterval(()=>{current+=step;if(current>=target){clearInterval(interval);el.textContent=isM?'1M':isPercent?'99,9%':'+'+target}else{el.textContent=isM?current+'M':isPercent?current+'%':'+'+current}},40);counterObserver.unobserve(el)}})},{threshold:.8});
-document.querySelectorAll('.stat-number').forEach(el=>counterObserver.observe(el));
+const counterObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const targetRaw = el.getAttribute('data-count');
+        const target = parseInt(targetRaw);
+        const isPercent = el.textContent.includes('%');
+        const isM = el.textContent.includes('M');
+        let current = 0;
+        const duration = 2000;
+        const startTime = performance.now();
+        function animateCounter(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            current = Math.floor(target * eased);
+            if (isM && current >= 1) {
+                el.textContent = '1M';
+            } else if (isPercent) {
+                el.textContent = '99,9%';
+            } else {
+                el.textContent = '+' + current;
+            }
+            if (progress < 1) requestAnimationFrame(animateCounter);
+        }
+        requestAnimationFrame(animateCounter);
+        counterObserver.unobserve(el);
+    });
+}, { threshold: .6 });
+document.querySelectorAll('.stat-number').forEach(el => counterObserver.observe(el));
 
 /* ===== TESTIMONIALS AUTO SCROLL ===== */
-const slider=document.getElementById('testimonialsSlider');
-if(slider){let scrollPos=0;setInterval(()=>{const cardW=slider.querySelector('.t-card')?.offsetWidth||380;const gap=20;scrollPos+=cardW+gap;if(scrollPos>=slider.scrollWidth-slider.clientWidth)scrollPos=0;slider.scrollTo({left:scrollPos,behavior:'smooth'})},4000)}
+const slider = document.getElementById('testimonialsSlider');
+if (slider) {
+    let scrollPos = 0;
+    let autoScrollInterval;
+    function startAutoScroll() {
+        autoScrollInterval = setInterval(() => {
+            const cardW = slider.querySelector('.t-card')?.offsetWidth + 22 || 422;
+            scrollPos += cardW;
+            if (scrollPos >= slider.scrollWidth - slider.clientWidth + 10) scrollPos = 0;
+            slider.scrollTo({ left: scrollPos, behavior: 'smooth' });
+        }, 4000);
+    }
+    startAutoScroll();
+    slider.addEventListener('mouseenter', () => clearInterval(autoScrollInterval));
+    slider.addEventListener('mouseleave', startAutoScroll);
+    slider.addEventListener('touchstart', () => clearInterval(autoScrollInterval), { passive: true });
+    slider.addEventListener('touchend', () => { scrollPos = slider.scrollLeft; setTimeout(startAutoScroll, 2000); });
+}
 
 /* ===== MOBILE MENU ===== */
-const mobileBtn=document.getElementById('mobileMenuBtn');
-let menuOpen=false;
-mobileBtn.addEventListener('click',()=>{menuOpen=!menuOpen;const links=document.querySelector('.nav-links');if(links){links.style.display=menuOpen?'flex':'none';links.style.flexDirection='column';links.style.position='absolute';links.style.top='100%';links.style.left='0';links.style.right='0';links.style.background='var(--surface)';links.style.padding='20px';links.style.borderBottom='1px solid var(--border)';links.style.boxShadow='var(--shadow-lg)';links.style.zIndex='999'}});
+const mobileBtn = document.getElementById('mobileMenuBtn');
+let menuOpen = false;
+mobileBtn.addEventListener('click', () => {
+    menuOpen = !menuOpen;
+    mobileBtn.classList.toggle('open', menuOpen);
+    const links = document.getElementById('navLinks');
+    if (links) {
+        if (menuOpen) {
+            links.style.display = 'flex';
+            links.style.flexDirection = 'column';
+            links.style.position = 'absolute';
+            links.style.top = '100%';
+            links.style.left = '0';
+            links.style.right = '0';
+            links.style.background = 'var(--surface)';
+            links.style.padding = '24px';
+            links.style.borderBottom = '1px solid var(--border)';
+            links.style.boxShadow = 'var(--shadow-xl)';
+            links.style.zIndex = '999';
+            links.style.gap = '4px';
+            links.style.borderRadius = '0 0 var(--radius-lg) var(--radius-lg)';
+        } else {
+            links.style.display = 'none';
+        }
+    }
+});
+// Close menu when clicking a link
+document.querySelectorAll('#navLinks a').forEach(link => {
+    link.addEventListener('click', () => {
+        if (menuOpen) { menuOpen = false; mobileBtn.classList.remove('open'); document.getElementById('navLinks').style.display = 'none'; }
+    });
+});
+
+/* ===== LANGUAGE SWITCH ===== */
+function switchLang(lang, btn) {
+    document.querySelectorAll('#langDropdown button').forEach(b => { b.classList.remove('active'); b.querySelector('i.fa-check').style.visibility = 'hidden'; });
+    btn.classList.add('active');
+    btn.querySelector('i.fa-check').style.visibility = 'visible';
+    document.getElementById('langDropdown').classList.remove('show');
+    document.getElementById('langBtn').innerHTML = '<i class="fa-solid fa-globe"></i> ' + lang.toUpperCase();
+}
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+    const dd = document.getElementById('langDropdown');
+    const btn = document.getElementById('langBtn');
+    if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+        dd.classList.remove('show');
+    }
+});
+
+/* ===== PARALLAX ON HERO GLOW ON MOUSE MOVE ===== */
+const hero = document.querySelector('.hero');
+if (hero && window.innerWidth > 768) {
+    hero.addEventListener('mousemove', function(e) {
+        const rect = hero.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        const glows = hero.querySelectorAll('.hero-bg-glow');
+        glows.forEach((glow, i) => {
+            const speed = (i + 1) * 40;
+            glow.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+        });
+    });
+}
 </script>
 </body>
 </html>
