@@ -1,26 +1,28 @@
-{% extends "base.html" if base_template_exists else "" %}
-{% block title %}Gestion des Avis — Admin TransAfrik{% endblock %}
-{% block head %}
-{{ super() if super }}
-<style>
-    :root {
-        --primary: #00BF63;
-        --primary-dark: #00994F;
-        --danger: #DC3545;
-        --warning: #FFC107;
-        --star: #FFD700;
-        --bg: #F5F7FA;
-        --card: #FFFFFF;
-        --text: #1A1A2E;
-        --text-muted: #6B7280;
-        --border: #E5E7EB;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-    }
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Avis — Admin TransAfrik</title>
+    <style>
+        :root {
+            --primary: #00BF63;
+            --primary-dark: #00994F;
+            --danger: #DC3545;
+            --warning: #FFC107;
+            --star: #FFD700;
+            --bg: #F5F7FA;
+            --card: #FFFFFF;
+            --text: #1A1A2E;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
     .admin-header {
         background: var(--card);
         border-bottom: 2px solid var(--primary);
@@ -291,9 +293,9 @@
         .review-actions { flex-direction: column; }
         .review-actions .btn { width: 100%; text-align: center; }
     }
-</style>
-{% endblock %}
-{% block content %}
+    </style>
+</head>
+<body>
 <div class="admin-header">
     <div>
         <h1><span class="icon">⭐</span> Gestion des Avis Clients</h1>
@@ -419,6 +421,7 @@
                 {% if search %}<p>Essayez de modifier votre recherche.</p>{% endif %}
             </div>
         {% endif %}
-    </div>
 </div>
-{% endblock %}
+</div>
+</body>
+</html>
