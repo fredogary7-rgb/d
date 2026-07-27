@@ -737,43 +737,196 @@
     </div>
 </section>
 
-<!-- ========== TESTIMONIALS ========== -->
+<!-- ========== AVIS CLIENTS ========== -->
 <section class="section" id="testimonials">
     <div class="container">
         <div class="section-header reveal">
-            <span class="section-label label-gold">⭐ Témoignages</span>
+            <span class="section-label label-gold">⭐ Avis Clients</span>
             <h2>Ils nous font <span class="gradient-text">confiance</span></h2>
             <p>Des milliers d'Africains utilisent TransAfrik chaque jour pour leurs transferts.</p>
+            {% if avg_rating > 0 %}
+            <div class="review-stats" style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+                <span class="review-avg" style="font-size:28px;font-weight:800;color:var(--gold)">★ {{ avg_rating }}</span>
+                <span style="color:var(--text-3)">/ 5</span>
+                <span style="color:var(--text-3)">·</span>
+                <span style="font-weight:600;color:var(--text)">{{ total_reviews }} avis</span>
+            </div>
+            {% endif %}
         </div>
+        {% if approved_reviews %}
         <div class="testimonials-slider reveal" id="testimonialsSlider">
+            {% for r in approved_reviews %}
             <div class="t-card">
-                <div class="t-stars">★★★★★</div>
-                <p class="t-text">"TransAfrik a changé ma vie. J'envoie de l'argent à ma famille au Cameroun en quelques secondes. Les frais sont vraiment bas et le service est impeccable !"</p>
-                <div class="t-author"><div class="t-avatar">AK</div><div><div class="t-name">Awa Koné</div><div class="t-loc">🇨🇮 Abidjan, Côte d'Ivoire</div></div></div>
+                <div class="t-stars">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</div>
+                {% if r.title %}<div class="t-title" style="font-weight:700;margin-bottom:4px;color:var(--text)">{{ r.title }}</div>{% endif %}
+                <p class="t-text">« {{ r.comment }} »</p>
+                <div class="t-author">
+                    {% set initials = (r.user.fullname or 'UT')[:2].upper() %}
+                    <div class="t-avatar">{{ initials }}</div>
+                    <div>
+                        <div class="t-name">{{ r.user.fullname|e or 'Utilisateur' }}</div>
+                        <div class="t-loc">{{ r.country or '' }} {% if r.verified %}<span title="Client vérifié" style="color:var(--green)">✓</span>{% endif %}</div>
+                    </div>
+                </div>
             </div>
-            <div class="t-card">
-                <div class="t-stars">★★★★★</div>
-                <p class="t-text">"Service impeccable. J'ai envoyé 200 000 XOF au Burkina Faso, arrivé immédiatement. L'interface est magnifique et très intuitive."</p>
-                <div class="t-author"><div class="t-avatar" style="background:linear-gradient(135deg,var(--green),var(--blue))">MO</div><div><div class="t-name">Moussa Ouédraogo</div><div class="t-loc">🇧🇫 Ouagadougou, Burkina Faso</div></div></div>
-            </div>
-            <div class="t-card">
-                <div class="t-stars">★★★★★</div>
-                <p class="t-text">"Enfin une solution africaine fiable et pas chère. L'interface est digne des plus grandes apps européennes. Bravo à toute l'équipe !"</p>
-                <div class="t-author"><div class="t-avatar" style="background:linear-gradient(135deg,var(--orange),var(--purple))">FT</div><div><div class="t-name">Fatou Touré</div><div class="t-loc">🇨🇲 Douala, Cameroun</div></div></div>
-            </div>
-            <div class="t-card">
-                <div class="t-stars">★★★★★</div>
-                <p class="t-text">"Je transfère de l'argent vers le Bénin chaque semaine. TransAfrik est de loin le plus rapide et le moins cher que j'ai utilisé."</p>
-                <div class="t-author"><div class="t-avatar" style="background:linear-gradient(135deg,var(--purple),var(--pink))">KD</div><div><div class="t-name">Koffi Danho</div><div class="t-loc">🇨🇮 Yamoussoukro, Côte d'Ivoire</div></div></div>
-            </div>
-            <div class="t-card">
-                <div class="t-stars">★★★★★</div>
-                <p class="t-text">"Support client réactif, interface intuitive. J'ai recommandé TransAfrik à tous mes amis commerçants. Vraiment top !"</p>
-                <div class="t-author"><div class="t-avatar">SD</div><div><div class="t-name">Sophie Dossou</div><div class="t-loc">🇧🇯 Cotonou, Bénin</div></div></div>
-            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="testimonials-slider reveal" id="testimonialsSlider">
+            <div class="t-card"><div class="t-stars">★★★★★</div><p class="t-text">« TransAfrik a changé ma vie. J'envoie de l'argent à ma famille au Cameroun en quelques secondes. »</p><div class="t-author"><div class="t-avatar">AK</div><div><div class="t-name">Awa Koné</div><div class="t-loc">🇨🇮 Abidjan, Côte d'Ivoire</div></div></div></div>
+            <div class="t-card"><div class="t-stars">★★★★★</div><p class="t-text">« Service impeccable. L'interface est magnifique et très intuitive. »</p><div class="t-author"><div class="t-avatar">MO</div><div><div class="t-name">Moussa Ouédraogo</div><div class="t-loc">🇧🇫 Ouagadougou, Burkina Faso</div></div></div></div>
+            <div class="t-card"><div class="t-stars">★★★★★</div><p class="t-text">« Enfin une solution africaine fiable et pas chère. Bravo à toute l'équipe ! »</p><div class="t-author"><div class="t-avatar">FT</div><div><div class="t-name">Fatou Touré</div><div class="t-loc">🇨🇲 Douala, Cameroun</div></div></div></div>
+        </div>
+        {% endif %}
+
+        <!-- Bouton Donner son avis -->
+        <div style="text-align:center;margin-top:28px" class="reveal">
+            <button class="btn btn-primary" onclick="openReviewModal()" style="padding:14px 32px;font-size:15px;border-radius:50px;cursor:pointer">
+                ✍️ {% if user_has_review %}Modifier mon avis{% else %}Donner mon avis{% endif %}
+            </button>
         </div>
     </div>
 </section>
+
+<!-- MODAL AVIS -->
+<div class="review-modal-overlay" id="reviewModalOverlay">
+    <div class="review-modal" id="reviewModal">
+        <button class="review-modal-close" onclick="closeReviewModal()">✕</button>
+        <h3 style="margin:0 0 6px;font-size:22px">{% if user_has_review %}Modifier mon avis{% else %}Laisser un avis{% endif %}</h3>
+        <p style="color:var(--text-3);font-size:14px;margin:0 0 20px">Partagez votre expérience avec TransAfrik</p>
+        <form id="reviewForm" onsubmit="submitReview(event)">
+            <div class="star-rating" id="starRating">
+                {% for i in range(1,6) %}
+                <span class="star" data-value="{{ i }}" onclick="setRating({{ i }})" onmouseover="hoverStars({{ i }})">☆</span>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="rating" id="reviewRating" value="0">
+            <div style="margin-bottom:12px">
+                <input type="text" name="title" id="reviewTitle" placeholder="Titre (optionnel)" maxlength="120" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--surface-hover)">
+            </div>
+            <div style="margin-bottom:16px">
+                <textarea name="comment" id="reviewComment" rows="4" placeholder="Votre avis..." maxlength="1000" required style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;resize:vertical;background:var(--surface-hover)"></textarea>
+                <small style="color:var(--text-3)">Minimum 20 caractères</small>
+            </div>
+            {% if current_user.is_authenticated %}
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;border-radius:50px;font-size:15px">Envoyer mon avis</button>
+            {% else %}
+            <p style="text-align:center;margin:0">
+                <a href="{{ url_for('login') }}" style="color:var(--blue);font-weight:600">Connectez-vous</a> pour laisser un avis.
+            </p>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Styles Avis -->
+<style>
+.review-modal-overlay {
+    display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);
+    z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+}
+.review-modal-overlay.show {display:flex}
+.review-modal {
+    background:var(--surface);border-radius:var(--radius-lg);padding:28px 24px;
+    max-width:480px;width:90%;position:relative;box-shadow:var(--shadow-xl);
+    animation:modalIn .35s var(--ease-out-expo);
+}
+@keyframes modalIn {from{opacity:0;transform:scale(.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.review-modal-close {
+    position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;
+    color:var(--text-3);cursor:pointer;padding:4px 8px;border-radius:8px;
+}
+.review-modal-close:hover {background:var(--surface-hover);color:var(--text)}
+.star-rating {display:flex;justify-content:center;gap:8px;margin-bottom:16px;font-size:36px;user-select:none}
+.star-rating .star {cursor:pointer;color:#d1d5db;transition:transform .2s,color .15s}
+.star-rating .star.active {color:#F59E0B}
+.star-rating .star:hover {transform:scale(1.2)}
+#reviewForm .btn-primary {background:var(--blue);color:#fff;border:none;font-weight:700;letter-spacing:.3px}
+#reviewForm .btn-primary:hover {background:var(--blue-dark)}
+.t-title {font-weight:700;margin-bottom:4px;color:var(--text)}
+</style>
+
+<!-- JS Avis -->
+<script>
+let currentRating = 0;
+
+function hoverStars(n) {
+    document.querySelectorAll('#starRating .star').forEach((s, i) => {
+        s.textContent = i < n ? '★' : '☆';
+        if (i < n) s.classList.add('active'); else s.classList.remove('active');
+    });
+}
+
+function setRating(n) {
+    currentRating = n;
+    document.getElementById('reviewRating').value = n;
+    document.querySelectorAll('#starRating .star').forEach((s, i) => {
+        s.textContent = i < n ? '★' : '☆';
+        if (i < n) s.classList.add('active'); else s.classList.remove('active');
+    });
+}
+
+function openReviewModal() {
+    {% if not current_user.is_authenticated %}
+    window.location.href = '{{ url_for("login") }}';
+    return;
+    {% endif %}
+    document.getElementById('reviewModalOverlay').classList.add('show');
+    // Charger l'avis existant
+    fetch('/api/reviews/my').then(r => r.json()).then(d => {
+        if (d.success && d.review) {
+            const rv = d.review;
+            setRating(rv.rating);
+            document.getElementById('reviewTitle').value = rv.title || '';
+            document.getElementById('reviewComment').value = rv.comment || '';
+        }
+    });
+}
+
+function closeReviewModal() {
+    document.getElementById('reviewModalOverlay').classList.remove('show');
+}
+
+document.getElementById('reviewModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeReviewModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeReviewModal();
+});
+
+async function submitReview(e) {
+    e.preventDefault();
+    const rating = parseInt(document.getElementById('reviewRating').value);
+    const title = document.getElementById('reviewTitle').value.trim();
+    const comment = document.getElementById('reviewComment').value.trim();
+
+    if (!rating || rating < 1 || rating > 5) { alert('Veuillez sélectionner une note.'); return; }
+    if (comment.length < 20) { alert('Le commentaire doit faire au moins 20 caractères.'); return; }
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Envoi...';
+
+    try {
+        const res = await fetch('/api/reviews', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({rating, title, comment})
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(data.message);
+            closeReviewModal();
+            location.reload();
+        } else {
+            alert(data.message || 'Erreur.');
+        }
+    } catch(err) {
+        alert('Erreur réseau.');
+    }
+    btn.disabled = false; btn.textContent = 'Envoyer mon avis';
+}
+</script>
 
 <!-- ========== FAQ ========== -->
 <section class="section" style="background:var(--surface-hover)" id="faq">

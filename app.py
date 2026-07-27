@@ -143,7 +143,147 @@ def service_worker():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    """Page d'accueil avec avis clients validés."""
+    from models import Review
+
+    approved_reviews = Review.query.filter_by(approved=True).order_by(Review.created_at.desc()).limit(10).all()
+    total_reviews = Review.query.filter_by(approved=True).count()
+    avg_rating = db.session.query(db.func.coalesce(db.func.avg(Review.rating), 0)).filter(
+        Review.approved == True
+    ).scalar()
+    avg_rating = round(float(avg_rating), 1)
+
+    user_has_review = False
+    if current_user.is_authenticated:
+        user_has_review = Review.query.filter_by(user_id=current_user.id).first() is not None
+
+    # JSON-LD Structured Data pour les avis (AggregateRating)
+    reviews_structured_data = None
+    if total_reviews > 0 and avg_rating > 0:
+        reviews_structured_data = {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "TransAfrik",
+            "url": "https://transafrik.org",
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": avg_rating,
+                "bestRating": "5",
+                "reviewCount": total_reviews,
+            }
+        }
+
+    return render_template(
+        'index.html',
+        approved_reviews=approved_reviews,
+        total_reviews=total_reviews,
+        avg_rating=avg_rating,
+        user_has_review=user_has_review,
+        reviews_structured_data=reviews_structured_data,
+    )
+
+
+# ==================== AVIS CLIENTS ====================
+@app.route('/api/reviews', methods=['GET'])
+def api_get_reviews():
+    """Récupère les avis validés (pagination)."""
+    from models import Review
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = Review.query.filter_by(approved=True).order_by(Review.created_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    return jsonify({
+        'success': True,
+        'reviews': [r.to_dict() for r in pagination.items],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page,
+        'has_next': pagination.has_next,
+    })
+
+
+@app.route('/api/reviews', methods=['POST'])
+@login_required
+def api_submit_review():
+    """Soumet ou modifie un avis client."""
+    from models import Review, Transfer, Deposit, Withdrawal
+    import re
+    import html
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'Données requises.'}), 400
+
+    rating = data.get('rating')
+    title = (data.get('title') or '').strip()
+    comment = (data.get('comment') or '').strip()
+
+    # Validation
+    if not isinstance(rating, int) or rating < 1 or rating > 5:
+        return jsonify({'success': False, 'message': 'La note doit être entre 1 et 5.'}), 400
+    if len(comment) < 20 or len(comment) > 1000:
+        return jsonify({'success': False, 'message': 'Le commentaire doit faire entre 20 et 1000 caractères.'}), 400
+
+    # Nettoyage anti-XSS
+    title = html.escape(title)
+    comment = html.escape(comment)
+    # Supprimer les URLs
+    comment = re.sub(r'https?://\S+', '[lien supprimé]', comment)
+    title = re.sub(r'https?://\S+', '[lien supprimé]', title)
+
+    # Vérification client vérifié (au moins 1 transfert, dépôt ou retrait)
+    has_transfer = Transfer.query.filter_by(sender_user_id=current_user.id, status='COMPLETED').first()
+    has_deposit = Deposit.query.filter_by(user_id=current_user.id, status='COMPLETED').first()
+    has_withdrawal = Withdrawal.query.filter_by(user_id=current_user.id, status='COMPLETED').first()
+    verified = bool(has_transfer or has_deposit or has_withdrawal)
+
+    # Un seul avis par utilisateur (modifiable)
+    existing = Review.query.filter_by(user_id=current_user.id).first()
+    if existing:
+        existing.rating = rating
+        existing.title = title if title else None
+        existing.comment = comment
+        existing.country = current_user.country
+        existing.verified = verified
+        existing.approved = False  # à re-valider par admin
+        existing.updated_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Votre avis a été mis à jour et sera révisé par notre équipe.',
+            'review': existing.to_dict(),
+            'is_update': True,
+        })
+
+    review = Review(
+        user_id=current_user.id,
+        rating=rating,
+        title=title if title else None,
+        comment=comment,
+        country=current_user.country,
+        verified=verified,
+        approved=False,
+    )
+    db.session.add(review)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Merci ! Votre avis sera publié après validation.',
+        'review': review.to_dict(),
+        'is_update': False,
+    })
+
+
+@app.route('/api/reviews/my', methods=['GET'])
+@login_required
+def api_get_my_review():
+    """Récupère l'avis de l'utilisateur connecté."""
+    from models import Review
+    review = Review.query.filter_by(user_id=current_user.id).first()
+    if not review:
+        return jsonify({'success': True, 'review': None})
+    return jsonify({'success': True, 'review': review.to_dict()})
 
 # --- Pages statiques publiques ---
 @app.route('/about')

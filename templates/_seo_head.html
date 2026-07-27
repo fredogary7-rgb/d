@@ -40,6 +40,13 @@
 </script>
 {% endif %}
 
+{# ── JSON-LD Reviews / AggregateRating (Avis Clients) ── #}
+{% if reviews_structured_data %}
+<script type="application/ld+json">
+{{ reviews_structured_data | tojson | safe }}
+</script>
+{% endif %}
+
 {# ── Préchargement des polices pour performance ── #}
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

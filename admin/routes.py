@@ -11,7 +11,7 @@ from sqlalchemy import func
 
 from admin import admin_bp
 from admin.models import AdminLog, AdminUser, PlatformNotification, SystemConfig, UserNotification
-from models import (Beneficiary, Notification, PaymentRequest, SupportMessage, SupportTicket,
+from models import (Beneficiary, Notification, PaymentRequest, Review, SupportMessage, SupportTicket,
                     Transaction, TransactionReceive, User, PushSubscription, db)
 from services.push_service import send_push_to_user
 
@@ -1370,6 +1370,154 @@ def api_payment_requests():
     return jsonify({
         'success': True,
         'items': items,
+        'page': pagination.page,
+        'pages': pagination.pages,
+        'total': pagination.total,
+        'has_next': pagination.has_next,
+        'has_prev': pagination.has_prev,
+    })
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# REVIEWS / AVIS CLIENTS — Admin
+# ══════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/reviews')
+@admin_required
+def reviews():
+    """Page listant tous les avis clients."""
+    admin = get_admin()
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
+    approved_filter = request.args.get('approved', '')
+    search = request.args.get('search', '').strip()
+
+    query = Review.query
+
+    if approved_filter == 'approved':
+        query = query.filter_by(approved=True)
+    elif approved_filter == 'pending':
+        query = query.filter_by(approved=False)
+    if search:
+        query = query.join(User).filter(
+            db.or_(
+                User.fullname.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%'),
+                Review.comment.ilike(f'%{search}%'),
+                Review.title.ilike(f'%{search}%'),
+            )
+        )
+
+    reviews_paginated = query.order_by(Review.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    # Stats
+    total_reviews = Review.query.count()
+    approved_count = Review.query.filter_by(approved=True).count()
+    pending_count = Review.query.filter_by(approved=False).count()
+    verified_count = Review.query.filter_by(verified=True, approved=True).count()
+    avg_rating = db.session.query(func.coalesce(func.avg(Review.rating), 0)).filter(
+        Review.approved == True
+    ).scalar()
+    avg_rating = round(float(avg_rating), 1)
+
+    return render_template(
+        'admin_reviews.html',
+        page='reviews',
+        reviews=reviews_paginated,
+        total_reviews=total_reviews,
+        approved_count=approved_count,
+        pending_count=pending_count,
+        verified_count=verified_count,
+        avg_rating=avg_rating,
+        approved_filter=approved_filter,
+        search=search,
+    )
+
+
+@admin_bp.route('/reviews/<int:review_id>/approve', methods=['POST'])
+@admin_required
+def reviews_approve(review_id):
+    """Approuve un avis pour affichage public."""
+    admin = get_admin()
+    review = Review.query.get_or_404(review_id)
+    review.approved = True
+    review.updated_at = datetime.utcnow()
+    log_action(admin, 'review_approve', 'review', review.id, {
+        'rating': review.rating,
+        'user_id': review.user_id,
+    })
+    db.session.commit()
+    flash(f'Avis #{review.id} approuvé avec succès.', 'success')
+    return redirect(url_for('admin.reviews'))
+
+
+@admin_bp.route('/reviews/<int:review_id>/reject', methods=['POST'])
+@admin_required
+def reviews_reject(review_id):
+    """Rejette/Désapprouve un avis (le masque du site)."""
+    admin = get_admin()
+    review = Review.query.get_or_404(review_id)
+    review.approved = False
+    review.updated_at = datetime.utcnow()
+    log_action(admin, 'review_reject', 'review', review.id, {
+        'rating': review.rating,
+        'user_id': review.user_id,
+    })
+    db.session.commit()
+    flash(f'Avis #{review.id} désapprouvé.', 'warning')
+    return redirect(url_for('admin.reviews'))
+
+
+@admin_bp.route('/reviews/<int:review_id>/delete', methods=['POST'])
+@admin_required
+def reviews_delete(review_id):
+    """Supprime définitivement un avis."""
+    admin = get_admin()
+    review = Review.query.get_or_404(review_id)
+    user_id = review.user_id
+    log_action(admin, 'review_delete', 'review', review.id, {
+        'rating': review.rating,
+        'user_id': review.user_id,
+        'comment': (review.comment or '')[:200],
+    })
+    db.session.delete(review)
+    db.session.commit()
+    flash('Avis supprimé définitivement.', 'info')
+    return redirect(url_for('admin.reviews'))
+
+
+@admin_bp.route('/api/reviews')
+@admin_required
+def api_reviews():
+    """JSON: liste paginée des avis."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    approved = request.args.get('approved', '')
+    search = request.args.get('search', '').strip()
+
+    query = Review.query
+
+    if approved == 'approved':
+        query = query.filter_by(approved=True)
+    elif approved == 'pending':
+        query = query.filter_by(approved=False)
+    if search:
+        query = query.join(User).filter(
+            db.or_(
+                User.fullname.ilike(f'%{search}%'),
+                Review.comment.ilike(f'%{search}%'),
+            )
+        )
+
+    pagination = query.order_by(Review.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    return jsonify({
+        'success': True,
+        'reviews': [r.to_dict() for r in pagination.items],
         'page': pagination.page,
         'pages': pagination.pages,
         'total': pagination.total,

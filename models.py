@@ -1002,3 +1002,91 @@ class Withdrawal(db.Model):
 
     def __repr__(self):
         return f'<Withdrawal {self.reference} {self.status} {self.amount} {self.currency}>'
+
+
+class Review(db.Model):
+    """Avis client TransAfrik — affichés sur la page d'accueil et indexés par Google (Schema.org)."""
+
+    __tablename__ = 'reviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    rating = db.Column(db.Integer, nullable=False)                # 1 à 5 étoiles
+    title = db.Column(db.String(255), nullable=True)
+    comment = db.Column(db.Text, nullable=False)
+    country = db.Column(db.String(5), nullable=True)
+    verified = db.Column(db.Boolean, default=False, index=True)   # client vérifié (a une transaction)
+    approved = db.Column(db.Boolean, default=False, index=True)   # validé par admin
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relation
+    user = db.relationship('User', backref=db.backref('reviews', lazy='dynamic'))
+
+    @property
+    def author_name(self):
+        """Prénom + initiale du nom pour affichage public."""
+        if not self.user:
+            return 'Utilisateur'
+        parts = self.user.fullname.strip().split()
+        if len(parts) >= 2:
+            return f'{parts[0]} {parts[-1][0]}.'
+        return self.user.fullname
+
+    @property
+    def author_initials(self):
+        """Initiales pour l'avatar (ex: 'AK')."""
+        if not self.user:
+            return 'U'
+        parts = self.user.fullname.strip().split()
+        if len(parts) >= 2:
+            return f'{parts[0][0]}{parts[-1][0]}'.upper()
+        return parts[0][:2].upper() if parts else 'U'
+
+    @property
+    def author_country(self):
+        """Pays de l'auteur (code -> nom)."""
+        country_map = {
+            'TG': 'Togo', 'BJ': 'Bénin', 'CM': 'Cameroun', 'CI': "Côte d'Ivoire",
+            'BF': 'Burkina Faso', 'CG': 'Congo', 'CD': 'RD Congo', 'GA': 'Gabon',
+            'UG': 'Ouganda', 'ZM': 'Zambie', 'SN': 'Sénégal',
+        }
+        return country_map.get(self.country, self.country or 'Afrique')
+
+    @property
+    def author_flag(self):
+        """Drapeau du pays."""
+        flag_map = {
+            'TG': '🇹🇬', 'BJ': '🇧🇯', 'CM': '🇨🇲', 'CI': '🇨🇮',
+            'BF': '🇧🇫', 'CG': '🇨🇬', 'CD': '🇨🇩', 'GA': '🇬🇦',
+            'UG': '🇺🇬', 'ZM': '🇿🇲', 'SN': '🇸🇳',
+        }
+        return flag_map.get(self.country, '🌍')
+
+    @property
+    def stars_html(self):
+        """Génère le HTML des étoiles (★ pleines et ☆ vides)."""
+        return '★' * self.rating + '☆' * (5 - self.rating)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'author_name': self.author_name,
+            'author_initials': self.author_initials,
+            'author_country': self.author_country,
+            'author_flag': self.author_flag,
+            'rating': self.rating,
+            'stars_html': self.stars_html,
+            'title': self.title,
+            'comment': self.comment,
+            'verified': self.verified,
+            'approved': self.approved,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    def __repr__(self):
+        return f'<Review {self.id} user={self.user_id} rating={self.rating} approved={self.approved}>'
+
+

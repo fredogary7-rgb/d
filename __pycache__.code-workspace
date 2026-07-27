@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "__pycache__"
+		},
+		{
+			"path": "admin"
+		},
+		{
+			"path": "config"
+		},
+		{
+			"path": "logs"
+		},
+		{
+			"path": "services"
+		},
+		{
+			"path": "static"
+		},
+		{
+			"path": "templates"
+		},
+		{
+			"path": "uploads"
+		}
+	]
+}
