@@ -121,6 +121,19 @@
     <a href="/send-money" class="btno">
         <i class="fa-solid fa-plus"></i> Nouveau transfert
     </a>
+
+    <!-- Invitation à laisser un avis après succès -->
+    <div id="reviewInvite" style="display:none; margin-top:20px; background:linear-gradient(135deg,#FEF3C7,#FFF8E1); border:1.5px solid #FFD700; border-radius:var(--radius-lg); padding:18px 20px; text-align:center">
+        <p style="font-weight:700; font-size:14px; color:#92400E; margin-bottom:10px;">
+            ⭐ Votre transfert est terminé avec succès !
+        </p>
+        <p style="font-size:13px; color:#A16207; margin-bottom:14px;">
+            Souhaitez-vous partager votre expérience ?
+        </p>
+        <a href="/" class="btno" style="display:inline-flex; width:auto; padding:10px 24px; background:linear-gradient(135deg,#FFD700,#FFC107); color:#7C2D12; font-weight:700; border:none; box-shadow:0 4px 14px rgba(255,193,7,.35); text-decoration:none;">
+            <i class="fa-solid fa-star"></i> Laisser un avis
+        </a>
+    </div>
 </div>
 
 <script>
@@ -183,6 +196,9 @@ function updateUI(status) {
         if (title) title.textContent = 'Transfert réussi !';
         if (sub) sub.innerHTML = 'Le bénéficiaire a reçu l\'argent.<br><strong>Merci d\'utiliser TransAfrik !</strong>';
         if (dashBtn) dashBtn.style.display = 'flex';
+        // Afficher l'invitation à laisser un avis
+        let reviewInvite = $('reviewInvite');
+        if (reviewInvite) reviewInvite.style.display = 'block';
     } else if (isFailed) {
         if (icon) { icon.className = 'icon-wrap red'; icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>'; }
         if (title) title.textContent = 'Transfert échoué';
