@@ -209,6 +209,9 @@
         .op-card:hover::after{transform:scaleX(1)}
         .op-card .op-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-weight:800;font-size:16px;color:#fff;transition:transform .3s}
         .op-card:hover .op-icon{transform:scale(1.12) rotate(-5deg)}
+        .op-logo-img{width:120px;height:48px;border-radius:10px;display:block;margin:0 auto 14px;object-fit:contain;transition:transform .3s}
+        .op-card:hover .op-logo-img{transform:scale(1.08)}
+        .ops-grid-logos .op-card{padding:22px 16px}
         .op-icon-mtn{background:linear-gradient(135deg,#FFCC00,#FF9900)}.op-icon-orange{background:linear-gradient(135deg,#FF6600,#FF3300)}
         .op-icon-moov{background:linear-gradient(135deg,#00A3E0,#006699)}.op-icon-wave{background:linear-gradient(135deg,#1E90FF,#0055CC)}
         .op-icon-airtel{background:linear-gradient(135deg,#EE0000,#BB0000)}.op-icon-tmoney{background:linear-gradient(135deg,#FFD700,#FFB300)}
@@ -711,14 +714,14 @@
             <h2>Compatible avec <span class="gradient-text">tous les opérateurs</span></h2>
             <p>TransAfrik fonctionne avec tous les grands opérateurs Mobile Money en Afrique.</p>
         </div>
-        <div class="ops-grid">
-            <div class="op-card reveal-scale" style="transition-delay:.05s"><div class="op-icon op-icon-tmoney">T</div><div class="op-name">TMoney</div><div class="op-desc">Togo</div></div>
-            <div class="op-card reveal-scale" style="transition-delay:.1s"><div class="op-icon op-icon-moov">M</div><div class="op-name">Moov Money</div><div class="op-desc">Afrique de l'Ouest</div></div>
-            <div class="op-card reveal-scale" style="transition-delay:.15s"><div class="op-icon op-icon-orange">O</div><div class="op-name">Orange Money</div><div class="op-desc">Afrique & Moyen-Orient</div></div>
-            <div class="op-card reveal-scale" style="transition-delay:.2s"><div class="op-icon op-icon-wave">W</div><div class="op-name">Wave</div><div class="op-desc">Afrique francophone</div></div>
-            <div class="op-card reveal-scale" style="transition-delay:.25s"><div class="op-icon op-icon-airtel">A</div><div class="op-name">Airtel Money</div><div class="op-desc">Afrique de l'Est & Centre</div></div>
-            <div class="op-card reveal-scale" style="transition-delay:.3s"><div class="op-icon op-icon-mtn" style="background:linear-gradient(135deg,#FFCC00,#E6A800)">MTN</div><div class="op-name">MTN MoMo</div><div class="op-desc">Panafricain</div></div>
-            <div class="op-card reveal-scale" style="transition-delay:.35s"><div class="op-icon op-icon-voda">V</div><div class="op-name">Vodacom M-Pesa</div><div class="op-desc">Afrique de l'Est</div></div>
+        <div class="ops-grid ops-grid-logos">
+            <div class="op-card reveal-scale" style="transition-delay:.05s"><img src="{{ url_for('static', filename='img/operators/tmoney.svg') }}" alt="TMoney" class="op-logo-img"><div class="op-name">TMoney</div><div class="op-desc">Togo</div></div>
+            <div class="op-card reveal-scale" style="transition-delay:.1s"><img src="{{ url_for('static', filename='img/operators/moov_money.svg') }}" alt="Moov Money" class="op-logo-img"><div class="op-name">Moov Money</div><div class="op-desc">Afrique de l'Ouest</div></div>
+            <div class="op-card reveal-scale" style="transition-delay:.15s"><img src="{{ url_for('static', filename='img/operators/orange_money.svg') }}" alt="Orange Money" class="op-logo-img"><div class="op-name">Orange Money</div><div class="op-desc">Afrique & Moyen-Orient</div></div>
+            <div class="op-card reveal-scale" style="transition-delay:.2s"><img src="{{ url_for('static', filename='img/operators/wave.svg') }}" alt="Wave" class="op-logo-img"><div class="op-name">Wave</div><div class="op-desc">Afrique francophone</div></div>
+            <div class="op-card reveal-scale" style="transition-delay:.25s"><img src="{{ url_for('static', filename='img/operators/airtel_money.svg') }}" alt="Airtel Money" class="op-logo-img"><div class="op-name">Airtel Money</div><div class="op-desc">Afrique de l'Est & Centre</div></div>
+            <div class="op-card reveal-scale" style="transition-delay:.3s"><img src="{{ url_for('static', filename='img/operators/mtn_momo.svg') }}" alt="MTN MoMo" class="op-logo-img"><div class="op-name">MTN MoMo</div><div class="op-desc">Panafricain</div></div>
+            <div class="op-card reveal-scale" style="transition-delay:.35s"><img src="{{ url_for('static', filename='img/operators/vodacom_mpesa.svg') }}" alt="Vodacom M-Pesa" class="op-logo-img"><div class="op-name">Vodacom M-Pesa</div><div class="op-desc">Afrique de l'Est</div></div>
             <div class="op-card reveal-scale" style="transition-delay:.4s"><div class="op-icon op-icon-momo">M</div><div class="op-name">MoMo</div><div class="op-desc">Multi-pays</div></div>
         </div>
     </div>
