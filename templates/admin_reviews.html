@@ -1,0 +1,424 @@
+{% extends "base.html" if base_template_exists else "" %}
+{% block title %}Gestion des Avis — Admin TransAfrik{% endblock %}
+{% block head %}
+{{ super() if super }}
+<style>
+    :root {
+        --primary: #00BF63;
+        --primary-dark: #00994F;
+        --danger: #DC3545;
+        --warning: #FFC107;
+        --star: #FFD700;
+        --bg: #F5F7FA;
+        --card: #FFFFFF;
+        --text: #1A1A2E;
+        --text-muted: #6B7280;
+        --border: #E5E7EB;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+    }
+    .admin-header {
+        background: var(--card);
+        border-bottom: 2px solid var(--primary);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .admin-header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .admin-header h1 .icon { font-size: 1.4rem; }
+    .back-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .back-link:hover { text-decoration: underline; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        border-left: 4px solid var(--primary);
+    }
+    .stat-card.pending { border-left-color: var(--warning); }
+    .stat-card.verified { border-left-color: #3B82F6; }
+    .stat-card.rating { border-left-color: var(--star); }
+    .stat-card .stat-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+    }
+    .stat-card .stat-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    /* Filters */
+    .filters {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filter-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1.5px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .filter-btn.active { background: var(--primary); color: #FFF; border-color: var(--primary); }
+    .search-box {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+    }
+    .search-box input {
+        width: 100%;
+        padding: 8px 12px 8px 36px;
+        border: 1.5px solid var(--border);
+        border-radius: 20px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .search-box input:focus { border-color: var(--primary); }
+    .search-box .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    /* Review Cards */
+    .reviews-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .review-card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+        transition: box-shadow 0.2s;
+    }
+    .review-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .review-card .review-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    .review-card .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #FFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .review-card .user-info { flex: 1; min-width: 0; }
+    .review-card .user-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text);
+    }
+    .review-card .user-meta {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .stars {
+        color: var(--star);
+        font-size: 1rem;
+        letter-spacing: 2px;
+    }
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .badge-approved { background: #D1FAE5; color: #065F46; }
+    .badge-pending { background: #FEF3C7; color: #92400E; }
+    .badge-verified { background: #DBEAFE; color: #1E40AF; }
+    .badge-not-verified { background: #FEE2E2; color: #991B1B; }
+    .review-comment {
+        color: var(--text);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 10px;
+        word-break: break-word;
+    }
+    .review-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+    }
+    .review-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .btn {
+        padding: 6px 14px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-approve { background: var(--primary); color: #FFF; }
+    .btn-approve:hover { background: var(--primary-dark); }
+    .btn-reject { background: var(--warning); color: #000; }
+    .btn-reject:hover { background: #E5A800; }
+    .btn-delete { background: var(--danger); color: #FFF; }
+    .btn-delete:hover { background: #B91C1C; }
+    .btn-outline {
+        background: transparent;
+        border: 1.5px solid var(--border);
+        color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 24px;
+    }
+    .pagination a, .pagination span {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    .pagination a:hover { border-color: var(--primary); color: var(--primary); }
+    .pagination .current {
+        background: var(--primary);
+        color: #FFF;
+        border-color: var(--primary);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 1rem; }
+
+    /* Flash messages */
+    .flash-msg {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .flash-success { background: #D1FAE5; color: #065F46; }
+    .flash-warning { background: #FEF3C7; color: #92400E; }
+    .flash-info { background: #DBEAFE; color: #1E40AF; }
+    .flash-error { background: #FEE2E2; color: #991B1B; }
+
+    @media (max-width: 600px) {
+        .admin-header { padding: 12px 16px; }
+        .container { padding: 12px; }
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
+        .review-actions { flex-direction: column; }
+        .review-actions .btn { width: 100%; text-align: center; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1><span class="icon">⭐</span> Gestion des Avis Clients</h1>
+        <a href="{{ url_for('admin.dashboard') if url_for('admin.dashboard') else '/admin' }}" class="back-link">← Retour au tableau de bord</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <span class="stat-label">Total Avis</span>
+            <span class="stat-value">{{ total_reviews }}</span>
+        </div>
+        <div class="stat-card rating">
+            <span class="stat-label">Note Moyenne</span>
+            <span class="stat-value">{% if avg_rating > 0 %}{{ avg_rating }} ⭐{% else %}—{% endif %}</span>
+        </div>
+        <div class="stat-card verified">
+            <span class="stat-label">Vérifiés</span>
+            <span class="stat-value">{{ verified_count }}</span>
+        </div>
+        <div class="stat-card pending">
+            <span class="stat-label">En Attente</span>
+            <span class="stat-value">{{ pending_count }}</span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <a href="?approved=all{% if search %}&search={{ search }}{% endif %}" class="filter-btn {{ 'active' if approved_filter == 'all' else '' }}">Tous</a>
+        <a href="?approved=approved{% if search %}&search={{ search }}{% endif %}" class="filter-btn {{ 'active' if approved_filter == 'approved' else '' }}">✅ Approuvés</a>
+        <a href="?approved=pending{% if search %}&search={{ search }}{% endif %}" class="filter-btn {{ 'active' if approved_filter == 'pending' else '' }}">⏳ En attente</a>
+        <form class="search-box" method="GET" style="display:flex; gap:8px; align-items:center;">
+            <input type="hidden" name="approved" value="{{ approved_filter }}">
+            <input type="text" name="search" placeholder="Rechercher un avis..." value="{{ search or '' }}">
+            <button type="submit" class="btn btn-outline" style="flex-shrink:0;">Rechercher</button>
+            {% if search %}<a href="?approved={{ approved_filter }}" class="btn btn-outline" style="flex-shrink:0;">✕</a>{% endif %}
+        </form>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="reviews-list">
+        {% if reviews and reviews.items %}
+            {% for review in reviews.items %}
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="avatar">{{ review.user.fullname[:1] | upper if review.user and review.user.fullname else '?' }}</div>
+                    <div class="user-info">
+                        <div class="user-name">
+                            {{ review.user.fullname if review.user and review.user.fullname else 'Anonyme' }}
+                            <span class="stars">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <span class="badge {{ 'badge-verified' if review.verified else 'badge-not-verified' }}">
+                                {{ '✓ Vérifié' if review.verified else 'Non vérifié' }}
+                            </span>
+                        </div>
+                        <div class="user-meta">
+                            <span>ID: {{ review.id }}</span>
+                            <span>{{ review.user.email if review.user else '' }}</span>
+                            <span>{{ review.country or '' }}</span>
+                            <span>{{ review.created_at.strftime('%d/%m/%Y %H:%M') if review.created_at else '' }}</span>
+                            <span class="badge {{ 'badge-approved' if review.approved else 'badge-pending' }}">
+                                {{ 'Approuvé' if review.approved else 'En attente' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% if review.title %}<div class="review-title">{{ review.title }}</div>{% endif %}
+                <div class="review-comment">{{ review.comment }}</div>
+                <div class="review-actions">
+                    {% if not review.approved %}
+                    <form method="POST" action="{{ url_for('admin.reviews_approve', review_id=review.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-approve" onclick="return confirm('Approuver cet avis ?')">✅ Approuver</button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('admin.reviews_reject', review_id=review.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-reject" onclick="return confirm('Désapprouver cet avis ?')">⏸️ Désapprouver</button>
+                    </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('admin.reviews_delete', review_id=review.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-delete" onclick="return confirm('⚠️ Supprimer DÉFINITIVEMENT cet avis ?')">🗑️ Supprimer</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if reviews.pages > 1 %}
+            <div class="pagination">
+                {% if reviews.has_prev %}
+                <a href="?approved={{ approved_filter }}&page={{ reviews.prev_num }}{% if search %}&search={{ search }}{% endif %}">← Précédent</a>
+                {% endif %}
+                {% for p in range(1, reviews.pages + 1) %}
+                    {% if p == reviews.page %}
+                    <span class="current">{{ p }}</span>
+                    {% else %}
+                    <a href="?approved={{ approved_filter }}&page={{ p }}{% if search %}&search={{ search }}{% endif %}">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if reviews.has_next %}
+                <a href="?approved={{ approved_filter }}&page={{ reviews.next_num }}{% if search %}&search={{ search }}{% endif %}">Suivant →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <p>Aucun avis trouvé.</p>
+                {% if search %}<p>Essayez de modifier votre recherche.</p>{% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
