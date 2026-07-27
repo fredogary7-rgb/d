@@ -143,15 +143,28 @@ def service_worker():
 
 @app.route('/')
 def index():
-    """Page d'accueil avec avis clients validés."""
+    """Page d'accueil avec avis clients validés — optimisé (1 seule requête agrégée + eager loading)."""
     from models import Review
+    from sqlalchemy.orm import joinedload
 
-    approved_reviews = Review.query.filter_by(approved=True).order_by(Review.created_at.desc()).limit(10).all()
-    total_reviews = Review.query.filter_by(approved=True).count()
-    avg_rating = db.session.query(db.func.coalesce(db.func.avg(Review.rating), 0)).filter(
-        Review.approved == True
-    ).scalar()
-    avg_rating = round(float(avg_rating), 1)
+    # 1 requête groupée : total_reviews + avg_rating
+    stats = db.session.query(
+        db.func.count(Review.id).label('total'),
+        db.func.coalesce(db.func.avg(Review.rating), 0).label('avg')
+    ).filter(Review.approved == True).first()
+
+    total_reviews = stats.total or 0
+    avg_rating = round(float(stats.avg), 1)
+
+    # 1 requête avec eager loading du user (évite les N+1 dans le template)
+    approved_reviews = (
+        Review.query
+        .filter_by(approved=True)
+        .options(joinedload(Review.user))
+        .order_by(Review.created_at.desc())
+        .limit(10)
+        .all()
+    )
 
     user_has_review = False
     if current_user.is_authenticated:
