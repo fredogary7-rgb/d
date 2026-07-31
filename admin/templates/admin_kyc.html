@@ -56,6 +56,7 @@
                     </td>
                     <td>{{ u.created_at.strftime('%d/%m/%Y') }}</td>
                     <td>
+                        <a href="/admin/kyc/{{ u.id }}/view" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-lines"></i> Voir</a>
                         {% if u.kyc_status == 'pending' %}
                         <form method="POST" action="/admin/kyc/{{ u.id }}/approve" style="display:inline">
                             <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Approuver</button>
@@ -75,8 +76,6 @@
                                 </form>
                             </div>
                         </div>
-                        {% else %}
-                        <a href="/admin/users/{{ u.id }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i></a>
                         {% endif %}
                     </td>
                 </tr>

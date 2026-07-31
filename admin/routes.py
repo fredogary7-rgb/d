@@ -11,7 +11,7 @@ from sqlalchemy import func
 
 from admin import admin_bp
 from admin.models import AdminLog, AdminUser, PlatformNotification, SystemConfig, UserNotification
-from models import (Beneficiary, Notification, PaymentRequest, Review, SupportMessage, SupportTicket,
+from models import (Beneficiary, KycRequest, Notification, PaymentRequest, Review, SupportMessage, SupportTicket,
                     Transaction, TransactionReceive, User, PushSubscription, db)
 from services.push_service import send_push_to_user
 
@@ -419,6 +419,18 @@ def kyc():
 
     return render_template('admin_kyc.html', page='kyc',
                            users=users, status_filter=status_filter, counts=counts)
+
+
+@admin_bp.route('/kyc/<int:user_id>/view')
+@admin_required
+def kyc_view(user_id):
+    """Afficher les documents KYC d'un utilisateur."""
+    admin = get_admin()
+    user = User.query.get_or_404(user_id)
+    kyc_request = KycRequest.query.filter_by(user_id=user_id).first()
+
+    return render_template('admin_kyc_view.html', page='kyc',
+                           user=user, kyc_request=kyc_request)
 
 
 @admin_bp.route('/kyc/<int:user_id>/approve', methods=['POST'])

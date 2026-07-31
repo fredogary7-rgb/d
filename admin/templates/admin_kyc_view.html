@@ -1,0 +1,319 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Dossier KYC — {{ user.fullname }}</h1>
+        <p>Vérification d'identité</p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin.kyc') }}" class="btn btn-outline btn-sm">
+            ← Retour à la liste
+        </a>
+    </div>
+</div>
+
+<!-- INFO UTILISATEUR -->
+<div class="card" style="margin-bottom:24px">
+    <div class="card-header"><h3>Informations utilisateur</h3></div>
+    <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Nom complet</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ user.fullname or '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Email</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ user.email or '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Téléphone</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ user.phone or '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Pays</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ user.country or '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Statut KYC</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">
+                    {% if user.kyc_status == 'pending' %}
+                        <span class="badge badge-yellow">En attente</span>
+                    {% elif user.kyc_status == 'verified' %}
+                        <span class="badge badge-green">Vérifié</span>
+                    {% elif user.kyc_status == 'rejected' %}
+                        <span class="badge badge-red">Refusé</span>
+                    {% else %}
+                        {{ user.kyc_status }}
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Date d'inscription</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else '—' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if kyc_request %}
+<!-- INFOS KYC -->
+<div class="card" style="margin-bottom:24px">
+    <div class="card-header"><h3>Détails du dossier KYC</h3></div>
+    <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Référence</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ kyc_request.reference }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Type de document</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">
+                    {% if kyc_request.document_type == 'national_id' %}Carte d'identité
+                    {% elif kyc_request.document_type == 'passport' %}Passeport
+                    {% elif kyc_request.document_type == 'driving_license' %}Permis de conduire
+                    {% else %}{{ kyc_request.document_type or '—' }}{% endif %}
+                </div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Nom</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ kyc_request.first_name or '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Prénom</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ kyc_request.last_name or '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Date de naissance</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ kyc_request.birth_date.strftime('%d/%m/%Y') if kyc_request.birth_date else '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Nationalité</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ kyc_request.nationality or '—' }}</div>
+            </div>
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Statut</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">
+                    {% if kyc_request.status == 'SUBMITTED' or kyc_request.status == 'UNDER_REVIEW' %}
+                        <span class="badge badge-yellow">{{ kyc_request.status }}</span>
+                    {% elif kyc_request.status == 'APPROVED' %}
+                        <span class="badge badge-green">{{ kyc_request.status }}</span>
+                    {% elif kyc_request.status == 'REJECTED' %}
+                        <span class="badge badge-red">{{ kyc_request.status }}</span>
+                    {% else %}
+                        {{ kyc_request.status or '—' }}
+                    {% endif %}
+                </div>
+            </div>
+            {% if kyc_request.reviewed_at %}
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Révisé le</label>
+                <div style="font-weight:700;font-size:15px;margin-top:2px">{{ kyc_request.reviewed_at.strftime('%d/%m/%Y %H:%M') }}</div>
+            </div>
+            {% endif %}
+            {% if kyc_request.review_note %}
+            <div style="grid-column:1/-1">
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Note de révision</label>
+                <div style="margin-top:6px;padding:12px;background:var(--surface-hover);border-radius:8px;color:var(--text-2);font-size:14px">{{ kyc_request.review_note }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- DOCUMENTS -->
+<div class="card" style="margin-bottom:24px">
+    <div class="card-header"><h3>Documents</h3></div>
+    <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            {% if kyc_request.document_front %}
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block">Document — Recto</label>
+                <div style="border:2px solid var(--border);border-radius:12px;overflow:hidden;background:#f8f9fa;text-align:center">
+                    <a href="{{ url_for('static', filename=kyc_request.document_front) }}" target="_blank" rel="noopener">
+                        <img src="{{ url_for('static', filename=kyc_request.document_front) }}"
+                             alt="Recto pièce d'identité"
+                             style="max-width:100%;max-height:450px;object-fit:contain;display:block;cursor:zoom-in"
+                             onerror="this.parentElement.innerHTML='<div style=\'padding:40px;color:var(--text-3)\'><i class=\'fa-solid fa-image\' style=\'font-size:48px;display:block;margin-bottom:12px\'></i>Image introuvable<br><small style=\'color:var(--text-4)\'>{{ kyc_request.document_front }}</small></div>'">
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            {% if kyc_request.document_back %}
+            <div>
+                <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block">Document — Verso</label>
+                <div style="border:2px solid var(--border);border-radius:12px;overflow:hidden;background:#f8f9fa;text-align:center">
+                    <a href="{{ url_for('static', filename=kyc_request.document_back) }}" target="_blank" rel="noopener">
+                        <img src="{{ url_for('static', filename=kyc_request.document_back) }}"
+                             alt="Verso pièce d'identité"
+                             style="max-width:100%;max-height:450px;object-fit:contain;display:block;cursor:zoom-in"
+                             onerror="this.parentElement.innerHTML='<div style=\'padding:40px;color:var(--text-3)\'><i class=\'fa-solid fa-image\' style=\'font-size:48px;display:block;margin-bottom:12px\'></i>Image introuvable<br><small style=\'color:var(--text-4)\'>{{ kyc_request.document_back }}</small></div>'">
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% if kyc_request.selfie %}
+        <div style="margin-top:24px">
+            <label style="color:var(--text-3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block">Selfie</label>
+            <div style="border:2px solid var(--border);border-radius:12px;overflow:hidden;background:#f8f9fa;text-align:center;max-width:400px">
+                <a href="{{ url_for('static', filename=kyc_request.selfie) }}" target="_blank" rel="noopener">
+                    <img src="{{ url_for('static', filename=kyc_request.selfie) }}"
+                         alt="Selfie"
+                         style="max-width:100%;max-height:400px;object-fit:contain;display:block;cursor:zoom-in"
+                         onerror="this.parentElement.innerHTML='<div style=\'padding:40px;color:var(--text-3)\'><i class=\'fa-solid fa-camera\' style=\'font-size:48px;display:block;margin-bottom:12px\'></i>Image introuvable<br><small style=\'color:var(--text-4)\'>{{ kyc_request.selfie }}</small></div>'">
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        {% if not kyc_request.document_front and not kyc_request.document_back and not kyc_request.selfie %}
+        <div class="empty-state"><i class="fa-solid fa-file-image"></i>Aucun document uploadé pour ce dossier KYC.</div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<!-- AUCUN DOSSIER KYC -->
+<div class="card" style="margin-bottom:24px">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="fa-solid fa-id-card"></i>
+            <p>Aucun dossier KYC n'a été soumis par cet utilisateur.</p>
+            <p style="color:var(--text-4);font-size:13px">Le statut KYC du compte est <strong>{{ user.kyc_status }}</strong>.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ACTIONS -->
+{% if user.kyc_status == 'pending' %}
+<div class="card">
+    <div class="card-body" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <form method="POST" action="{{ url_for('admin.kyc_approve', user_id=user.id) }}">
+            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i> Approuver le KYC</button>
+        </form>
+        <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">
+            <i class="fa-solid fa-xmark"></i> Refuser le KYC
+        </button>
+    </div>
+</div>
+
+<!-- Modal reject -->
+<div class="modal-overlay" id="rejectModal">
+    <div class="modal">
+        <h3>Refuser le KYC</h3>
+        <p>Motif du refus pour <strong>{{ user.fullname }}</strong></p>
+        <form method="POST" action="{{ url_for('admin.kyc_reject', user_id=user.id) }}">
+            <textarea name="note" class="form-textarea" placeholder="Motif du refus (visible par l'utilisateur)..."></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectModal')">Annuler</button>
+                <button type="submit" class="btn btn-danger btn-sm">Confirmer le refus</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+// Close on overlay click
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.style.display = 'none';
+    }
+});
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+    }
+});
+</script>
+
+<style>
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+.card-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+.card-body {
+    padding: 20px;
+}
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.modal {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 28px 24px;
+    max-width: 460px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    animation: modalIn .25s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal h3 { margin: 0 0 8px; font-size: 20px; }
+.modal p { color: var(--text-3); margin: 0 0 16px; font-size: 14px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.form-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    resize: vertical;
+    font-family: inherit;
+}
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.badge-yellow { background: #FEF3C7; color: #D97706; }
+.badge-green { background: #D1FAE5; color: #059669; }
+.badge-red { background: #FEE2E2; color: #DC2626; }
+.btn-success { background: #10B981; color: #fff; border: none; }
+.btn-success:hover { background: #059669; }
+.btn-danger { background: #EF4444; color: #fff; border: none; }
+.btn-danger:hover { background: #DC2626; }
+.btn-outline { background: var(--surface); border: 1.5px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+.btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .2s; }
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-3);
+}
+.empty-state i {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    color: var(--text-4);
+}
+</style>
+
+{% endblock %}
