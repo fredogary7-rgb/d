@@ -541,7 +541,7 @@ def export_transactions():
             tx.id, tx.type, tx.amount, tx.currency or 'XOF', tx.status,
             user_email, tx.recipient_name, tx.recipient_phone,
             tx.recipient_country, tx.recipient_operator,
-            tx.transfer_id, tx.created_at
+            '', tx.created_at
         ])
 
     output = make_response(si.getvalue())
