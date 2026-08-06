@@ -1,0 +1,138 @@
+{# ============================================================
+   TransAfrik Splash Screen V3 — Light Premium Fintech
+   Template partagé — inclus dans index.html et dashboard.html
+   ============================================================ #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+<div id="splashScreen">
+    <!-- Halos -->
+    <div class="splash-halo"></div>
+    <div class="splash-halo-outer"></div>
+    <div class="splash-ambient-glow"></div>
+
+    <!-- Particules -->
+    <div class="splash-particles" id="splashParticles"></div>
+
+    <!-- Logo officiel + reflet -->
+    <div class="splash-logo-wrap entering" id="splashLogoWrap">
+        <img class="splash-logo-img"
+             src="{{ url_for('static', filename='img/trans1.png') }}"
+             alt="TransAfrik"
+             width="180"
+             loading="eager"
+             decoding="async"
+             fetchpriority="high">
+        <div class="splash-shine"></div>
+    </div>
+
+    <!-- Tagline mot par mot -->
+    <p class="splash-tagline" id="splashTagline">
+        <span class="word">Transfert</span>
+        <span class="word">d'argent</span>
+        <span class="word">en</span>
+        <span class="word">Afrique</span>
+    </p>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    var splash = document.getElementById('splashScreen');
+    var logoWrap = document.getElementById('splashLogoWrap');
+    var particlesContainer = document.getElementById('splashParticles');
+    var _hidden = false;
+
+    /* ---- Générer les particules ---- */
+    if (particlesContainer) {
+        var colors = ['rgba(37,99,235,0.35)', 'rgba(6,182,212,0.3)', 'rgba(16,185,129,0.25)', 'rgba(245,158,11,0.2)'];
+
+        // Flottantes
+        for (var i = 0; i < 14; i++) {
+            var p = document.createElement('div');
+            p.className = 'splash-particle float';
+            var size = (Math.random() > 0.5 ? 2 : 3);
+            p.style.cssText =
+                'width:' + size + 'px;height:' + size + 'px;' +
+                'left:' + (5 + Math.random() * 90) + '%;' +
+                'top:' + (5 + Math.random() * 90) + '%;' +
+                'background:' + colors[Math.floor(Math.random() * colors.length)] + ';' +
+                '--dur:' + (5 + Math.random() * 7) + 's;' +
+                '--delay:' + (Math.random() * 4) + 's;' +
+                '--drift-x:' + ((Math.random() - 0.5) * 70) + 'px;' +
+                '--drift-y:' + (-(Math.random() * 50 + 15)) + 'px;' +
+                '--opacity-max:' + (0.15 + Math.random() * 0.3) + ';';
+            particlesContainer.appendChild(p);
+        }
+
+        // Orbitales
+        for (var j = 0; j < 6; j++) {
+            var o = document.createElement('div');
+            o.className = 'splash-particle orbit';
+            o.style.cssText =
+                'width:' + (2 + (j % 2)) + 'px;height:' + (2 + (j % 2)) + 'px;' +
+                'background:' + colors[j % colors.length] + ';' +
+                '--orbit-dur:' + (7 + j * 2.5) + 's;' +
+                '--orbit-radius:' + (95 + j * 20) + 'px;' +
+                '--delay:' + (j * 0.6) + 's;' +
+                '--opacity-max:' + (0.15 + j * 0.04) + ';';
+            particlesContainer.appendChild(o);
+        }
+    }
+
+    /* ---- Séquençage des animations ---- */
+    setTimeout(function() {
+        if (logoWrap) { logoWrap.classList.remove('entering'); logoWrap.classList.add('micro-pulse'); }
+    }, 1250);
+
+    setTimeout(function() {
+        if (logoWrap) { logoWrap.classList.remove('micro-pulse'); logoWrap.classList.add('breathing'); }
+    }, 2000);
+
+    /* ---- Masquage intelligent ---- */
+    function hideSplash() {
+        if (_hidden || !splash) return;
+        _hidden = true;
+        splash.classList.add('exiting');
+        setTimeout(function() {
+            splash.classList.add('hidden');
+            setTimeout(function() {
+                if (splash.parentNode) splash.parentNode.removeChild(splash);
+            }, 750);
+        }, 500);
+    }
+
+    window.hideSplashScreen = hideSplash;
+
+    var readyCount = 0, needed = 3, startTime = Date.now();
+
+    function markReady() {
+        readyCount++;
+        if (readyCount >= needed) {
+            var delay = Math.max(0, 2200 - (Date.now() - startTime));
+            setTimeout(hideSplash, delay);
+        }
+    }
+
+    // Signal 1 : Polices
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(markReady);
+    } else { markReady(); }
+
+    // Signal 2 : Logo
+    var logoImg = document.querySelector('.splash-logo-img');
+    if (logoImg) {
+        if (logoImg.complete) { markReady(); }
+        else {
+            logoImg.addEventListener('load', markReady);
+            logoImg.addEventListener('error', markReady);
+        }
+    } else { markReady(); }
+
+    // Signal 3 : Premier rendu
+    requestAnimationFrame(function() {
+        requestAnimationFrame(markReady);
+    });
+
+    // Fallback 8s
+    setTimeout(function() { if (!_hidden) hideSplash(); }, 8000);
+})();
+</script>

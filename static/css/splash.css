@@ -1,11 +1,12 @@
 /* ============================================================
-   TransAfrik Splash Screen V2 — Ultra Premium
-   Niveau Revolut / Apple Wallet
-   GPU-accelerated | 60 FPS | Zero reflow
+   TransAfrik Splash Screen V3 - Light Premium Fintech
+   Fond clair | GPU-accelerated | 60 FPS | Zero reflow
    ============================================================ */
 
 :root {
-    --splash-bg: #08111F;
+    --splash-bg-start: #F8FBFF;
+    --splash-bg-mid: #EEF6FF;
+    --splash-bg-end: #E3F2FD;
     --splash-blue: #2563EB;
     --splash-cyan: #06B6D4;
     --splash-green: #10B981;
@@ -13,7 +14,7 @@
 }
 
 /* ============================================================
-   FOND VIVANT — Gradient anime lent (12s)
+   FOND VIVANT - Degrade clair anime (16s)
    ============================================================ */
 #splashScreen {
     position: fixed;
@@ -21,14 +22,14 @@
     z-index: 99999;
     background: linear-gradient(
         160deg,
-        #08111F 0%,
-        #0A1A3A 25%,
-        #0C1F45 50%,
-        #0A1A3A 75%,
-        #08111F 100%
+        #F8FBFF 0%,
+        #EEF6FF 30%,
+        #E3F2FD 55%,
+        #DCEEFF 75%,
+        #EEF6FF 100%
     );
     background-size: 400% 400%;
-    animation: bgShift 14s ease-in-out infinite;
+    animation: bgShift 16s ease-in-out infinite;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -55,25 +56,22 @@
 
 
 /* ============================================================
-   HALO GLASSMORPHISM — Effet verre derriere le logo
+   HALOS - Adaptes pour fond clair
    ============================================================ */
 .splash-halo {
     position: absolute;
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 50%,
-        rgba(37,99,235,0.18) 0%,
-        rgba(6,182,212,0.08) 40%,
+        rgba(37,99,235,0.12) 0%,
+        rgba(6,182,212,0.06) 40%,
         rgba(16,185,129,0.03) 65%,
         transparent 72%
     );
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.06);
     box-shadow:
-        inset 0 0 80px rgba(37,99,235,0.08),
-        0 0 120px rgba(37,99,235,0.12);
+        0 0 100px rgba(37,99,235,0.08),
+        0 0 200px rgba(37,99,235,0.04);
     will-change: transform, opacity;
     animation: haloPulse 3.5s ease-in-out infinite;
     pointer-events: none;
@@ -81,63 +79,57 @@
 }
 
 @keyframes haloPulse {
-    0%, 100% { transform: scale(1);      opacity: 0.55; }
-    50%      { transform: scale(1.12);   opacity: 0.9; }
+    0%, 100% { transform: scale(1);      opacity: 0.5; }
+    50%      { transform: scale(1.1);    opacity: 0.85; }
 }
 
 .splash-halo-outer {
     position: absolute;
-    width: 380px;
-    height: 380px;
+    width: 420px;
+    height: 420px;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 50%,
-        rgba(37,99,235,0.06) 0%,
-        rgba(6,182,212,0.03) 35%,
+        rgba(37,99,235,0.04) 0%,
+        rgba(6,182,212,0.02) 35%,
         transparent 55%
     );
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.03);
     will-change: transform, opacity;
-    animation: haloOuterPulse 5s ease-in-out infinite 0.8s;
+    animation: haloOuterPulse 5.5s ease-in-out infinite 1s;
     pointer-events: none;
     z-index: 0;
 }
 
 @keyframes haloOuterPulse {
-    0%, 100% { transform: scale(1);      opacity: 0.3; }
-    50%      { transform: scale(1.18);   opacity: 0.65; }
+    0%, 100% { transform: scale(1);      opacity: 0.25; }
+    50%      { transform: scale(1.15);   opacity: 0.55; }
 }
 
-
-/* ============================================================
-   LUEUR AMBIANTE — Le logo illumine son environnement
-   ============================================================ */
 .splash-ambient-glow {
     position: absolute;
-    width: 320px;
-    height: 320px;
+    width: 350px;
+    height: 350px;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 50%,
-        rgba(37,99,235,0.12) 0%,
-        rgba(37,99,235,0.04) 40%,
+        rgba(37,99,235,0.08) 0%,
+        rgba(37,99,235,0.02) 45%,
         transparent 65%
     );
-    filter: blur(30px);
+    filter: blur(35px);
     will-change: transform, opacity;
-    animation: ambientGlow 2.8s ease-in-out 0.9s infinite;
+    animation: ambientGlow 3s ease-in-out 1s infinite;
     pointer-events: none;
     z-index: 0;
 }
 
 @keyframes ambientGlow {
-    0%, 100% { transform: scale(1);      opacity: 0.5; }
-    30%      { transform: scale(1.08);   opacity: 0.75; }
-    60%      { transform: scale(0.96);   opacity: 0.45; }
+    0%, 100% { transform: scale(1);      opacity: 0.4; }
+    30%      { transform: scale(1.06);   opacity: 0.65; }
+    60%      { transform: scale(0.96);   opacity: 0.35; }
 }
 
+
 /* ============================================================
-   LOGO WRAPPER — Conteneur principal
+   LOGO
    ============================================================ */
 .splash-logo-wrap {
     position: relative;
@@ -148,19 +140,17 @@
     will-change: transform, opacity, filter;
 }
 
-/* ============================================================
-   LOGO SVG — Style
-   ============================================================ */
-.splash-logo-svg {
+.splash-logo-img {
     width: 180px;
     height: auto;
-    filter: drop-shadow(0 0 50px rgba(37,99,235,0.45))
-            drop-shadow(0 0 100px rgba(6,182,212,0.25));
+    border-radius: 18px;
+    filter: drop-shadow(0 8px 32px rgba(0,0,0,0.08))
+            drop-shadow(0 2px 8px rgba(0,0,0,0.04));
     will-change: transform, opacity;
 }
 
-/* Animation d entree cinematographique : dessin lumineux */
-.splash-logo-wrap.entering .splash-logo-svg {
+/* Entree cinematographique */
+.splash-logo-wrap.entering .splash-logo-img {
     animation: logoCinematic 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -169,79 +159,76 @@
         opacity: 0;
         transform: scale(0.7);
         filter: drop-shadow(0 0 0px rgba(37,99,235,0))
-                drop-shadow(0 0 0px rgba(6,182,212,0))
-                brightness(3) blur(6px);
+                brightness(2) blur(5px);
     }
     25%  {
-        opacity: 0.5;
-        filter: drop-shadow(0 0 20px rgba(37,99,235,0.3))
-                drop-shadow(0 0 40px rgba(6,182,212,0.15))
-                brightness(2.5) blur(3px);
+        opacity: 0.45;
+        filter: drop-shadow(0 0 15px rgba(37,99,235,0.15))
+                brightness(1.8) blur(2px);
     }
     55%  {
         opacity: 1;
         transform: scale(1.02);
-        filter: drop-shadow(0 0 60px rgba(37,99,235,0.5))
-                drop-shadow(0 0 120px rgba(6,182,212,0.3))
-                brightness(1.1) blur(0px);
+        filter: drop-shadow(0 12px 40px rgba(0,0,0,0.1))
+                drop-shadow(0 4px 12px rgba(0,0,0,0.05))
+                brightness(1) blur(0px);
     }
     75%  {
         transform: scale(0.98);
-        filter: drop-shadow(0 0 45px rgba(37,99,235,0.4))
-                drop-shadow(0 0 90px rgba(6,182,212,0.22))
-                brightness(1) blur(0px);
+        filter: drop-shadow(0 10px 32px rgba(0,0,0,0.08))
+                drop-shadow(0 3px 10px rgba(0,0,0,0.04));
     }
     100% {
         transform: scale(1);
-        filter: drop-shadow(0 0 50px rgba(37,99,235,0.45))
-                drop-shadow(0 0 100px rgba(6,182,212,0.25));
+        filter: drop-shadow(0 8px 32px rgba(0,0,0,0.08))
+                drop-shadow(0 2px 8px rgba(0,0,0,0.04));
     }
 }
 
-/* Micro vibration (Etape 7) */
+/* Micro vibration */
 .splash-logo-wrap.micro-pulse {
     animation: microPulse 0.7s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 @keyframes microPulse {
     0%   { transform: scale(1); }
-    30%  { transform: scale(1.025); }
-    60%  { transform: scale(0.992); }
-    85%  { transform: scale(1.008); }
+    30%  { transform: scale(1.02); }
+    60%  { transform: scale(0.994); }
+    85%  { transform: scale(1.006); }
     100% { transform: scale(1); }
 }
 
-/* Breathing apres entree */
+/* Breathing */
 .splash-logo-wrap.breathing {
     animation: logoBreathe 3.2s ease-in-out infinite;
 }
 
 @keyframes logoBreathe {
     0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.025); }
+    50%      { transform: scale(1.02); }
 }
 
 
 /* ============================================================
-   SHINE — Ligne lumineuse premium
+   SHINE - Reflet premium (adapte fond clair)
    ============================================================ */
 .splash-shine {
     position: absolute;
-    top: 6%;
+    top: 5%;
     left: -35%;
     width: 55%;
-    height: 88%;
+    height: 90%;
     background: linear-gradient(110deg,
         transparent 20%,
         rgba(255,255,255,0) 42%,
-        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0.5) 50%,
         rgba(255,255,255,0) 58%,
         transparent 80%
     );
     border-radius: 20px;
     z-index: 5;
     pointer-events: none;
-    animation: shineSweep 2.8s ease-in-out 1.4s infinite;
+    animation: shineSweep 3s ease-in-out 1.4s infinite;
     will-change: transform;
 }
 
@@ -252,7 +239,7 @@
 }
 
 /* ============================================================
-   PARTICULES ORBITALES
+   PARTICULES - Adaptees fond clair
    ============================================================ */
 .splash-particles {
     position: absolute;
@@ -269,7 +256,6 @@
     opacity: 0;
 }
 
-/* Particules flottantes */
 .splash-particle.float {
     animation: particleFloat var(--dur) ease-in-out infinite;
     animation-delay: var(--delay);
@@ -278,12 +264,11 @@
 @keyframes particleFloat {
     0%   { transform: translateY(0) translateX(0) scale(1);   opacity: 0; }
     10%  { opacity: var(--opacity-max); }
-    50%  { transform: translateY(var(--drift-y)) translateX(var(--drift-x)) scale(1.4); opacity: calc(var(--opacity-max) * 0.65); }
+    50%  { transform: translateY(var(--drift-y)) translateX(var(--drift-x)) scale(1.4); opacity: calc(var(--opacity-max) * 0.6); }
     90%  { opacity: var(--opacity-max); }
     100% { transform: translateY(0) translateX(0) scale(1);   opacity: 0; }
 }
 
-/* Particules orbitales autour du logo */
 .splash-particle.orbit {
     top: 50%;
     left: 50%;
@@ -293,27 +278,21 @@
 
 @keyframes particleOrbit {
     0%   {
-        transform: translate(-50%, -50%)
-                   rotate(0deg)
-                   translateX(var(--orbit-radius))
-                   rotate(0deg);
+        transform: translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
         opacity: 0;
     }
     5%   { opacity: var(--opacity-max); }
-    50%  { opacity: calc(var(--opacity-max) * 0.8); }
+    50%  { opacity: calc(var(--opacity-max) * 0.7); }
     95%  { opacity: var(--opacity-max); }
     100% {
-        transform: translate(-50%, -50%)
-                   rotate(360deg)
-                   translateX(var(--orbit-radius))
-                   rotate(-360deg);
+        transform: translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
         opacity: 0;
     }
 }
 
 
 /* ============================================================
-   TAGLINE — Apparition mot par mot (Etape 6)
+   TAGLINE - Mot par mot (adapte fond clair)
    ============================================================ */
 .splash-tagline {
     position: relative;
@@ -321,10 +300,10 @@
     margin-top: 28px;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 12px;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.65);
+    color: rgba(15, 23, 42, 0.45);
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
@@ -351,7 +330,7 @@
 }
 
 /* ============================================================
-   SORTIE — Fondu avec le dashboard (Etape 8)
+   SORTIE - Fondu premium
    ============================================================ */
 #splashScreen.exiting {
     opacity: 0;
@@ -401,38 +380,37 @@
    RESPONSIVE
    ============================================================ */
 @media (max-width: 480px) {
-    .splash-logo-svg { width: 140px; height: auto; }
+    .splash-logo-img { width: 130px; }
     .splash-halo { width: 180px; height: 180px; }
     .splash-halo-outer { width: 280px; height: 280px; }
-    .splash-ambient-glow { width: 250px; height: 250px; }
-    .splash-tagline { font-size: 10px; gap: 8px; letter-spacing: 0.2em; margin-top: 22px; }
-    .splash-shine { top: 4%; left: -40%; width: 60%; }
+    .splash-ambient-glow { width: 240px; height: 240px; }
+    .splash-tagline { font-size: 10px; gap: 8px; letter-spacing: 0.2em; margin-top: 20px; }
 }
 
 @media (min-width: 768px) {
-    .splash-logo-svg { width: 210px; height: auto; }
-    .splash-halo { width: 280px; height: 280px; }
-    .splash-halo-outer { width: 440px; height: 440px; }
-    .splash-ambient-glow { width: 380px; height: 380px; }
-    .splash-tagline { font-size: 13px; gap: 14px; letter-spacing: 0.32em; margin-top: 32px; }
+    .splash-logo-img { width: 220px; }
+    .splash-halo { width: 300px; height: 300px; }
+    .splash-halo-outer { width: 480px; height: 480px; }
+    .splash-ambient-glow { width: 400px; height: 400px; }
+    .splash-tagline { font-size: 13px; gap: 15px; letter-spacing: 0.32em; margin-top: 34px; }
 }
 
 @media (min-width: 1200px) {
-    .splash-logo-svg { width: 230px; height: auto; }
+    .splash-logo-img { width: 240px; }
 }
 
 @media (max-height: 600px) {
-    .splash-logo-svg { width: 110px; height: auto; }
-    .splash-halo { width: 140px; height: 140px; }
-    .splash-halo-outer { width: 220px; height: 220px; }
-    .splash-ambient-glow { width: 180px; height: 180px; }
-    .splash-tagline { margin-top: 16px; font-size: 9px; gap: 6px; }
+    .splash-logo-img { width: 100px; }
+    .splash-halo { width: 130px; height: 130px; }
+    .splash-halo-outer { width: 200px; height: 200px; }
+    .splash-ambient-glow { width: 160px; height: 160px; }
+    .splash-tagline { margin-top: 14px; font-size: 9px; gap: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     #splashScreen,
     .splash-halo, .splash-halo-outer, .splash-ambient-glow,
-    .splash-logo-wrap, .splash-logo-wrap.entering .splash-logo-svg,
+    .splash-logo-wrap, .splash-logo-wrap.entering .splash-logo-img,
     .splash-logo-wrap.micro-pulse, .splash-logo-wrap.breathing,
     .splash-shine, .splash-particle, .splash-particle.float, .splash-particle.orbit,
     .splash-tagline .word,
