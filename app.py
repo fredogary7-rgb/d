@@ -143,61 +143,11 @@ def service_worker():
 
 @app.route('/')
 def index():
-    """Page d'accueil avec avis clients validés — optimisé (1 seule requête agrégée + eager loading)."""
-    # Si l'utilisateur est déjà connecté, on le redirige directement vers le dashboard
+    """Redirige : dashboard si connecté, connexion sinon.
+       La landing page n'est plus accessible directement."""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-
-    from models import Review
-    from sqlalchemy.orm import joinedload
-
-    # 1 requête groupée : total_reviews + avg_rating
-    stats = db.session.query(
-        db.func.count(Review.id).label('total'),
-        db.func.coalesce(db.func.avg(Review.rating), 0).label('avg')
-    ).filter(Review.approved == True).first()
-
-    total_reviews = stats.total or 0
-    avg_rating = round(float(stats.avg), 1)
-
-    # 1 requête avec eager loading du user (évite les N+1 dans le template)
-    approved_reviews = (
-        Review.query
-        .filter_by(approved=True)
-        .options(joinedload(Review.user))
-        .order_by(Review.created_at.desc())
-        .limit(10)
-        .all()
-    )
-
-    user_has_review = False
-    if current_user.is_authenticated:
-        user_has_review = Review.query.filter_by(user_id=current_user.id).first() is not None
-
-    # JSON-LD Structured Data pour les avis (AggregateRating)
-    reviews_structured_data = None
-    if total_reviews > 0 and avg_rating > 0:
-        reviews_structured_data = {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "TransAfrik",
-            "url": "https://transafrik.org",
-            "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": avg_rating,
-                "bestRating": "5",
-                "reviewCount": total_reviews,
-            }
-        }
-
-    return render_template(
-        'index.html',
-        approved_reviews=approved_reviews,
-        total_reviews=total_reviews,
-        avg_rating=avg_rating,
-        user_has_review=user_has_review,
-        reviews_structured_data=reviews_structured_data,
-    )
+    return redirect(url_for('login'))
 
 
 # ==================== AVIS CLIENTS ====================
