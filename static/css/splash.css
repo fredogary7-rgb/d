@@ -141,7 +141,7 @@
 }
 
 .splash-logo-img {
-    width: 180px;
+    width: 300px;
     height: auto;
     border-radius: 18px;
     filter: drop-shadow(0 8px 32px rgba(0,0,0,0.08))
@@ -380,15 +380,15 @@
    RESPONSIVE
    ============================================================ */
 @media (max-width: 480px) {
-    .splash-logo-img { width: 130px; }
-    .splash-halo { width: 180px; height: 180px; }
+    .splash-logo-img { width: 170px; }
+    .splash-halo { width: 300px; height: 180px; }
     .splash-halo-outer { width: 280px; height: 280px; }
-    .splash-ambient-glow { width: 240px; height: 240px; }
+    .splash-ambient-glow { width: 300px; height: 240px; }
     .splash-tagline { font-size: 10px; gap: 8px; letter-spacing: 0.2em; margin-top: 20px; }
 }
 
 @media (min-width: 768px) {
-    .splash-logo-img { width: 220px; }
+    .splash-logo-img { width: 280px; }
     .splash-halo { width: 300px; height: 300px; }
     .splash-halo-outer { width: 480px; height: 480px; }
     .splash-ambient-glow { width: 400px; height: 400px; }
@@ -396,12 +396,12 @@
 }
 
 @media (min-width: 1200px) {
-    .splash-logo-img { width: 240px; }
+    .splash-logo-img { width: 300px; }
 }
 
 @media (max-height: 600px) {
-    .splash-logo-img { width: 100px; }
-    .splash-halo { width: 130px; height: 130px; }
+    .splash-logo-img { width: 130px; }
+    .splash-halo { width: 170px; height: 130px; }
     .splash-halo-outer { width: 200px; height: 200px; }
     .splash-ambient-glow { width: 160px; height: 160px; }
     .splash-tagline { margin-top: 14px; font-size: 9px; gap: 6px; }
