@@ -4,7 +4,7 @@
    Protège contre les schémas chrome-extension:, edge-extension:, etc.
    ============================================================ */
 
-const CACHE_VERSION = 'transafrik-v1.0.4';
+const CACHE_VERSION = 'transafrik-v1.0.5';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_PAGES = `${CACHE_VERSION}-pages`;
@@ -12,7 +12,7 @@ const CACHE_FONTS = `${CACHE_VERSION}-fonts`;
 
 /* --- Ressources à pré-cacher (caches automatiquement à l'installation) --- */
 const PRECACHE_URLS = [
-  '/',
+  // '/' n'est plus pré-caché — la route redirige vers /dashboard ou /login
   '/offline',
   '/static/manifest.json',
   '/static/img/trans1.png',
@@ -155,6 +155,12 @@ self.addEventListener('fetch', (event) => {
   if (isNoCache(url.pathname)) {
     console.log('[SW] No-cache:', url.pathname);
     return; // network-only (pas d'interception)
+  }
+
+  /* --- Ne jamais mettre en cache la racine / (redirection serveur) --- */
+  if (url.pathname === '/') {
+    console.log('[SW] No-cache: / (redirection serveur)');
+    return;
   }
 
   /* --- Stratégie 1: Cache-First pour les assets statiques versionnés --- */
