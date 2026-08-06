@@ -291,12 +291,12 @@
         </a>
     </div>
     <div class="topbar-right">
-        <button class="topbar-icon-btn" title="Notifications">
+        <a href="/notifications" class="topbar-icon-btn" title="Notifications">
             <i class="fa-solid fa-bell"></i>
             {% if (unread_notifications|default(0)) > 0 %}
             <span class="badge">{{ unread_notifications|default(0) }}</span>
             {% endif %}
-        </button>
+        </a>
         <div style="position:relative">
             <button class="topbar-lang" id="langBtn" onclick="document.getElementById('langDropdown').classList.toggle('show')">
                 <i class="fa-solid fa-globe"></i> FR
