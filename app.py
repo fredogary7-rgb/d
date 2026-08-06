@@ -144,6 +144,10 @@ def service_worker():
 @app.route('/')
 def index():
     """Page d'accueil avec avis clients validés — optimisé (1 seule requête agrégée + eager loading)."""
+    # Si l'utilisateur est déjà connecté, on le redirige directement vers le dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+
     from models import Review
     from sqlalchemy.orm import joinedload
 
