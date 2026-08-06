@@ -1,8 +1,8 @@
 """
 TransAfrik SEO Service — Centralisation des métadonnées SEO
 Domaine : https://transafrik.org
-Logo : /static/images/trans.jpg
-Couleur thème : #0F766E
+Logo : /static/img/trans1.png
+Couleur thème : #2563EB
 """
 
 import json
@@ -12,8 +12,8 @@ from flask import url_for, request
 # ── CONSTANTES GLOBALES ──
 SITE_NAME = "TransAfrik"
 SITE_DOMAIN = "https://transafrik.org"
-SITE_LOGO = f"{SITE_DOMAIN}/static/images/trans.jpg"
-SITE_THEME_COLOR = "#0F766E"
+SITE_LOGO = f"{SITE_DOMAIN}/static/img/trans1.png"
+SITE_THEME_COLOR = "#2563EB"
 SITE_BG_COLOR = "#FFFFFF"
 SITE_DESCRIPTION = (
     "TransAfrik — Transfert d'argent instantané en Afrique. "

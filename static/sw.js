@@ -4,7 +4,7 @@
    Protège contre les schémas chrome-extension:, edge-extension:, etc.
    ============================================================ */
 
-const CACHE_VERSION = 'transafrik-v1.0.3';
+const CACHE_VERSION = 'transafrik-v1.0.4';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_PAGES = `${CACHE_VERSION}-pages`;
