@@ -234,7 +234,9 @@ async function staleWhileRevalidate(request, cacheName) {
   const reqUrl = request.url;
   const fetchPromise = fetch(request).then(response => {
     if (response && response.status === 200 && isCacheableProtocol(reqUrl)) {
-      caches.open(cacheName).then(cache => cache.put(request, response.clone()));
+      // Cloner AVANT d'ouvrir le cache pour éviter "Response body is already used"
+      const cloned = response.clone();
+      caches.open(cacheName).then(cache => cache.put(request, cloned));
     }
     return response;
   }).catch(() => cached);
