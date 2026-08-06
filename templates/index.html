@@ -408,6 +408,104 @@
     </style>
 </head>
 <body>
+    <!-- ============================================================
+         TransAfrik Premium Splash Screen
+         Fintech-grade | 60 FPS | GPU accelerated
+         ============================================================ -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+    <div id="splashScreen">
+        <!-- Halo lumineux -->
+        <div class="splash-halo"></div>
+        <div class="splash-halo-outer"></div>
+
+        <!-- Particules -->
+        <div class="splash-particles" id="splashParticles"></div>
+
+        <!-- Logo + reflet -->
+        <div class="splash-logo-wrap" id="splashLogoWrap">
+            <img class="splash-logo-svg"
+                 src="{{ url_for('static', filename='img/splash-logo.svg') }}"
+                 alt="TransAfrik"
+                 width="110" height="110"
+                 loading="eager"
+                 decoding="async"
+                 fetchpriority="high">
+            <div class="splash-shine"></div>
+        </div>
+
+        <!-- Tagline -->
+        <p class="splash-tagline">Transfert d'argent en Afrique</p>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+        var splash = document.getElementById('splashScreen');
+        var logoWrap = document.getElementById('splashLogoWrap');
+        var particlesContainer = document.getElementById('splashParticles');
+
+        /* ---- Générer les particules ---- */
+        if (particlesContainer) {
+            var colors = ['rgba(37,99,235,0.6)', 'rgba(6,182,212,0.5)', 'rgba(16,185,129,0.5)'];
+            var sizes = [2, 3, 4];
+            for (var i = 0; i < 18; i++) {
+                var p = document.createElement('div');
+                p.className = 'splash-particle';
+                var size = sizes[Math.floor(Math.random() * sizes.length)];
+                p.style.cssText =
+                    'width:' + size + 'px;' +
+                    'height:' + size + 'px;' +
+                    'left:' + (Math.random() * 100) + '%;' +
+                    'top:' + (Math.random() * 100) + '%;' +
+                    'background:' + colors[Math.floor(Math.random() * colors.length)] + ';' +
+                    '--dur:' + (4 + Math.random() * 6) + 's;' +
+                    '--delay:' + (Math.random() * 4) + 's;' +
+                    '--drift-x:' + ((Math.random() - 0.5) * 80) + 'px;' +
+                    '--drift-y:' + (-(Math.random() * 60 + 20)) + 'px;' +
+                    '--opacity-max:' + (0.25 + Math.random() * 0.45) + ';';
+                particlesContainer.appendChild(p);
+            }
+        }
+
+        /* ---- Déclencher le breathing après l'entrée ---- */
+        setTimeout(function() {
+            if (logoWrap) logoWrap.classList.add('breathing');
+        }, 400);
+
+        /* ---- Fonction de sortie (Étape 7) ---- */
+        window.hideSplashScreen = function() {
+            if (!splash || splash.classList.contains('exiting')) return;
+            splash.classList.add('exiting');
+            setTimeout(function() {
+                splash.classList.add('hidden');
+                // Nettoyage après transition
+                setTimeout(function() {
+                    if (splash.parentNode) splash.parentNode.removeChild(splash);
+                }, 700);
+            }, 550);
+        };
+
+        /* ---- Auto-hide quand la page est prête ---- */
+        var hideOnLoad = function() {
+            window.hideSplashScreen();
+        };
+
+        if (document.readyState === 'complete') {
+            setTimeout(hideOnLoad, 1800);
+        } else {
+            window.addEventListener('load', function() {
+                setTimeout(hideOnLoad, 1800);
+            });
+        }
+
+        /* ---- Fallback : hide après 6s max ---- */
+        setTimeout(function() {
+            if (splash && !splash.classList.contains('hidden') && !splash.classList.contains('exiting')) {
+                window.hideSplashScreen();
+            }
+        }, 6000);
+    })();
+    </script>
 
 <!-- ========== NAVBAR ========== -->
 <nav class="navbar" id="navbar">
