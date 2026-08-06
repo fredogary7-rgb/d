@@ -409,32 +409,39 @@
 </head>
 <body>
     <!-- ============================================================
-         TransAfrik Premium Splash Screen
-         Fintech-grade | 60 FPS | GPU accelerated
+         TransAfrik Splash Screen V2 — Ultra Premium
+         Niveau Revolut / Apple Wallet
+         GPU-accelerated | 60 FPS | Zero reflow
          ============================================================ -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
     <div id="splashScreen">
-        <!-- Halo lumineux -->
+        <!-- Fond : halo glassmorphism -->
         <div class="splash-halo"></div>
         <div class="splash-halo-outer"></div>
+        <div class="splash-ambient-glow"></div>
 
         <!-- Particules -->
         <div class="splash-particles" id="splashParticles"></div>
 
         <!-- Logo + reflet -->
-        <div class="splash-logo-wrap" id="splashLogoWrap">
+        <div class="splash-logo-wrap entering" id="splashLogoWrap">
             <img class="splash-logo-svg"
                  src="{{ url_for('static', filename='img/splash-logo.svg') }}"
                  alt="TransAfrik"
-                 width="110" height="110"
+                 width="130" height="130"
                  loading="eager"
                  decoding="async"
                  fetchpriority="high">
             <div class="splash-shine"></div>
         </div>
 
-        <!-- Tagline -->
-        <p class="splash-tagline">Transfert d'argent en Afrique</p>
+        <!-- Tagline mot par mot -->
+        <p class="splash-tagline" id="splashTagline">
+            <span class="word">Transfert</span>
+            <span class="word">d'argent</span>
+            <span class="word">en</span>
+            <span class="word">Afrique</span>
+        </p>
     </div>
 
     <script>
@@ -443,67 +450,124 @@
         var splash = document.getElementById('splashScreen');
         var logoWrap = document.getElementById('splashLogoWrap');
         var particlesContainer = document.getElementById('splashParticles');
+        var _hidden = false;
 
-        /* ---- Générer les particules ---- */
+        /* ---- Générer les particules flottantes + orbitales ---- */
         if (particlesContainer) {
-            var colors = ['rgba(37,99,235,0.6)', 'rgba(6,182,212,0.5)', 'rgba(16,185,129,0.5)'];
-            var sizes = [2, 3, 4];
-            for (var i = 0; i < 18; i++) {
+            var colors = ['rgba(37,99,235,0.5)', 'rgba(6,182,212,0.4)', 'rgba(16,185,129,0.35)', 'rgba(245,158,11,0.25)'];
+            var sizes = [2, 3];
+
+            // Particules flottantes
+            for (var i = 0; i < 14; i++) {
                 var p = document.createElement('div');
-                p.className = 'splash-particle';
+                p.className = 'splash-particle float';
                 var size = sizes[Math.floor(Math.random() * sizes.length)];
                 p.style.cssText =
-                    'width:' + size + 'px;' +
-                    'height:' + size + 'px;' +
-                    'left:' + (Math.random() * 100) + '%;' +
-                    'top:' + (Math.random() * 100) + '%;' +
+                    'width:' + size + 'px;height:' + size + 'px;' +
+                    'left:' + (5 + Math.random() * 90) + '%;' +
+                    'top:' + (5 + Math.random() * 90) + '%;' +
                     'background:' + colors[Math.floor(Math.random() * colors.length)] + ';' +
-                    '--dur:' + (4 + Math.random() * 6) + 's;' +
+                    '--dur:' + (5 + Math.random() * 7) + 's;' +
                     '--delay:' + (Math.random() * 4) + 's;' +
-                    '--drift-x:' + ((Math.random() - 0.5) * 80) + 'px;' +
-                    '--drift-y:' + (-(Math.random() * 60 + 20)) + 'px;' +
-                    '--opacity-max:' + (0.25 + Math.random() * 0.45) + ';';
+                    '--drift-x:' + ((Math.random() - 0.5) * 70) + 'px;' +
+                    '--drift-y:' + (-(Math.random() * 50 + 15)) + 'px;' +
+                    '--opacity-max:' + (0.2 + Math.random() * 0.35) + ';';
                 particlesContainer.appendChild(p);
+            }
+
+            // Particules orbitales autour du logo
+            for (var j = 0; j < 6; j++) {
+                var o = document.createElement('div');
+                o.className = 'splash-particle orbit';
+                var oSize = 2 + (j % 2);
+                o.style.cssText =
+                    'width:' + oSize + 'px;height:' + oSize + 'px;' +
+                    'background:' + colors[j % colors.length] + ';' +
+                    '--orbit-dur:' + (7 + j * 2.5) + 's;' +
+                    '--orbit-radius:' + (90 + j * 18) + 'px;' +
+                    '--delay:' + (j * 0.6) + 's;' +
+                    '--opacity-max:' + (0.2 + j * 0.04) + ';';
+                particlesContainer.appendChild(o);
             }
         }
 
-        /* ---- Déclencher le breathing après l'entrée ---- */
+        /* ---- Étapes d'animation séquencées ---- */
+        // Après l'entrée cinématique (1.2s), micro-pulse
         setTimeout(function() {
-            if (logoWrap) logoWrap.classList.add('breathing');
-        }, 400);
+            if (logoWrap) {
+                logoWrap.classList.remove('entering');
+                logoWrap.classList.add('micro-pulse');
+            }
+        }, 1250);
 
-        /* ---- Fonction de sortie (Étape 7) ---- */
-        window.hideSplashScreen = function() {
-            if (!splash || splash.classList.contains('exiting')) return;
+        // Après le micro-pulse, breathing
+        setTimeout(function() {
+            if (logoWrap) {
+                logoWrap.classList.remove('micro-pulse');
+                logoWrap.classList.add('breathing');
+            }
+        }, 2000);
+
+        /* ---- Masquage intelligent (point 9) ---- */
+        function hideSplash() {
+            if (_hidden || !splash) return;
+            _hidden = true;
             splash.classList.add('exiting');
             setTimeout(function() {
                 splash.classList.add('hidden');
-                // Nettoyage après transition
                 setTimeout(function() {
                     if (splash.parentNode) splash.parentNode.removeChild(splash);
-                }, 700);
-            }, 550);
-        };
-
-        /* ---- Auto-hide quand la page est prête ---- */
-        var hideOnLoad = function() {
-            window.hideSplashScreen();
-        };
-
-        if (document.readyState === 'complete') {
-            setTimeout(hideOnLoad, 1800);
-        } else {
-            window.addEventListener('load', function() {
-                setTimeout(hideOnLoad, 1800);
-            });
+                }, 750);
+            }, 500);
         }
 
-        /* ---- Fallback : hide après 6s max ---- */
-        setTimeout(function() {
-            if (splash && !splash.classList.contains('hidden') && !splash.classList.contains('exiting')) {
-                window.hideSplashScreen();
+        window.hideSplashScreen = hideSplash;
+
+        var readyCount = 0;
+        var needed = 3; // fonts + images + first paint
+
+        function markReady(label) {
+            readyCount++;
+            if (readyCount >= needed) {
+                var elapsed = Date.now() - startTime;
+                var delay = Math.max(0, 2200 - elapsed);
+                setTimeout(hideSplash, delay);
             }
-        }, 6000);
+        }
+
+        var startTime = Date.now();
+
+        // Signal 1 : Polices chargées
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(function() { markReady('fonts'); });
+        } else {
+            markReady('fonts');
+        }
+
+        // Signal 2 : Images principales (logo SVG)
+        var logoImg = document.querySelector('.splash-logo-svg');
+        if (logoImg) {
+            if (logoImg.complete) {
+                markReady('images');
+            } else {
+                logoImg.addEventListener('load', function() { markReady('images'); });
+                logoImg.addEventListener('error', function() { markReady('images'); });
+            }
+        } else {
+            markReady('images');
+        }
+
+        // Signal 3 : Premier rendu (double rAF)
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                markReady('first-paint');
+            });
+        });
+
+        // Fallback absolu : 8s max
+        setTimeout(function() {
+            if (!_hidden) hideSplash();
+        }, 8000);
     })();
     </script>
 

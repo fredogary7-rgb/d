@@ -1,31 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
   <defs>
-    <linearGradient id="gradBg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Gradient principal TransAfrik -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#1D4ED8"/>
-      <stop offset="50%" stop-color="#2563EB"/>
-      <stop offset="100%" stop-color="#06B6D4"/>
+      <stop offset="40%" stop-color="#2563EB"/>
+      <stop offset="75%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#10B981"/>
     </linearGradient>
-    <linearGradient id="gradT" x1="0%" y1="0%" x2="100%" y2="100%">
+
+    <!-- Gradient pour le texte -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#E0F2FE"/>
+      <stop offset="100%" stop-color="#DBEAFE"/>
     </linearGradient>
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+
+    <!-- Glow filter -->
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5"/>
+    </filter>
+
+    <!-- Ombre portée -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.3"/>
     </filter>
   </defs>
 
-  <!-- Fond arrondi -->
-  <rect x="10" y="10" width="180" height="180" rx="36" ry="36" fill="url(#gradBg)"/>
+  <!-- Fond arrondi avec coins premium -->
+  <rect x="8" y="8" width="224" height="224" rx="40" ry="40" fill="url(#bgGrad)" filter="url(#shadow)"/>
 
-  <!-- Lettre T stylisée -->
-  <g transform="translate(100, 100)">
-    <!-- Barre horizontale du T -->
-    <rect x="-52" y="-62" width="104" height="24" rx="12" ry="12" fill="url(#gradT)" filter="url(#glow)"/>
-    <!-- Barre verticale du T -->
-    <rect x="-14" y="-40" width="28" height="90" rx="14" ry="14" fill="url(#gradT)" filter="url(#glow)"/>
+  <!-- Bordure intérieure subtile -->
+  <rect x="10" y="10" width="220" height="220" rx="38" ry="38" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+
+  <!-- Symbole : flèches de transfert stylisées -->
+  <g transform="translate(120, 100)" opacity="0.95">
+    <!-- Flèche gauche → droite (envoi) -->
+    <path d="M-55,0 L-20,0 L-30,-10 M-20,0 L-30,10"
+          stroke="url(#textGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"
+          fill="none" filter="url(#softGlow)"/>
+
+    <!-- Flèche droite → gauche (réception) -->
+    <path d="M55,0 L20,0 L30,-10 M20,0 L30,10"
+          stroke="url(#textGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"
+          fill="none" filter="url(#softGlow)"/>
+
+    <!-- Point central -->
+    <circle cx="0" cy="0" r="7" fill="#FFFFFF" filter="url(#softGlow)" opacity="0.95"/>
   </g>
 
-  <!-- Point d'accent (africain) -->
-  <circle cx="150" cy="52" r="8" fill="#10B981" opacity="0.9"/>
+  <!-- Texte TransAfrik -->
+  <text x="120" y="175" text-anchor="middle"
+        font-family="'Inter', 'Outfit', -apple-system, sans-serif"
+        font-weight="800" font-size="28"
+        letter-spacing="0.5"
+        fill="url(#textGrad)"
+        filter="url(#softGlow)">
+    TransAfrik
+  </text>
+
+  <!-- Point d'accent africain -->
+  <circle cx="202" cy="48" r="6" fill="#F59E0B" opacity="0.85"/>
 </svg>
