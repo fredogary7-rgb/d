@@ -777,7 +777,7 @@
         animation:slideUp 0.4s ease;max-width:90vw;
         display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
       ">
-        <img src="/static/logo.png" style="width:40px;height:40px;border-radius:10px" alt="">
+        <img src="/static/img/trans1.png" style="width:40px;height:40px;border-radius:10px" alt="">
         <div>
           <div style="font-weight:700;font-size:14px">Installer TransAfrik</div>
           <div style="font-size:11px;color:#64748B">Accès rapide depuis l'écran d'accueil</div>

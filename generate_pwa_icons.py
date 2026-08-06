@@ -2,7 +2,7 @@
 """
 TransAfrik — Générateur d'icônes PWA
 =====================================
-À partir de static/logo.png, génère :
+À partir de static/img/trans1.png, génère :
   - Toutes les icônes pour le manifest (72x72 → 512x512)
   - Maskable icons
   - Apple touch icons
@@ -24,7 +24,7 @@ except ImportError:
 
 BASE_DIR = Path(__file__).parent
 STATIC_DIR = BASE_DIR / 'static'
-LOGO_PATH = STATIC_DIR / 'logo.png'
+LOGO_PATH = STATIC_DIR / 'img/trans1.png'
 ICONS_DIR = STATIC_DIR / 'img' / 'icons'
 SPLASH_DIR = STATIC_DIR / 'img' / 'splash'
 FAVICON_PATH = STATIC_DIR / 'favicon.ico'
@@ -77,7 +77,7 @@ def create_icon(size, output_path, is_maskable=False):
 
     # Enregistrer
     icon.save(output_path, 'PNG')
-    print(f'  ✅ {output_path.name} ({size}x{size})')
+    print(f'  [OK] {output_path.name} ({size}x{size})')
 
 def create_text_logo(size):
     """Crée un logo textuel de fallback 'TA'."""
@@ -167,7 +167,7 @@ def create_splash_screen(width, height, output_path):
     draw.rectangle([bar_x, bar_y, bar_x + int(bar_width * 0.4), bar_y + bar_height], fill=BRAND_BLUE)
 
     img.save(output_path, 'PNG')
-    print(f'  ✅ Splash {output_path.name} ({width}x{height})')
+    print(f'  [OK] Splash {output_path.name} ({width}x{height})')
 
 def create_favicons():
     """Génère favicon 16x16, 32x32 et favicon.ico."""
@@ -184,7 +184,7 @@ def create_favicons():
 
         # Sauvegarder en .ico avec les deux tailles
         icon16.save(FAVICON_PATH, format='ICO', sizes=[(16, 16), (32, 32)])
-        print(f'  ✅ favicon.ico (16x16 + 32x32)')
+        print(f'  [OK] favicon.ico (16x16 + 32x32)')
     except Exception as e:
         # Fallback : utiliser la 32x32 seule
         icon32 = Image.open(ICONS_DIR / 'icon-32x32.png').convert('RGBA')
@@ -193,7 +193,7 @@ def create_favicons():
 
 def generate_all():
     print('=' * 60)
-    print('🚀 TransAfrik — Générateur d\'icônes PWA')
+    print('[ICON] TransAfrik — Générateur d\'icônes PWA')
     print('=' * 60)
 
     ensure_dir(ICONS_DIR)
@@ -230,7 +230,7 @@ def generate_all():
     create_favicons()
 
     # Splash screens iOS
-    print(f'\n📲 Génération des splash screens iOS...')
+    print(f'\n[PHONE] Génération des splash screens iOS...')
     splash_sizes = [
         (1290, 2796, 'apple-splash-1290-2796.png'),   # iPhone 16 Pro Max
         (1179, 2556, 'apple-splash-1179-2556.png'),   # iPhone 16 Pro
@@ -271,7 +271,7 @@ def generate_all():
         print(f'\n⚙️  Créé : browserconfig.xml')
 
     print(f'\n' + '=' * 60)
-    print('✅ Génération terminée avec succès !')
+    print('[OK] Génération terminée avec succès !')
     print(f'📂 Icônes dans : {ICONS_DIR}')
     print(f'📂 Splashs dans : {SPLASH_DIR}')
     print(f'📂 Favicon  dans : {FAVICON_PATH}')

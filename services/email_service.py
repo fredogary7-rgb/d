@@ -35,7 +35,7 @@ PLATFORM_NAME = "TransAfrik"
 PLATFORM_COLOR = "#F97316"        # Orange TransAfrik
 PLATFORM_COLOR_DARK = "#EA580C"
 PLATFORM_URL = "https://transafrik.org"
-PLATFORM_LOGO_URL = "https://transafrik.org/static/img/logo.png"  # À adapter si besoin
+PLATFORM_LOGO_URL = "https://transafrik.org/static/img/trans1.png"  # À adapter si besoin
 
 
 def _mask_key(key: str) -> str:
