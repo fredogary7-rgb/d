@@ -152,8 +152,8 @@
    LOGO SVG — Style
    ============================================================ */
 .splash-logo-svg {
-    width: 130px;
-    height: 130px;
+    width: 180px;
+    height: auto;
     filter: drop-shadow(0 0 50px rgba(37,99,235,0.45))
             drop-shadow(0 0 100px rgba(6,182,212,0.25));
     will-change: transform, opacity;
@@ -401,7 +401,7 @@
    RESPONSIVE
    ============================================================ */
 @media (max-width: 480px) {
-    .splash-logo-svg { width: 100px; height: 100px; }
+    .splash-logo-svg { width: 140px; height: auto; }
     .splash-halo { width: 180px; height: 180px; }
     .splash-halo-outer { width: 280px; height: 280px; }
     .splash-ambient-glow { width: 250px; height: 250px; }
@@ -410,7 +410,7 @@
 }
 
 @media (min-width: 768px) {
-    .splash-logo-svg { width: 150px; height: 150px; }
+    .splash-logo-svg { width: 210px; height: auto; }
     .splash-halo { width: 280px; height: 280px; }
     .splash-halo-outer { width: 440px; height: 440px; }
     .splash-ambient-glow { width: 380px; height: 380px; }
@@ -418,11 +418,11 @@
 }
 
 @media (min-width: 1200px) {
-    .splash-logo-svg { width: 160px; height: 160px; }
+    .splash-logo-svg { width: 230px; height: auto; }
 }
 
 @media (max-height: 600px) {
-    .splash-logo-svg { width: 80px; height: 80px; }
+    .splash-logo-svg { width: 110px; height: auto; }
     .splash-halo { width: 140px; height: 140px; }
     .splash-halo-outer { width: 220px; height: 220px; }
     .splash-ambient-glow { width: 180px; height: 180px; }
