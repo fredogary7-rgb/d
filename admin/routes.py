@@ -500,7 +500,7 @@ def transactions():
             db.or_(
                 Transaction.recipient_name.ilike(f'%{search}%'),
                 Transaction.recipient_phone.ilike(f'%{search}%'),
-                Transaction.transfer_id.ilike(f'%{search}%')
+                Transaction.reference.ilike(f'%{search}%')
             )
         )
     if date_from:
@@ -534,14 +534,14 @@ def export_transactions():
     si = StringIO()
     writer = csv.writer(si)
     writer.writerow(['ID', 'Type', 'Montant', 'Devise', 'Statut', 'Expéditeur', 'Bénéficiaire',
-                     'Téléphone', 'Pays', 'Opérateur', 'Référence', 'Date'])
+                     'Téléphone', 'Pays', 'Opérateur', 'Référence', 'Raison', 'Date'])
     for tx in txs:
         user_email = tx.user.email if tx.user else 'N/A'
         writer.writerow([
             tx.id, tx.type, tx.amount, tx.currency or 'XOF', tx.status,
             user_email, tx.recipient_name, tx.recipient_phone,
             tx.recipient_country, tx.recipient_operator,
-            '', tx.created_at
+            tx.reference or '', tx.status_message or '', tx.created_at
         ])
 
     output = make_response(si.getvalue())
@@ -597,6 +597,7 @@ def validate_deposit(tx_id):
         return redirect(url_for('admin.deposits'))
 
     tx.status = 'success'
+    tx.status_message = 'Dépôt validé manuellement.'
     user = tx.user
     if user:
         user.balance = (user.balance or 0) + tx.amount
@@ -618,10 +619,13 @@ def reject_deposit(tx_id):
         flash('Cette transaction n\'est pas un dépôt.', 'error')
         return redirect(url_for('admin.deposits'))
 
+    reason = request.form.get('reason', '').strip()
     tx.status = 'failed'
+    tx.status_message = reason or 'Dépôt refusé.'
     log_action(admin, 'deposit_reject', 'transaction', tx.id, {
         'amount': tx.amount,
-        'user_id': tx.user_id
+        'user_id': tx.user_id,
+        'reason': tx.status_message
     })
     db.session.commit()
     flash('Dépôt refusé.', 'warning')
@@ -674,6 +678,7 @@ def validate_withdrawal(tx_id):
         return redirect(url_for('admin.withdrawals'))
 
     tx.status = 'success'
+    tx.status_message = 'Retrait validé manuellement.'
     log_action(admin, 'withdrawal_validate', 'transaction', tx.id, {
         'amount': tx.amount,
         'user_id': tx.user_id
@@ -697,10 +702,13 @@ def reject_withdrawal(tx_id):
         user = tx.user
         if user:
             user.balance = (user.balance or 0) + tx.amount
+    reason = request.form.get('reason', '').strip()
     tx.status = 'failed'
+    tx.status_message = reason or 'Retrait refusé.'
     log_action(admin, 'withdrawal_reject', 'transaction', tx.id, {
         'amount': tx.amount,
-        'user_id': tx.user_id
+        'user_id': tx.user_id,
+        'reason': tx.status_message
     })
     db.session.commit()
     flash('Retrait refusé et remboursé.', 'warning')
@@ -1113,7 +1121,8 @@ def global_search():
     txs = Transaction.query.filter(
         db.or_(
             Transaction.recipient_name.ilike(f'%{query}%'),
-            Transaction.transfer_id.ilike(f'%{query}%')
+            Transaction.reference.ilike(f'%{query}%'),
+            Transaction.recipient_phone.ilike(f'%{query}%')
         )
     ).limit(8).all()
 

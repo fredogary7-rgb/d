@@ -1273,6 +1273,8 @@ def _handle_payment_webhook(payload: dict):
                 recipient_phone=deposit.phone,
                 recipient_country=deposit.country,
                 recipient_operator=deposit.operator,
+                reference=deposit.reference,
+                status_message='Dépôt confirmé — portefeuille crédité.',
             )
             db.session.add(tx)
             db.session.commit()
@@ -2082,6 +2084,8 @@ def webhook_deposit():
             recipient_phone=deposit.phone,
             recipient_country=deposit.country,
             recipient_operator=deposit.operator,
+            reference=deposit.reference,
+            status_message='Dépôt confirmé — portefeuille crédité.',
         )
         db.session.add(tx)
         db.session.commit()
@@ -3968,6 +3972,7 @@ def api_pay_to_user():
         recipient_phone=receiver.phone or '',
         recipient_country=receiver.country or '',
         recipient_operator='TransAfrik',
+        reference=ref,
     )
     db.session.add(send_tx)
 

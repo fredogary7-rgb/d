@@ -36,10 +36,14 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Référence</th>
                     <th>Utilisateur</th>
+                    <th>Téléphone</th>
+                    <th>Pays</th>
+                    <th>Opérateur</th>
                     <th>Montant</th>
                     <th>Statut</th>
-                    <th>Description</th>
+                    <th>Raison</th>
                     <th>Date</th>
                     <th>Actions</th>
                 </tr>
@@ -48,7 +52,11 @@
                 {% for tx in withdrawals.items %}
                 <tr>
                     <td class="mono">#{{ tx.id }}</td>
+                    <td class="mono">{{ tx.reference or '—' }}</td>
                     <td>{{ tx.user.email if tx.user else 'N/A' }}</td>
+                    <td class="mono">{{ tx.recipient_phone or '—' }}</td>
+                    <td>{{ tx.recipient_country or '—' }}</td>
+                    <td>{{ tx.recipient_operator or '—' }}</td>
                     <td><strong>{{ tx.amount|int }} {{ tx.currency or 'XOF' }}</strong></td>
                     <td>
                         {% if tx.status == 'pending' %}<span class="badge-status bs-pending">En attente</span>
@@ -56,14 +64,15 @@
                         {% elif tx.status == 'failed' %}<span class="badge-status bs-failed">Refusé</span>
                         {% else %}{{ tx.status }}{% endif %}
                     </td>
-                    <td>{{ tx.description or '—' }}</td>
+                    <td>{{ tx.status_message or '—' }}</td>
                     <td>{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>
                         {% if tx.status == 'pending' %}
                         <form method="POST" action="/admin/withdrawals/{{ tx.id }}/validate" style="display:inline">
                             <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i></button>
                         </form>
-                        <form method="POST" action="/admin/withdrawals/{{ tx.id }}/reject" style="display:inline" onsubmit="return confirmAction()">
+                        <form method="POST" action="/admin/withdrawals/{{ tx.id }}/reject" style="display:inline" onsubmit="return rejectWithReason(this)">
+                            <input type="hidden" name="reason" value="">
                             <button class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i></button>
                         </form>
                         {% else %}{% endif %}

@@ -41,10 +41,13 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Référence</th>
                     <th>Type</th>
                     <th>Expéditeur</th>
                     <th>Bénéficiaire</th>
+                    <th>Téléphone</th>
                     <th>Pays</th>
+                    <th>Opérateur</th>
                     <th>Montant</th>
                     <th>Statut</th>
                     <th>Date</th>
@@ -54,6 +57,7 @@
                 {% for tx in txs.items %}
                 <tr>
                     <td class="mono">#{{ tx.id }}</td>
+                    <td class="mono">{{ tx.reference or '—' }}</td>
                     <td>
                         {% if tx.type == 'send' %}<span class="badge badge-blue">Envoi</span>
                         {% elif tx.type == 'deposit' %}<span class="badge badge-green">Dépôt</span>
@@ -61,7 +65,9 @@
                     </td>
                     <td>{{ tx.user.email if tx.user else 'N/A' }}</td>
                     <td>{{ tx.recipient_name or '—' }}</td>
+                    <td class="mono">{{ tx.recipient_phone or '—' }}</td>
                     <td>{{ tx.recipient_country or '—' }}</td>
+                    <td>{{ tx.recipient_operator or '—' }}</td>
                     <td><strong>{{ tx.amount|int }} {{ tx.currency or 'XOF' }}</strong></td>
                     <td>
                         {% if tx.status == 'success' %}<span class="badge-status bs-success">Réussi</span>

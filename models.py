@@ -137,6 +137,8 @@ class Transaction(db.Model):
     recipient_phone = db.Column(db.String(30), nullable=True)
     recipient_country = db.Column(db.String(5), nullable=True)
     recipient_operator = db.Column(db.String(50), nullable=True)
+    reference = db.Column(db.String(64), nullable=True, index=True)
+    status_message = db.Column(db.Text, nullable=True)   # raison de refus / détail du statut
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

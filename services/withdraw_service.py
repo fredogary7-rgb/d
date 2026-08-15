@@ -229,6 +229,7 @@ def submit_withdraw(user: User, data: Dict[str, Any]) -> Dict[str, Any]:
         recipient_phone=phone,
         recipient_country=op_info["country"],
         recipient_operator=op_info["name"],
+        reference=withdrawal.reference,
     )
     db.session.add(txn)
 
@@ -308,6 +309,7 @@ def _handle_failed_withdrawal(withdrawal: Withdrawal, user: User, txn: Transacti
     withdrawal.refund_amount = withdrawal.total_debited
     withdrawal.refund_at = datetime.now(timezone.utc)
     txn.status = "failed"
+    txn.status_message = withdrawal.status_message
     withdrawal.updated_at = datetime.now(timezone.utc)
 
     # Notification
@@ -341,6 +343,7 @@ def process_withdrawal_webhook(withdrawal: Withdrawal, webhook_data: dict) -> bo
         ).order_by(Transaction.created_at.desc()).first()
         if txn:
             txn.status = "success"
+            txn.status_message = "Retrait effectué avec succès."
             txn.updated_at = datetime.now(timezone.utc)
 
         # ---- LOG WITHDRAW SUCCESS ----
@@ -393,6 +396,7 @@ def process_withdrawal_webhook(withdrawal: Withdrawal, webhook_data: dict) -> bo
             ).order_by(Transaction.created_at.desc()).first()
             if txn:
                 txn.status = "failed"
+                txn.status_message = withdrawal.status_message
 
             # ---- LOGS ----
             logger.info(f"WITHDRAW FAILED | ref={withdrawal.external_reference} | "

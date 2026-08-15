@@ -463,6 +463,14 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 function confirmAction(message){
     return confirm(message || 'Êtes-vous sûr de vouloir effectuer cette action ?');
 }
+
+/* ===== REJET AVEC MOTIF ===== */
+function rejectWithReason(form){
+    var reason = prompt('Motif du refus :', '');
+    if(reason === null) return false;
+    form.querySelector('input[name="reason"]').value = reason;
+    return true;
+}
 </script>
 
 {% block extra_scripts %}{% endblock %}
