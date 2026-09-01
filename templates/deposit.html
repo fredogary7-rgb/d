@@ -310,10 +310,10 @@ function updateSummary() {
     const currency = selectedCurrency;
     const phone = document.getElementById('phoneInput').value.trim();
 
-    // Calcul des frais (1.5%)
+    // Calcul des frais (4%)
     let fees = 0, total = 0;
     if (amount >= 500) {
-        fees = Math.round(Math.max(100, Math.min(amount * 0.015, 5000)));
+        fees = Math.round(amount * 0.04);
         total = amount + fees;
     }
 
