@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # Constantes
 # --------------------------
 MIN_WITHDRAWAL_AMOUNT = 500   # 500 FCFA
-MAX_WITHDRAWAL_AMOUNT = 100000  # 100 000 FCFA
+MAX_WITHDRAWAL_AMOUNT = 500000  # 500 000 FCFA
 
 
 def _generate_external_reference() -> str:
