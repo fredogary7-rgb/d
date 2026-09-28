@@ -362,7 +362,7 @@ def process_withdrawal_webhook(withdrawal: Withdrawal, webhook_data: dict) -> bo
             notif = Notification(
                 user_id=withdrawal.user_id,
                 title="Retrait réussi ✅",
-                message=f"Votre retrait de {withdrawal.amount_display():.2f} {withdrawal.currency} "
+                message=f"Votre retrait de {withdrawal.amount:,} {withdrawal.currency} "
                         f"vers {withdrawal.recipient_operator} a été effectué avec succès.",
                 type="withdraw_success",
                 data={"external_reference": withdrawal.external_reference},
@@ -414,7 +414,7 @@ def process_withdrawal_webhook(withdrawal: Withdrawal, webhook_data: dict) -> bo
                 notif = Notification(
                     user_id=withdrawal.user_id,
                     title="Retrait échoué ❌",
-                    message=f"Votre retrait de {withdrawal.amount_display():.2f} {withdrawal.currency} "
+                    message=f"Votre retrait de {withdrawal.amount:,} {withdrawal.currency} "
                             f"vers {withdrawal.recipient_operator} a échoué. "
                             f"Le montant a été remboursé.",
                     type="withdraw_failed",
@@ -433,7 +433,7 @@ def process_withdrawal_webhook(withdrawal: Withdrawal, webhook_data: dict) -> bo
 
 def _notify_withdrawal(user: User, withdrawal: Withdrawal, success: bool = True):
     """Envoie les notifications (email + push) après un retrait."""
-    amount_str = f"{withdrawal.amount_display():.2f} {withdrawal.currency}"
+    amount_str = f"{withdrawal.amount:,} {withdrawal.currency}"
     operator = withdrawal.recipient_operator
 
     if success:

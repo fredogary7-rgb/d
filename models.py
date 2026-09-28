@@ -878,6 +878,26 @@ class Notification(db.Model):
         return f'<Notification {self.id} user={self.user_id} category={self.category} read={self.is_read}>'
 
 
+class WeeklySummaryRun(db.Model):
+    """Trace les envois de bilans hebdomadaires (anti-doublon multi-workers)."""
+
+    __tablename__ = 'weekly_summary_runs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    run_key = db.Column(db.String(20), unique=True, nullable=False, index=True)  # ex: "2026-09-21"
+    week_start = db.Column(db.DateTime, nullable=False)
+    week_end = db.Column(db.DateTime, nullable=False)
+    started_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    users_notified = db.Column(db.Integer, default=0)
+    users_skipped = db.Column(db.Integer, default=0)
+    push_sent = db.Column(db.Integer, default=0)
+    push_failed = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return f'<WeeklySummaryRun {self.run_key} notified={self.users_notified}>'
+
+
 class SupportMessage(db.Model):
     """Message dans un ticket de support."""
 
@@ -970,13 +990,13 @@ class Withdrawal(db.Model):
     user = db.relationship('User', backref=db.backref('withdrawals', lazy='dynamic'))
 
     def amount_display(self):
-        return self.amount / 100
+        return self.amount
 
     def fees_display(self):
-        return self.fees / 100
+        return self.fees
 
     def total_display(self):
-        return self.total_debited / 100
+        return self.total_debited
 
     def to_dict(self):
         return {

@@ -126,6 +126,89 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
+
+# ==================== PLANIFICATEUR BILAN HEBDOMADAIRE ====================
+# Chaque lundi à 7h, envoie à chaque utilisateur son bilan hebdomadaire.
+# Le job est idempotent (clé unique en base) : sans risque avec plusieurs
+# workers gunicorn. Désactivable via DISABLE_WEEKLY_SUMMARY=1.
+
+def _start_weekly_summary_scheduler():
+    if os.getenv("DISABLE_WEEKLY_SUMMARY") == "1":
+        app.logger.info("Bilan hebdomadaire désactivé (DISABLE_WEEKLY_SUMMARY=1).")
+        return None
+
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from apscheduler.triggers.cron import CronTrigger
+    except ImportError:
+        app.logger.warning(
+            "apscheduler non installé — bilan hebdomadaire automatique désactivé. "
+            "Ajoutez `apscheduler` à requirements.txt."
+        )
+        return None
+
+    from services.weekly_summary import (
+        send_weekly_summaries,
+        WEEKLY_SUMMARY_DAY,
+        WEEKLY_SUMMARY_HOUR,
+        WEEKLY_SUMMARY_MINUTE,
+    )
+
+    def _run_job():
+        with app.app_context():
+            send_weekly_summaries()
+
+    tz_name = os.getenv("WEEKLY_SUMMARY_TIMEZONE", "Africa/Lome")
+    try:
+        scheduler = BackgroundScheduler(timezone=tz_name, daemon=True)
+        trigger = CronTrigger(
+            day_of_week=WEEKLY_SUMMARY_DAY,
+            hour=WEEKLY_SUMMARY_HOUR,
+            minute=WEEKLY_SUMMARY_MINUTE,
+            timezone=tz_name,
+        )
+    except Exception:
+        app.logger.warning(
+            f"Fuseau horaire invalide ({tz_name}) — UTC utilisé pour le bilan hebdomadaire."
+        )
+        tz_name = "UTC"
+        scheduler = BackgroundScheduler(timezone="UTC", daemon=True)
+        trigger = CronTrigger(
+            day_of_week=WEEKLY_SUMMARY_DAY,
+            hour=WEEKLY_SUMMARY_HOUR,
+            minute=WEEKLY_SUMMARY_MINUTE,
+            timezone="UTC",
+        )
+
+    scheduler.add_job(
+        _run_job,
+        trigger=trigger,
+        id="weekly_summary",
+        name="Bilan hebdomadaire",
+        replace_existing=True,
+        misfire_grace_time=3600,
+        coalesce=True,
+    )
+    scheduler.start()
+    app.logger.info(
+        f"PLANIFICATEUR | Bilan hebdomadaire programmé : "
+        f"{WEEKLY_SUMMARY_DAY} à {WEEKLY_SUMMARY_HOUR:02d}:{WEEKLY_SUMMARY_MINUTE:02d} "
+        f"(tz={tz_name})."
+    )
+    return scheduler
+
+
+@app.cli.command("send-weekly-summaries")
+def send_weekly_summaries_command():
+    """Envoie manuellement les bilans hebdomadaires (test / cron externe)."""
+    from services.weekly_summary import send_weekly_summaries
+    with app.app_context():
+        result = send_weekly_summaries()
+    print(json.dumps(result, ensure_ascii=False, default=str, indent=2))
+
+
+weekly_summary_scheduler = _start_weekly_summary_scheduler()
+
 # ==================== ROUTES ====================
 
 # --- PWA Routes ---
