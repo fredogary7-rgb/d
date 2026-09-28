@@ -10,25 +10,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* ===== DESIGN SYSTEM (identiques au dashboard) ===== */
         :root {
-            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.25);
-            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.25);
-            --yellow: #F59E0B; --orange: #F97316; --orange-light: #FFEDD5;
-            --red: #EF4444; --red-light: #FEE2E2;
-            --bg: #F1F5F9; --surface: #FFFFFF; --surface-hover: #F8FAFC;
-            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
-            --border: #E2E8F0;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09); --shadow-xl: 0 24px 70px rgba(0,0,0,.11);
-            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
-            --transition: .3s cubic-bezier(.25,.46,.45,.94);
-            --sidebar-w: 260px;
+            --blue:#2563EB; --blue-dark:#1D4ED8; --blue-light:#DBEAFE; --blue-glow:rgba(37,99,235,.25);
+            --green:#10B981; --green-dark:#059669; --green-light:#D1FAE5; --green-glow:rgba(16,185,129,.25);
+            --yellow:#F59E0B; --orange:#F97316; --orange-light:#FFEDD5;
+            --red:#EF4444; --red-light:#FEE2E2;
+            --bg:#F1F5F9; --surface:#FFFFFF; --surface-hover:#F8FAFC;
+            --text:#0F172A; --text-2:#334155; --text-3:#64748B; --text-4:#94A3B8;
+            --border:#E2E8F0;
+            --shadow-sm:0 1px 2px rgba(0,0,0,.04); --shadow:0 4px 20px rgba(0,0,0,.05); --shadow-md:0 8px 30px rgba(0,0,0,.07); --shadow-lg:0 16px 50px rgba(0,0,0,.09); --shadow-xl:0 24px 70px rgba(0,0,0,.11);
+            --radius-sm:12px; --radius:18px; --radius-lg:24px; --radius-xl:32px;
+            --transition:.3s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w:260px;
         }
         [data-theme="dark"] {
-            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
-            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
-            --border: #1E293B;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 20px rgba(0,0,0,.3); --shadow-md: 0 8px 30px rgba(0,0,0,.4); --shadow-lg: 0 16px 50px rgba(0,0,0,.5); --shadow-xl: 0 24px 70px rgba(0,0,0,.6);
+            --bg:#0B1120; --surface:#111827; --surface-hover:#1F2937;
+            --text:#F1F5F9; --text-2:#CBD5E1; --text-3:#94A3B8; --text-4:#64748B;
+            --border:#1E293B;
+            --shadow-sm:0 1px 2px rgba(0,0,0,.2); --shadow:0 4px 20px rgba(0,0,0,.3); --shadow-md:0 8px 30px rgba(0,0,0,.4); --shadow-lg:0 16px 50px rgba(0,0,0,.5); --shadow-xl:0 24px 70px rgba(0,0,0,.6);
+            --blue-light:rgba(37,99,235,.18); --green-light:rgba(16,185,129,.16);
+            --red-light:rgba(239,68,68,.15); --orange-light:rgba(249,115,22,.15);
         }
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
         html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden;max-width:100vw}
@@ -36,1143 +37,881 @@
         a{text-decoration:none;color:inherit}
         h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         img{max-width:100%;height:auto}
-
         .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
         @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
         @keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
-        @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.4)}50%{box-shadow:0 0 0 12px rgba(37,99,235,0)}}
+        @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
         /* ===== TOP BAR ===== */
-        .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:all var(--transition)}
+        .topbar{position:fixed;top:0;left:0;right:0;height:72px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:all var(--transition)}
         .topbar-left{display:flex;align-items:center;gap:16px}
-        .topbar-back{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--text-2);transition:all var(--transition)}
-        .topbar-back:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
-        .topbar-back i{font-size:15px}
+        .topbar-back{display:flex;align-items:center;gap:8px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-2);font-size:13px;font-weight:600;transition:all .2s}
+        .topbar-back:hover{border-color:var(--blue);color:var(--blue)}
         .topbar-logo{display:flex;align-items:center;gap:10px}
-        .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
-        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .topbar-right{display:flex;align-items:center;gap:16px}
-        .topbar-icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all var(--transition);color:var(--text-3)}
-        .topbar-icon-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
-        .topbar-icon-btn .badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:#EF4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
-        .topbar-lang{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;color:var(--text-2);transition:all var(--transition);position:relative}
-        .topbar-lang:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
-        .topbar-language-dropdown{position:absolute;top:100%;right:0;margin-top:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);padding:4px;min-width:140px;display:none;z-index:200}
+        .topbar-logo img{width:36px;height:36px;border-radius:10px;flex-shrink:0}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-right{display:flex;align-items:center;gap:12px}
+        .topbar-lang{position:relative;display:flex;align-items:center;gap:8px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+        .topbar-lang:hover{border-color:var(--blue);color:var(--blue)}
+        .topbar-language-dropdown{display:none;position:absolute;top:46px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);padding:6px;min-width:150px;z-index:120}
         .topbar-language-dropdown.show{display:block}
-        .topbar-language-dropdown button{width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;text-align:left;font-size:13px;font-family:'Inter',sans-serif;border-radius:8px;transition:all .2s;color:var(--text-2);display:flex;align-items:center;gap:8px}
-        .topbar-language-dropdown button:hover{background:var(--surface-hover);color:var(--blue)}
+        .topbar-language-dropdown button{display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border:none;background:none;cursor:pointer;text-align:left;font-size:13px;font-family:'Inter',sans-serif;border-radius:8px;color:var(--text-2);transition:background .2s}
+        .topbar-language-dropdown button:hover{background:var(--surface-hover)}
         .topbar-language-dropdown button.active{background:var(--blue-light);color:var(--blue);font-weight:600}
-        .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
-        .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
-        .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0;overflow:hidden}
+        .topbar-icon-btn{position:relative;width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text-3);transition:all .2s}
+        .topbar-icon-btn:hover{border-color:var(--blue);color:var(--blue)}
+        .topbar-icon-btn .badge{position:absolute;top:-5px;right:-5px;width:19px;height:19px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+        .topbar-profile{display:flex;align-items:center;gap:10px;padding:5px 14px 5px 5px;border-radius:12px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
+        .topbar-profile:hover{background:var(--surface-hover)}
+        .topbar-profile-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;overflow:hidden}
         .topbar-profile-avatar img{width:100%;height:100%;object-fit:cover}
-        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
-        .topbar-profile-role{font-size:10px;color:var(--text-4)}
+        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.2}
+        .topbar-profile-role{font-size:11px;color:var(--text-4)}
 
         /* ===== SIDEBAR ===== */
-        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
-        .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
-        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
-        .sidebar-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}
+        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);z-index:90;overflow-y:auto;padding:20px 14px;display:flex;flex-direction:column;gap:4px;transition:transform var(--transition)}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}
         .sidebar-link:hover{background:var(--surface-hover);color:var(--text)}
         .sidebar-link.active{background:var(--blue-light);color:var(--blue);font-weight:600}
-        .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
-        .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
+        .sidebar-link i{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:14px 14px 6px}
+        .sidebar-footer{padding:14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
 
-        /* ===== MAIN CONTENT ===== */
-        .main-content{margin-left:0;margin-top:72px;padding:32px;min-height:calc(100vh - 72px)}
-        .profile-container{max-width:900px;margin:0 auto}
+        /* ===== MAIN ===== */
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px);min-width:0}
+        .profile-container{max-width:1120px;margin:0 auto;min-width:0}
 
-        /* ===== HEADER ===== */
-        .profile-header{margin-bottom:32px;animation:fadeInUp .5s ease}
-        .profile-header-title{font-size:clamp(24px,3vw,30px);font-weight:800;margin-bottom:4px}
-        .profile-header-subtitle{font-size:14px;color:var(--text-3);font-weight:400}
-        .profile-header-id{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-weight:600;color:var(--text-2);font-family:'Outfit',sans-serif;letter-spacing:.04em}
-        .profile-header-id i{color:var(--blue)}
+        /* ===== HERO ===== */
+        .profile-hero{background:linear-gradient(135deg,#1E3A8A,#2563EB,#1D4ED8,#059669);background-size:300% 300%;border-radius:var(--radius-xl);padding:32px;color:#fff;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(37,99,235,.3);animation:bgShift 9s ease-in-out infinite}
+        .profile-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% 15%,rgba(245,158,11,.18),transparent 50%),radial-gradient(circle at 15% 90%,rgba(16,185,129,.18),transparent 50%);pointer-events:none}
+        .hero-top{display:flex;align-items:center;gap:24px;position:relative;z-index:1;flex-wrap:wrap}
+        .hero-avatar{width:96px;height:96px;border-radius:24px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:38px;color:#fff;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,.3);position:relative}
+        .hero-avatar img{width:100%;height:100%;object-fit:cover}
+        .hero-info{flex:1;min-width:200px}
+        .hero-name{font-size:26px;font-weight:800;font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+        .hero-email{font-size:14px;opacity:.85;margin-top:2px}
+        .hero-badges{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+        .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(255,255,255,.15);backdrop-filter:blur(4px)}
+        .hero-badge.verified{background:rgba(16,185,129,.3)}
+        .hero-actions{display:flex;flex-direction:column;gap:8px;position:relative;z-index:1}
+        .hero-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1.5px solid rgba(255,255,255,.4);border-radius:var(--radius-sm);background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+        .hero-btn:hover{background:rgba(255,255,255,.25)}
+        .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px;position:relative;z-index:1}
+        .hero-stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius);padding:14px 16px;backdrop-filter:blur(4px)}
+        .hero-stat-value{font-size:20px;font-weight:800;font-family:'Outfit',sans-serif}
+        .hero-stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.75;margin-top:2px}
 
-        /* ===== PROFILE TOP CARD ===== */
-        .profile-top-card{display:flex;align-items:center;gap:24px;padding:28px 32px;background:rgba(255,255,255,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow);margin-bottom:28px;animation:fadeIn .6s ease;transition:all var(--transition);flex-wrap:wrap}
-        [data-theme="dark"] .profile-top-card{background:rgba(17,24,39,.7)}
-        .profile-top-avatar{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:32px;color:#fff;flex-shrink:0;overflow:hidden;position:relative;box-shadow:0 8px 30px var(--blue-glow)}
-        .profile-top-avatar img{width:100%;height:100%;object-fit:cover}
-        .profile-top-info{flex:1;min-width:200px}
-        .profile-top-name{font-size:22px;font-weight:800;font-family:'Outfit',sans-serif}
-        .profile-top-meta{font-size:13px;color:var(--text-3);margin-top:2px}
-        .profile-top-id{font-size:12px;font-weight:600;color:var(--text-4);font-family:'Outfit',sans-serif;letter-spacing:.04em;margin-top:4px}
-        .profile-top-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-top:8px}
-        .profile-top-badge.verified{background:var(--green-light);color:var(--green-dark)}
-        .profile-top-badge.pending{background:var(--orange-light);color:#c2410c}
-        .profile-top-badge.rejected{background:var(--red-light);color:#b91c1c}
+        /* ===== GRID ===== */
+        .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+        .profile-col{display:flex;flex-direction:column;gap:24px;min-width:0}
 
         /* ===== SECTION CARDS ===== */
-        .section{animation:fadeInUp .5s ease;animation-fill-mode:both}
-        .section:nth-child(1){animation-delay:.05s}
-        .section:nth-child(2){animation-delay:.1s}
-        .section:nth-child(3){animation-delay:.15s}
-        .section:nth-child(4){animation-delay:.2s}
-        .section:nth-child(5){animation-delay:.25s}
-        .section-card{background:rgba(255,255,255,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 32px;margin-bottom:24px;box-shadow:var(--shadow);transition:all var(--transition)}
-        [data-theme="dark"] .section-card{background:rgba(17,24,39,.7)}
-        .section-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
-        .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-        .section-title{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;font-family:'Outfit',sans-serif}
-        .section-title i{font-size:20px;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:var(--blue-light);color:var(--blue)}
+        .section-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 26px;box-shadow:var(--shadow-sm);transition:all var(--transition);min-width:0}
+        .section-card:hover{box-shadow:var(--shadow)}
+        .section-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+        .section-title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;font-family:'Outfit',sans-serif}
+        .section-title i{font-size:17px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--blue-light);color:var(--blue)}
         .section-title i.green{background:var(--green-light);color:var(--green-dark)}
         .section-title i.yellow{background:var(--orange-light);color:#c2410c}
         .section-title i.red{background:var(--red-light);color:#b91c1c}
+        .danger-card{border-color:#FCA5A5}
 
         /* ===== FORMS ===== */
-        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-        .form-group{display:flex;flex-direction:column;gap:6px}
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+        .form-group{display:flex;flex-direction:column;gap:6px;min-width:0}
         .form-group.full{grid-column:1/-1}
-        .form-label{font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
-        .form-input,.form-select{width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;transition:all .2s}
+        .form-label{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
+        .form-input,.form-select{width:100%;min-width:0;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;transition:all .2s}
         .form-input:focus,.form-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
         .form-input:disabled,.form-select:disabled{opacity:.6;cursor:not-allowed;background:var(--bg)}
         .form-select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2364748B' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:40px}
-        .form-helper{font-size:11px;color:var(--text-4);margin-top:2px}
+        .form-helper{font-size:11px;color:var(--text-4)}
 
         /* ===== BUTTONS ===== */
-        .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all var(--transition);border:none}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all var(--transition);border:none}
         .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 4px 16px var(--blue-glow)}
-        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px var(--blue-glow)}
-        .btn-primary:active{transform:scale(.97)}
-        .btn-secondary{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}
-        .btn-secondary:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
+        .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--blue-glow)}
+        .btn-secondary{background:var(--surface);color:var(--text-2);border:1.5px solid var(--border)}
+        .btn-secondary:hover{background:var(--surface-hover)}
         .btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}
         .btn-outline:hover{background:var(--blue-light)}
         .btn-danger{background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;box-shadow:0 4px 16px rgba(239,68,68,.25)}
-        .btn-danger:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(239,68,68,.35)}
-        .btn-sm{padding:8px 16px;font-size:12px;border-radius:8px}
-        .btn-icon{width:40px;height:40px;padding:0;border-radius:10px}
+        .btn-danger:hover{transform:translateY(-1px)}
+        .btn-sm{padding:8px 14px;font-size:12.5px;border-radius:9px}
 
-        /* ===== PHOTO UPLOAD ===== */
-        .photo-upload-area{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
-        .photo-preview{width:120px;height:120px;border-radius:var(--radius-lg);background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;color:#fff;overflow:hidden;position:relative;box-shadow:0 8px 30px var(--blue-glow);flex-shrink:0}
-        .photo-preview img{width:100%;height:100%;object-fit:cover}
-        .photo-actions{display:flex;flex-direction:column;gap:10px}
-        .photo-actions .btn{gap:8px}
-        .photo-info{font-size:11px;color:var(--text-4);margin-top:4px}
-        .file-input-hidden{display:none}
-
-        /* ===== INFO DISPLAY ===== */
-        .info-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:12px}
+        /* ===== INFO ROWS ===== */
+        .info-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
         .info-row:last-child{border-bottom:none}
-        .info-label{font-size:13px;font-weight:500;color:var(--text-3);display:flex;align-items:center;gap:8px}
-        .info-label i{font-size:14px;color:var(--text-4);width:16px;text-align:center}
-        .info-value{font-size:14px;font-weight:600;color:var(--text);text-align:right;word-break:break-all}
-        .info-value.mono{font-family:'Outfit',sans-serif;letter-spacing:.02em;color:var(--blue)}
+        .info-label{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-2);font-weight:500}
+        .info-label i{width:18px;color:var(--text-4)}
+        .info-value{font-size:13.5px;font-weight:600;color:var(--text);text-align:right}
+        .info-value.mono{font-family:monospace}
 
-        /* ===== PROGRESS BARS ===== */
-        .limit-label{font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:6px;display:flex;justify-content:space-between}
-        .limit-label span{font-weight:600;color:var(--text-2)}
-        .progress-bar{width:100%;height:10px;background:var(--bg);border-radius:10px;overflow:hidden;margin-bottom:16px}
-        .progress-fill{height:100%;border-radius:10px;transition:width 1s ease;background:linear-gradient(90deg,var(--blue),var(--green))}
-        .progress-fill.warning{background:linear-gradient(90deg,var(--yellow),var(--orange))}
-        .progress-fill.danger{background:linear-gradient(90deg,#EF4444,#DC2626)}
-
-        /* ===== STATS GRID ===== */
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
-        .stat-item{background:var(--bg);border-radius:var(--radius-sm);padding:16px;text-align:center;transition:all var(--transition)}
-        .stat-item:hover{background:var(--surface-hover);transform:translateY(-2px)}
-        .stat-item i{font-size:22px;color:var(--blue);margin-bottom:8px}
-        .stat-value{font-size:20px;font-weight:800;font-family:'Outfit',sans-serif}
-        .stat-label{font-size:11px;color:var(--text-4);font-weight:500}
-
-        /* ===== QUICK ACTIONS ===== */
-        .actions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-        .action-card{display:flex;align-items:center;gap:12px;padding:18px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid transparent;cursor:pointer;transition:all var(--transition);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--text-2)}
-        .action-card:hover{background:var(--surface-hover);border-color:var(--border);box-shadow:var(--shadow);transform:translateY(-3px)}
-        .action-card i{font-size:20px;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:var(--blue-light);color:var(--blue);flex-shrink:0}
-        .action-card i.green{background:var(--green-light);color:var(--green-dark)}
-        .action-card i.yellow{background:var(--orange-light);color:#c2410c}
-        .action-card i.red{background:var(--red-light);color:#b91c1c}
-
-        /* ===== DANGER ZONE ===== */
-        .danger-card{background:rgba(254,226,226,.6);border:2px solid var(--red-light);backdrop-filter:blur(20px)}
-        [data-theme="dark"] .danger-card{background:rgba(127,29,29,.15)}
-        .danger-actions{display:flex;gap:12px;flex-wrap:wrap}
-
-        /* ===== TOGGLE SWITCH ===== */
-        .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:12px}
+        /* ===== TOGGLE ===== */
+        .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
         .toggle-row:last-child{border-bottom:none}
         .toggle-info{display:flex;flex-direction:column;gap:2px}
-        .toggle-title{font-size:14px;font-weight:600}
+        .toggle-title{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .toggle-title i{color:var(--text-4);width:16px}
         .toggle-desc{font-size:12px;color:var(--text-4)}
-        .toggle-switch{position:relative;width:52px;height:28px;flex-shrink:0}
+        .toggle-switch{position:relative;width:48px;height:26px;flex-shrink:0}
         .toggle-switch input{opacity:0;width:0;height:0}
-        .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);border-radius:28px;transition:all .3s}
-        .toggle-slider::before{content:'';position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+        .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);border-radius:26px;transition:all .3s}
+        .toggle-slider::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,.15)}
         .toggle-switch input:checked+.toggle-slider{background:var(--blue)}
-        .toggle-switch input:checked+.toggle-slider::before{transform:translateX(24px)}
-        .toggle-switch input:disabled+.toggle-slider{opacity:.5;cursor:not-allowed}
+        .toggle-switch input:checked+.toggle-slider::before{transform:translateX(22px)}
+
+        /* ===== PROGRESS ===== */
+        .limit-label{display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);font-weight:600;margin-bottom:6px}
+        .limit-label span{color:var(--text-3);font-weight:500}
+        .progress-bar{height:8px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:6px}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:8px;transition:width 1.5s ease}
+        .progress-fill.warning{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+        .progress-fill.danger{background:linear-gradient(90deg,var(--orange),var(--red))}
+
+        /* ===== STATS GRID ===== */
+        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        .stat-item{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:16px 10px;background:var(--surface-hover);border:1px solid var(--border);border-radius:var(--radius)}
+        .stat-item i{font-size:18px;color:var(--blue);margin-bottom:4px}
+        .stat-value{font-size:19px;font-weight:800;font-family:'Outfit',sans-serif}
+        .stat-label{font-size:11px;color:var(--text-4);text-transform:uppercase;letter-spacing:.04em}
+
+        /* ===== ACTIONS ===== */
+        .actions-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+        .action-card{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;text-align:left}
+        .action-card:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+        .action-card i{width:18px;text-align:center;color:var(--blue)}
+        .action-card i.green{color:var(--green)}
+        .action-card i.yellow{color:var(--orange)}
+        .danger-actions{display:flex;gap:10px;flex-wrap:wrap}
 
         /* ===== MODAL ===== */
-        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;animation:fadeIn .3s ease}
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;animation:fadeIn .3s ease;padding:16px}
         .modal-overlay.show{display:flex}
-        .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:32px;max-width:460px;width:90%;box-shadow:var(--shadow-xl);animation:scaleIn .3s ease}
-        .modal h3{font-size:20px;font-weight:700;margin-bottom:8px}
+        .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:30px;max-width:460px;width:100%;box-shadow:var(--shadow-xl);animation:scaleIn .3s ease;max-height:90vh;overflow-y:auto}
+        .modal h3{font-size:19px;font-weight:700;margin-bottom:8px}
         .modal p{font-size:14px;color:var(--text-3);margin-bottom:20px}
-        .modal-actions{display:flex;gap:12px;justify-content:flex-end}
+        .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
 
-        /* ===== FLASH MESSAGES ===== */
-        .flash{position:fixed;top:88px;right:32px;z-index:9999;padding:14px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);animation:slideInRight .4s ease;display:flex;align-items:center;gap:10px}
+        /* ===== FLASH ===== */
+        .flash{position:fixed;top:88px;right:24px;z-index:9999;padding:13px 20px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);animation:slideInRight .4s ease;display:flex;align-items:center;gap:10px;max-width:90vw}
         .flash-success{background:var(--green-light);color:var(--green-dark);border:1px solid var(--green)}
         .flash-error{background:var(--red-light);color:#b91c1c;border:1px solid #FCA5A5}
         .flash-info{background:var(--blue-light);color:var(--blue-dark);border:1px solid var(--blue)}
-        .flash-close{background:none;border:none;cursor:pointer;font-size:16px;color:inherit;opacity:.7}
+        .flash-close{background:none;border:none;cursor:pointer;font-size:15px;color:inherit;opacity:.7}
         .flash-close:hover{opacity:1}
+        .file-input-hidden{display:none}
 
         /* ===== RESPONSIVE ===== */
-        @media (max-width:1200px){.main-content{padding:24px 20px}}
-        @media (max-width:1024px){
+        @media(max-width:1024px){
+            .profile-grid{grid-template-columns:1fr}
+            .main-content{padding:24px 20px}
+        }
+        @media(max-width:768px){
             .sidebar{transform:translateX(-100%)}
-            .sidebar.open{transform:translateX(0)}
-            .main-content{margin-left:0}
-            .topbar-left{gap:8px}
+            .main-content{margin-left:0;padding:20px 14px}
+            .hero-stats{grid-template-columns:repeat(2,1fr)}
             .form-grid{grid-template-columns:1fr}
-            .stats-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
-            .actions-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}
+            .actions-grid{grid-template-columns:1fr}
+            .topbar-left .topbar-back span{display:none}
         }
-        @media (max-width:600px){
-            .topbar{padding:0 16px}
-            .main-content{padding:20px 12px}
-            .section-card{padding:20px 16px}
-            .profile-top-card{flex-direction:column;text-align:center;padding:24px 20px}
-            .photo-upload-area{flex-direction:column;align-items:center;text-align:center}
-            .danger-actions{flex-direction:column}
-            .danger-actions .btn{width:100%}
-            .modal{padding:24px 20px}
-        }
-
     </style>
 </head>
 <body>
-    <!-- ===== TOPBAR ===== -->
-    <header class="topbar">
-        <div class="topbar-left">
-            <a href="{{ url_for('dashboard') }}" class="topbar-back">
-                <i class="fa-solid fa-arrow-left"></i> Retour
-            </a>
-            <div class="topbar-logo">
-                <img src="{{ url_for('static', filename='img/trans1.png') }}" alt="TransAfrik" onerror="this.style.display='none'">
-                <span>TransAfrik</span>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="{{ url_for('dashboard') }}" class="topbar-back"><i class="fa-solid fa-arrow-left"></i> <span>Retour</span></a>
+        <a href="{{ url_for('dashboard') }}" class="topbar-logo">
+            <img src="{{ url_for('static', filename='img/trans1.png') }}" alt="TransAfrik" onerror="this.style.display='none'">
+            <span>TransAfrik</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-lang" id="langToggle">
+            <i class="fa-solid fa-globe"></i>
+            <span id="langLabel">{{ {'fr':'FR','en':'EN'}.get(user.language or 'fr','FR') }}</span>
+            <i class="fa-solid fa-chevron-down" style="font-size:10px"></i>
+            <div class="topbar-language-dropdown" id="langDropdown">
+                <button onclick="changeLanguage('fr')" {% if user.language=='fr' or not user.language %}class="active"{% endif %}><span>🇫🇷</span> Français</button>
+                <button onclick="changeLanguage('en')" {% if user.language=='en' %}class="active"{% endif %}><span>🇬🇧</span> English</button>
             </div>
         </div>
-        <div class="topbar-right">
-            <div class="topbar-lang" id="langToggle">
-                <i class="fa-solid fa-globe"></i>
-                <span id="langLabel">{{ {'fr':'FR','en':'EN'}.get(user.language or 'fr','FR') }}</span>
-                <i class="fa-solid fa-chevron-down" style="font-size:10px"></i>
-                <div class="topbar-language-dropdown" id="langDropdown">
-                    <button onclick="changeLanguage('fr')" {% if user.language=='fr' or not user.language %}class="active"{% endif %}>
-                        <span>🇫🇷</span> Français
-                    </button>
-                    <button onclick="changeLanguage('en')" {% if user.language=='en' %}class="active"{% endif %}>
-                        <span>🇬🇧</span> English
-                    </button>
-                </div>
+        <a class="topbar-icon-btn" href="/notifications" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            {% if unread_notifications > 0 %}<span class="badge">{{ unread_notifications }}</span>{% endif %}
+        </a>
+        <div class="topbar-profile" onclick="window.location.href='{{ url_for('profile') }}'">
+            <div class="topbar-profile-avatar" id="topAvatar">
+                {% if user.profile_picture %}<img src="{{ user.profile_picture }}" alt="{{ user.first_name }}">
+                {% else %}{{ user.first_name[:2].upper() }}{% endif %}
             </div>
-            <button class="topbar-icon-btn" aria-label="Notifications" onclick="window.location.href='#'">
-                <i class="fa-solid fa-bell"></i>
-                {% if unread_notifications > 0 %}
-                <span class="badge">{{ unread_notifications }}</span>
+            <div>
+                <div class="topbar-profile-name">{{ user.first_name }}</div>
+                <div class="topbar-profile-role">Utilisateur</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+    <nav style="display:flex;flex-direction:column;gap:4px">
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+        <a href="{{ url_for('send_money') }}" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> Envoyer</a>
+        <a href="{{ url_for('deposit_page') }}" class="sidebar-link"><i class="fa-solid fa-wallet"></i> Dépôt</a>
+        <a href="{{ url_for('withdraw_page') }}" class="sidebar-link"><i class="fa-solid fa-building-columns"></i> Retrait</a>
+        <a href="{{ url_for('history') }}" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <div class="sidebar-section-title">Services</div>
+        <a href="{{ url_for('beneficiaries_page') }}" class="sidebar-link"><i class="fa-solid fa-user-group"></i> Bénéficiaires</a>
+        <a href="{{ url_for('fees_calculator') }}" class="sidebar-link"><i class="fa-solid fa-calculator"></i> Calculateur</a>
+        <a href="{{ url_for('api_converter') }}" class="sidebar-link"><i class="fa-solid fa-rotate"></i> Convertisseur</a>
+        <a href="{{ url_for('scan_page') }}" class="sidebar-link"><i class="fa-solid fa-qrcode"></i> Scanner</a>
+        <div class="sidebar-section-title">Compte</div>
+        <a href="{{ url_for('profile') }}" class="sidebar-link active"><i class="fa-solid fa-user-circle"></i> Mon profil</a>
+        <a href="{{ url_for('kyc_page') }}" class="sidebar-link"><i class="fa-solid fa-user-check"></i> KYC</a>
+        <a href="{{ url_for('settings_page') }}" class="sidebar-link"><i class="fa-solid fa-gear"></i> Paramètres</a>
+        <a href="{{ url_for('support_page') }}" class="sidebar-link"><i class="fa-solid fa-headset"></i> Support</a>
+        <a href="{{ url_for('logout') }}" class="sidebar-link"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 TransAfrik v1.0</div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main-content">
+<div class="profile-container">
+
+    <!-- HERO -->
+    <div class="profile-hero">
+        <div class="hero-top">
+            <div class="hero-avatar" id="photoPreview">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture }}" alt="Photo" id="photoImg">
+                {% else %}
+                <span id="photoInitials">{{ user.first_name[:2].upper() }}</span>
                 {% endif %}
-            </button>
-            <div class="topbar-profile" onclick="window.location.href='{{ url_for('profile') }}'">
-                <div class="topbar-profile-avatar">
-                    {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture }}" alt="{{ user.first_name }}">
+            </div>
+            <div class="hero-info">
+                <div class="hero-name">{{ user.fullname }}</div>
+                <div class="hero-email"><i class="fa-solid fa-envelope" style="margin-right:6px"></i>{{ user.email }}</div>
+                <div class="hero-badges">
+                    <span class="hero-badge"><i class="fa-solid fa-id-badge"></i> #{{ user.id }}</span>
+                    {% if user.kyc_status == 'verified' %}
+                    <span class="hero-badge verified"><i class="fa-solid fa-circle-check"></i> Vérifié</span>
+                    {% elif user.kyc_status == 'rejected' %}
+                    <span class="hero-badge" style="background:rgba(239,68,68,.35)"><i class="fa-solid fa-circle-xmark"></i> KYC refusé</span>
                     {% else %}
-                    {{ user.first_name[:2].upper() }}
+                    <span class="hero-badge" style="background:rgba(249,115,22,.3)"><i class="fa-solid fa-clock"></i> KYC en attente</span>
                     {% endif %}
                 </div>
-                <div>
-                    <div class="topbar-profile-name">{{ user.first_name }}</div>
-                    <div class="topbar-profile-role">Utilisateur</div>
-                </div>
+            </div>
+            <div class="hero-actions">
+                <button class="hero-btn" onclick="document.getElementById('avatarInput').click()"><i class="fa-solid fa-upload"></i> Changer la photo</button>
+                <button class="hero-btn" onclick="openCamera()"><i class="fa-solid fa-camera"></i> Prendre une photo</button>
+                {% if user.profile_picture %}
+                <button class="hero-btn" onclick="removePhoto()" style="border-color:rgba(248,113,113,.6)"><i class="fa-solid fa-trash"></i> Supprimer</button>
+                {% endif %}
+                <input type="file" id="avatarInput" class="file-input-hidden" accept="image/jpeg,image/png,image/jpg" onchange="previewAndUpload(this)">
+                <canvas id="cropCanvas" style="display:none"></canvas>
             </div>
         </div>
-    </header>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-value">{{ tx_count }}</div><div class="hero-stat-label">Transferts</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">{{ '{:,.0f}'.format(total_sent) }}</div><div class="hero-stat-label">Envoyé</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">{{ '{:,.0f}'.format(total_received) }}</div><div class="hero-stat-label">Reçu</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">{{ beneficiary_count }}</div><div class="hero-stat-label">Bénéficiaires</div></div>
+        </div>
+    </div>
 
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar" style="display:none;">
-        <nav class="sidebar-nav">
-            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
-                <i class="fa-solid fa-grid-2"></i> Tableau de bord
-            </a>
-            <a href="{{ url_for('send_money') }}" class="sidebar-link">
-                <i class="fa-solid fa-paper-plane"></i> Envoyer de l'argent
-            </a>
-            <a href="{{ url_for('deposit_page') }}" class="sidebar-link">
-                <i class="fa-solid fa-wallet"></i> Dépôt
-            </a>
-            <a href="{{ url_for('history') }}" class="sidebar-link">
-                <i class="fa-solid fa-clock-rotate-left"></i> Historique
-            </a>
-            <div class="sidebar-section-title">Outils</div>
-            <a href="{{ url_for('beneficiaries_page') }}" class="sidebar-link">
-                <i class="fa-solid fa-users"></i> Bénéficiaires
-            </a>
-            <a href="{{ url_for('api_converter') }}" class="sidebar-link">
-                <i class="fa-solid fa-calculator"></i> Convertisseur
-            </a>
-            <a href="{{ url_for('fees_calculator') }}" class="sidebar-link">
-                <i class="fa-solid fa-coins"></i> Frais
-            </a>
-            <a href="{{ url_for('scan_page') }}" class="sidebar-link">
-                <i class="fa-solid fa-qrcode"></i> Scanner QR
-            </a>
-            <a href="{{ url_for('my_qrcode_page') }}" class="sidebar-link">
-                <i class="fa-solid fa-qrcode"></i> Mon QR Code
-            </a>
-            <div class="sidebar-section-title">Compte</div>
-            <a href="{{ url_for('profile') }}" class="sidebar-link active">
-                <i class="fa-solid fa-user-circle"></i> Mon profil
-            </a>
-            <a href="{{ url_for('settings_page') }}" class="sidebar-link">
-                <i class="fa-solid fa-gear"></i> Paramètres
-            </a>
-            <a href="{{ url_for('kyc_page') }}" class="sidebar-link">
-                <i class="fa-solid fa-shield-halved"></i> Vérification KYC
-            </a>
-            <a href="{{ url_for('support_page') }}" class="sidebar-link">
-                <i class="fa-solid fa-headset"></i> Support
-            </a>
-        </nav>
-        <div class="sidebar-footer">© 2026 TransAfrik</div>
-    </aside>
+    <!-- GRID -->
+    <div class="profile-grid">
+        <div class="profile-col">
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <main class="main-content">
-        <div class="profile-container">
-
-            <!-- ==================== HEADER ==================== -->
-            <div class="profile-header">
-                <h1 class="profile-header-title gradient-text">Mon profil</h1>
-                <p class="profile-header-subtitle">Gérez vos informations personnelles et les paramètres de votre compte.</p>
-                <div class="profile-header-id">
-                    <i class="fa-solid fa-id-card"></i>
-                    {{ user.qr_identifier or 'TX-' + '%08d'|format(user.id) }}
+            <!-- INFORMATIONS PERSONNELLES -->
+            <div class="section-card" id="section-info">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-user-pen"></i> Informations personnelles</div>
+                    <button type="submit" form="profileInfoForm" class="btn btn-primary btn-sm" id="saveInfoBtn"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
                 </div>
-            </div>
-
-            <!-- ==================== TOP CARD ==================== -->
-            <div class="profile-top-card">
-                <div class="profile-top-avatar" id="topAvatar">
-                    {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture }}" alt="{{ user.fullname }}">
-                    {% else %}
-                    {{ user.first_name[:2].upper() }}
-                    {% endif %}
-                </div>
-                <div class="profile-top-info">
-                    <div class="profile-top-name">{{ user.fullname }}</div>
-                    <div class="profile-top-meta">{{ user.email }}</div>
-                    <div class="profile-top-id">{{ user.qr_identifier or 'TX-' + '%08d'|format(user.id) }}</div>
-                    {% if user.kyc_status == 'verified' %}
-                    <div class="profile-top-badge verified">
-                        <i class="fa-solid fa-circle-check"></i> KYC Vérifié
-                    </div>
-                    {% elif user.kyc_status == 'rejected' %}
-                    <div class="profile-top-badge rejected">
-                        <i class="fa-solid fa-circle-xmark"></i> KYC Non vérifié
-                    </div>
-                    {% else %}
-                    <div class="profile-top-badge pending">
-                        <i class="fa-solid fa-clock"></i> KYC En attente
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- ==================== SECTION 1 : PHOTO DE PROFIL ==================== -->
-            <div class="section" id="section-photo">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-camera"></i> Photo de profil
-                        </div>
-                    </div>
-                    <div class="photo-upload-area">
-                        <div class="photo-preview" id="photoPreview">
-                            {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture }}" alt="Photo de profil" id="photoImg">
-                            {% else %}
-                            <span id="photoInitials">{{ user.first_name[:2].upper() }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="photo-actions">
-                            <button class="btn btn-primary btn-sm" onclick="document.getElementById('avatarInput').click()">
-                                <i class="fa-solid fa-upload"></i> Changer la photo
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="openCamera()">
-                                <i class="fa-solid fa-camera"></i> Prendre une photo
-                            </button>
-                            {% if user.profile_picture %}
-                            <button class="btn btn-secondary btn-sm" onclick="removePhoto()" style="color:var(--red);border-color:#FCA5A5">
-                                <i class="fa-solid fa-trash"></i> Supprimer
-                            </button>
-                            {% endif %}
-                            <input type="file" id="avatarInput" class="file-input-hidden" accept="image/jpeg,image/png,image/jpg" onchange="previewAndUpload(this)">
-                            <canvas id="cropCanvas" style="display:none"></canvas>
-                            <p class="photo-info">JPG, PNG ou JPEG. Maximum 5 Mo.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== SECTION 2 : INFORMATIONS PERSONNELLES ==================== -->
-            <div class="section" id="section-info">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-user-pen"></i> Informations personnelles
-                        </div>
-                        <button type="submit" form="profileInfoForm" class="btn btn-primary btn-sm" id="saveInfoBtn">
-                            <i class="fa-solid fa-floppy-disk"></i> Enregistrer
-                        </button>
-                    </div>
-                    <form id="profileInfoForm" method="POST" action="{{ url_for('profile_update') }}">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Nom</label>
-                                <input type="text" class="form-input" name="lastname" placeholder="Votre nom" value="{{ user.fullname.split()[-1] if user.fullname and user.fullname.split()|length > 1 else '' }}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Prénom</label>
-                                <input type="text" class="form-input" name="firstname" placeholder="Votre prénom" value="{{ user.first_name }}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-input" name="email" value="{{ user.email }}" disabled>
-                                <span class="form-helper">Contactez le support pour modifier votre email.</span>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Téléphone</label>
-                                <input type="tel" class="form-input" name="phone" value="{{ user.phone }}" disabled>
-                                <span class="form-helper">Contactez le support pour modifier votre numéro.</span>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Date de naissance</label>
-                                <input type="date" class="form-input" name="birth_date" value="{{ user.birth_date.strftime('%Y-%m-%d') if user.birth_date else '' }}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Sexe</label>
-                                <select class="form-select" name="gender">
-                                    <option value="">Sélectionner...</option>
-                                    <option value="male" {% if user.gender=='male' %}selected{% endif %}>Homme</option>
-                                    <option value="female" {% if user.gender=='female' %}selected{% endif %}>Femme</option>
-                                    <option value="other" {% if user.gender=='other' %}selected{% endif %}>Autre</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Nationalité</label>
-                                <select class="form-select" name="nationality">
-                                    <option value="">Sélectionner...</option>
-                                    {% for code, name in country_names.items() %}
-                                    <option value="{{ code }}" {% if user.country==code %}selected{% endif %}>{{ name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Profession</label>
-                                <input type="text" class="form-input" name="profession" placeholder="Votre profession" value="{{ user.profession or '' }}">
-                            </div>
-                            <div class="form-group full">
-                                <label class="form-label">Adresse</label>
-                                <input type="text" class="form-input" name="address" placeholder="Rue, quartier, etc." value="{{ user.address or '' }}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Ville</label>
-                                <input type="text" class="form-input" name="city" placeholder="Votre ville" value="{{ user.city or '' }}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Pays</label>
-                                <select class="form-select" name="country">
-                                    {% for code, name in country_names.items() %}
-                                    <option value="{{ code }}" {% if user.country==code %}selected{% endif %}>{{ name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Code postal</label>
-                                <input type="text" class="form-input" name="postal_code" placeholder="Code postal" value="{{ user.postal_code or '' }}">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- ==================== SECTION 3 : SÉCURITÉ ==================== -->
-            <div class="section" id="section-security">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-shield-halved green"></i> Sécurité
-                        </div>
-                    </div>
-                    <!-- Mot de passe -->
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fa-solid fa-lock"></i> Mot de passe
-                        </div>
-                        <div class="info-value" style="font-family:monospace">••••••••</div>
-                        <button class="btn btn-outline btn-sm" onclick="openModal('passwordModal')">
-                            <i class="fa-solid fa-pen"></i> Modifier
-                        </button>
-                    </div>
-                    <!-- PIN -->
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fa-solid fa-key"></i> PIN TransAfrik
-                        </div>
-                        <div class="info-value" style="font-family:monospace">••••</div>
-                        <button class="btn btn-outline btn-sm" onclick="openModal('pinModal')">
-                            <i class="fa-solid fa-pen"></i> {% if user.pin_hash %}Modifier{% else %}Définir{% endif %}
-                        </button>
-                    </div>
-                    <!-- 2FA -->
-                    <div class="toggle-row">
-                        <div class="toggle-info">
-                            <div class="toggle-title">
-                                <i class="fa-solid fa-fingerprint"></i> Authentification à deux facteurs
-                            </div>
-                            <div class="toggle-desc">
-                                {% if user.two_factor_enabled %}
-                                Activée — {{ {'sms':'OTP par SMS','email':'OTP par Email','authenticator':'Authenticator App'}.get(user.two_factor_method, user.two_factor_method) }}
-                                {% else %}
-                                Désactivée — Sécurisez votre compte avec une vérification supplémentaire.
-                                {% endif %}
-                            </div>
-                        </div>
-                        <button class="btn btn-outline btn-sm" onclick="openModal('twoFactorModal')">
-                            <i class="fa-solid fa-gear"></i> Configurer
-                        </button>
-                    </div>
-                    <!-- Dernière connexion -->
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fa-solid fa-clock"></i> Dernière connexion
-                        </div>
-                        <div class="info-value">
-                            {% if user.last_login %}
-                            {{ user.last_login.strftime('%d/%m/%Y à %H:%M') }}
-                            {% else %}
-                            Inconnue
-                            {% endif %}
-                        </div>
-                    </div>
-                    <!-- IP -->
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fa-solid fa-globe"></i> Adresse IP
-                        </div>
-                        <div class="info-value mono">{{ user.last_ip or 'N/A' }}</div>
-                    </div>
-                    <!-- Déconnecter appareils -->
-                    <div style="margin-top:16px">
-                        <button class="btn btn-secondary btn-sm" onclick="logoutAllDevices()">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Déconnecter tous les appareils
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== SECTION 4 : KYC ==================== -->
-            <div class="section" id="section-kyc">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-id-card yellow"></i> Vérification KYC
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fa-solid fa-circle-info"></i> Statut
-                        </div>
-                        <div class="info-value">
-                            {% if user.kyc_status == 'verified' %}
-                            <span style="color:var(--green-dark)">🟢 Vérifié</span>
-                            {% elif user.kyc_status == 'rejected' %}
-                            <span style="color:#b91c1c">🔴 Refusé</span>
-                            {% else %}
-                            <span style="color:#c2410c">🟡 En attente</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div style="margin-top:12px">
-                        <span class="form-label" style="margin-bottom:8px;display:block">Progression</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width:{{ kyc_progress }}%" id="kycProgressBar"></div>
-                        </div>
-                        <span style="font-size:11px;color:var(--text-4)">{{ kyc_progress }}% complété</span>
-                    </div>
-                    <div style="margin-top:16px">
-                        <a href="{{ url_for('kyc_page') }}" class="btn btn-outline btn-sm">
-                            <i class="fa-solid fa-arrow-right"></i> Voir ma vérification
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== SECTION 5 : PRÉFÉRENCES ==================== -->
-            <div class="section" id="section-preferences">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-sliders"></i> Préférences
-                        </div>
-                        <button class="btn btn-primary btn-sm" onclick="savePreferences()" id="savePrefsBtn">
-                            <i class="fa-solid fa-floppy-disk"></i> Enregistrer
-                        </button>
-                    </div>
+                <form id="profileInfoForm" method="POST" action="{{ url_for('profile_update') }}">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="form-label">Langue</label>
-                            <select class="form-select" id="prefLanguage">
-                                <option value="fr" {% if user.language=='fr' or not user.language %}selected{% endif %}>🇫🇷 Français</option>
-                                <option value="en" {% if user.language=='en' %}selected{% endif %}>🇬🇧 English</option>
+                            <label class="form-label">Nom</label>
+                            <input type="text" class="form-input" name="lastname" placeholder="Votre nom" value="{{ user.fullname.split()[-1] if user.fullname and user.fullname.split()|length > 1 else '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Prénom</label>
+                            <input type="text" class="form-input" name="firstname" placeholder="Votre prénom" value="{{ user.first_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" name="email" value="{{ user.email }}" disabled>
+                            <span class="form-helper">Contactez le support pour modifier votre email.</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" class="form-input" name="phone" value="{{ user.phone }}" disabled>
+                            <span class="form-helper">Contactez le support pour modifier votre numéro.</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date de naissance</label>
+                            <input type="date" class="form-input" name="birth_date" value="{{ user.birth_date.strftime('%Y-%m-%d') if user.birth_date else '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sexe</label>
+                            <select class="form-select" name="gender">
+                                <option value="">Sélectionner...</option>
+                                <option value="male" {% if user.gender=='male' %}selected{% endif %}>Homme</option>
+                                <option value="female" {% if user.gender=='female' %}selected{% endif %}>Femme</option>
+                                <option value="other" {% if user.gender=='other' %}selected{% endif %}>Autre</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Devise par défaut</label>
-                            <select class="form-select" id="prefCurrency">
-                                <option value="XOF" {% if user.currency=='XOF' %}selected{% endif %}>XOF — Franc CFA</option>
-                                <option value="EUR" {% if user.currency=='EUR' %}selected{% endif %}>EUR — Euro</option>
-                                <option value="USD" {% if user.currency=='USD' %}selected{% endif %}>USD — Dollar</option>
-                                <option value="GBP" {% if user.currency=='GBP' %}selected{% endif %}>GBP — Livre</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Pays</label>
-                            <select class="form-select" id="prefCountry">
+                            <label class="form-label">Nationalité</label>
+                            <select class="form-select" name="nationality">
+                                <option value="">Sélectionner...</option>
                                 {% for code, name in country_names.items() %}
                                 <option value="{{ code }}" {% if user.country==code %}selected{% endif %}>{{ name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Mode sombre</label>
-                            <select class="form-select" id="prefTheme">
-                                <option value="light" {% if user.theme=='light' or not user.theme %}selected{% endif %}>☀️ Clair</option>
-                                <option value="dark" {% if user.theme=='dark' %}selected{% endif %}>🌙 Sombre</option>
+                            <label class="form-label">Profession</label>
+                            <input type="text" class="form-input" name="profession" placeholder="Votre profession" value="{{ user.profession or '' }}">
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Adresse</label>
+                            <input type="text" class="form-input" name="address" placeholder="Rue, quartier, etc." value="{{ user.address or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ville</label>
+                            <input type="text" class="form-input" name="city" placeholder="Votre ville" value="{{ user.city or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pays</label>
+                            <select class="form-select" name="country">
+                                {% for code, name in country_names.items() %}
+                                <option value="{{ code }}" {% if user.country==code %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
-                    </div>
-                    <div style="margin-top:20px">
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <div class="toggle-title"><i class="fa-solid fa-envelope"></i> Notifications Email</div>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="prefNotifEmail" {% if user.notification_email %}checked{% endif %}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <div class="toggle-title"><i class="fa-solid fa-sms"></i> Notifications SMS</div>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="prefNotifSms" {% if user.notification_sms %}checked{% endif %}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <div class="toggle-title"><i class="fa-solid fa-bell"></i> Notifications Push</div>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="prefNotifPush" {% if user.notification_push %}checked{% endif %}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <div class="toggle-title"><i class="fa-solid fa-mobile-screen"></i> Vibrations</div>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="prefVibrations" {% if user.vibrations %}checked{% endif %}>
-                                <span class="toggle-slider"></span>
-                            </label>
+                        <div class="form-group">
+                            <label class="form-label">Code postal</label>
+                            <input type="text" class="form-input" name="postal_code" placeholder="Code postal" value="{{ user.postal_code or '' }}">
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
 
-            <!-- ==================== SECTION 6 : LIMITES ==================== -->
-            <div class="section" id="section-limits">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-gauge-high yellow"></i> Limites
-                        </div>
-                    </div>
-                    <!-- Daily -->
-                    {% set daily_div = user.daily_limit if user.daily_limit and user.daily_limit > 0 else 1 %}
-                    {% set monthly_div = user.monthly_limit if user.monthly_limit and user.monthly_limit > 0 else 1 %}
-                    <div class="limit-label">
-                        Limite quotidienne
-                        <span>{{ '{:,.0f}'.format(user.daily_limit) }} {{ user.currency }}</span>
-                    </div>
-                    <div class="progress-bar">
-                        {% set daily_pct = (user.used_daily / daily_div * 100) | round(1) %}
-                        <div class="progress-fill {% if daily_pct > 80 %}danger{% elif daily_pct > 50 %}warning{% endif %}" style="width:{{ daily_pct }}%" id="dailyBar"></div>
-                    </div>
-                    <div class="limit-label" style="font-size:11px;color:var(--text-4)">
-                        Utilisé : {{ '{:,.0f}'.format(user.used_daily) }} {{ user.currency }}
-                    </div>
-                    <!-- Monthly -->
-                    <div class="limit-label" style="margin-top:4px">
-                        Limite mensuelle
-                        <span>{{ '{:,.0f}'.format(user.monthly_limit) }} {{ user.currency }}</span>
-                    </div>
-                    <div class="progress-bar">
-                        {% set monthly_pct = (user.used_monthly / monthly_div * 100) | round(1) %}
-                        <div class="progress-fill {% if monthly_pct > 80 %}danger{% elif monthly_pct > 50 %}warning{% endif %}" style="width:{{ monthly_pct }}%" id="monthlyBar"></div>
-                    </div>
-                    <div class="limit-label" style="font-size:11px;color:var(--text-4)">
-                        Utilisé : {{ '{:,.0f}'.format(user.used_monthly) }} {{ user.currency }}
-                    </div>
+            <!-- SÉCURITÉ -->
+            <div class="section-card" id="section-security">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-shield-halved green"></i> Sécurité</div>
                 </div>
-            </div>
-
-            <!-- ==================== SECTION 7 : COMPTE ==================== -->
-            <div class="section" id="section-account">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-circle-info green"></i> Compte
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label"><i class="fa-solid fa-calendar"></i> Date de création</div>
-                        <div class="info-value">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label"><i class="fa-solid fa-clock"></i> Dernière connexion</div>
-                        <div class="info-value">{{ user.last_login.strftime('%d/%m/%Y à %H:%M') if user.last_login else 'N/A' }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label"><i class="fa-solid fa-circle"></i> Statut</div>
-                        <div class="info-value">
-                            {% if user.is_active %}
-                            <span style="color:var(--green)">Actif</span>
-                            {% else %}
-                            <span style="color:var(--red)">Suspendu</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label"><i class="fa-solid fa-fingerprint"></i> Identifiant utilisateur</div>
-                        <div class="info-value mono">#{{ user.id }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label"><i class="fa-solid fa-gift"></i> Code de parrainage</div>
-                        <div class="info-value mono">{{ user.referral_code }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label"><i class="fa-solid fa-users"></i> Nombre de filleuls</div>
-                        <div class="info-value">{{ referral_count }}</div>
-                    </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-lock"></i> Mot de passe</div>
+                    <div class="info-value mono">••••••••</div>
+                    <button class="btn btn-outline btn-sm" onclick="openModal('passwordModal')"><i class="fa-solid fa-pen"></i> Modifier</button>
                 </div>
-            </div>
-
-            <!-- ==================== SECTION 8 : STATISTIQUES ==================== -->
-            <div class="section" id="section-stats">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-chart-bar"></i> Statistiques
-                        </div>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <i class="fa-solid fa-arrows-rotate"></i>
-                            <div class="stat-value">{{ tx_count }}</div>
-                            <div class="stat-label">Transferts</div>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-solid fa-arrow-up"></i>
-                            <div class="stat-value">{{ '{:,.0f}'.format(total_sent) }}</div>
-                            <div class="stat-label">Montant envoyé</div>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-solid fa-arrow-down"></i>
-                            <div class="stat-value">{{ '{:,.0f}'.format(total_received) }}</div>
-                            <div class="stat-label">Montant reçu</div>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-solid fa-address-book"></i>
-                            <div class="stat-value">{{ beneficiary_count }}</div>
-                            <div class="stat-label">Bénéficiaires</div>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-solid fa-qrcode"></i>
-                            <div class="stat-value">{{ qr_count }}</div>
-                            <div class="stat-label">QR générés</div>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-solid fa-list-check"></i>
-                            <div class="stat-value">{{ ticket_count }}</div>
-                            <div class="stat-label">Tickets support</div>
-                        </div>
-                    </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-key"></i> PIN TransAfrik</div>
+                    <div class="info-value mono">••••</div>
+                    <button class="btn btn-outline btn-sm" onclick="openModal('pinModal')"><i class="fa-solid fa-pen"></i> {% if user.pin_hash %}Modifier{% else %}Définir{% endif %}</button>
                 </div>
-            </div>
-
-            <!-- ==================== SECTION 9 : ACTIONS RAPIDES ==================== -->
-            <div class="section" id="section-actions">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-bolt"></i> Actions rapides
-                        </div>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <div class="toggle-title"><i class="fa-solid fa-fingerprint"></i> Authentification à deux facteurs</div>
+                        <div class="toggle-desc">{% if user.two_factor_enabled %}Activée — {{ {'sms':'OTP par SMS','email':'OTP par Email','authenticator':'Authenticator App'}.get(user.two_factor_method, user.two_factor_method) }}{% else %}Désactivée — Sécurisez votre compte.{% endif %}</div>
                     </div>
-                    <div class="actions-grid">
-                        <button class="action-card" onclick="scrollToSection('section-info')">
-                            <i class="fa-solid fa-user-pen"></i> Modifier le profil
-                        </button>
-                        <button class="action-card" onclick="openModal('passwordModal')">
-                            <i class="fa-solid fa-lock green"></i> Changer le mot de passe
-                        </button>
-                        <a href="{{ url_for('settings_page') }}" class="action-card">
-                            <i class="fa-solid fa-gear yellow"></i> Paramètres
-                        </a>
-                        <a href="{{ url_for('beneficiaries_page') }}" class="action-card">
-                            <i class="fa-solid fa-users"></i> Mes bénéficiaires
-                        </a>
-                        <a href="{{ url_for('history') }}" class="action-card">
-                            <i class="fa-solid fa-clock-rotate-left green"></i> Historique
-                        </a>
-                        <a href="{{ url_for('support_page') }}" class="action-card">
-                            <i class="fa-solid fa-headset yellow"></i> Support
-                        </a>
-                        <button class="action-card" onclick="downloadMyData()">
-                            <i class="fa-solid fa-download green"></i> Télécharger mes données
-                        </button>
-                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="openModal('twoFactorModal')"><i class="fa-solid fa-gear"></i> Configurer</button>
                 </div>
-            </div>
-
-            <!-- ==================== SECTION 10 : ZONE DANGEREUSE ==================== -->
-            <div class="section" id="section-danger">
-                <div class="section-card danger-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i class="fa-solid fa-triangle-exclamation red"></i> Zone dangereuse
-                        </div>
-                    </div>
-                    <p style="font-size:14px;color:var(--text-3);margin-bottom:16px">
-                        Ces actions sont irréversibles. Soyez prudent.
-                    </p>
-                    <div class="danger-actions">
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline">
-                            <i class="fa-solid fa-right-from-bracket"></i> Déconnecter
-                        </a>
-                        <button class="btn btn-danger" onclick="openModal('deleteAccountModal')">
-                            <i class="fa-solid fa-trash"></i> Supprimer mon compte
-                        </button>
-                    </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-clock"></i> Dernière connexion</div>
+                    <div class="info-value">{% if user.last_login %}{{ user.last_login.strftime('%d/%m/%Y à %H:%M') }}{% else %}Inconnue{% endif %}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-globe"></i> Adresse IP</div>
+                    <div class="info-value mono">{{ user.last_ip or 'N/A' }}</div>
+                </div>
+                <div style="margin-top:16px">
+                    <button class="btn btn-secondary btn-sm" onclick="logoutAllDevices()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Déconnecter tous les appareils</button>
                 </div>
             </div>
 
         </div>
-    </main>
 
-    <!-- ===== MODAL : CHANGER MOT DE PASSE ===== -->
-    <div class="modal-overlay" id="passwordModal">
-        <div class="modal">
-            <h3><i class="fa-solid fa-lock"></i> Changer le mot de passe</h3>
-            <p>Pour des raisons de sécurité, entrez votre mot de passe actuel puis le nouveau.</p>
-            <form id="passwordForm" method="POST" action="{{ url_for('profile_change_password') }}">
-                <div class="form-group" style="margin-bottom:12px">
-                    <label class="form-label">Mot de passe actuel</label>
-                    <input type="password" class="form-input" name="current_password" required placeholder="••••••••">
+        <div class="profile-col">
+
+            <!-- KYC -->
+            <div class="section-card" id="section-kyc">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-id-card yellow"></i> Vérification KYC</div>
                 </div>
-                <div class="form-group" style="margin-bottom:12px">
-                    <label class="form-label">Nouveau mot de passe</label>
-                    <input type="password" class="form-input" name="new_password" required placeholder="Min. 8 caractères" minlength="8">
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-circle-info"></i> Statut</div>
+                    <div class="info-value">
+                        {% if user.kyc_status == 'verified' %}<span style="color:var(--green-dark)">🟢 Vérifié</span>
+                        {% elif user.kyc_status == 'rejected' %}<span style="color:#b91c1c">🔴 Refusé</span>
+                        {% else %}<span style="color:#c2410c">🟡 En attente</span>{% endif %}
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom:20px">
-                    <label class="form-label">Confirmer le nouveau mot de passe</label>
-                    <input type="password" class="form-input" name="confirm_password" required placeholder="••••••••">
+                <div style="margin-top:12px">
+                    <span class="form-label" style="display:block;margin-bottom:8px">Progression</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width:{{ kyc_progress }}%" id="kycProgressBar"></div></div>
+                    <span style="font-size:11px;color:var(--text-4)">{{ kyc_progress }}% complété</span>
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('passwordModal')">Annuler</button>
-                    <button type="submit" class="btn btn-primary btn-sm">Changer le mot de passe</button>
+                <div style="margin-top:16px">
+                    <a href="{{ url_for('kyc_page') }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-right"></i> Voir ma vérification</a>
                 </div>
-            </form>
+            </div>
+
+            <!-- LIMITES -->
+            <div class="section-card" id="section-limits">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-gauge-high yellow"></i> Limites</div>
+                </div>
+                {% set daily_div = user.daily_limit if user.daily_limit and user.daily_limit > 0 else 1 %}
+                {% set monthly_div = user.monthly_limit if user.monthly_limit and user.monthly_limit > 0 else 1 %}
+                <div class="limit-label">Limite quotidienne <span>{{ '{:,.0f}'.format(user.daily_limit) }} {{ user.currency }}</span></div>
+                <div class="progress-bar"><div class="progress-fill {% if (user.used_daily / daily_div * 100) > 80 %}danger{% elif (user.used_daily / daily_div * 100) > 50 %}warning{% endif %}" style="width:{{ (user.used_daily / daily_div * 100) | round(1) }}%" id="dailyBar"></div></div>
+                <div class="limit-label" style="font-size:11px;color:var(--text-4);font-weight:400">Utilisé : {{ '{:,.0f}'.format(user.used_daily) }} {{ user.currency }}</div>
+                <div class="limit-label" style="margin-top:14px">Limite mensuelle <span>{{ '{:,.0f}'.format(user.monthly_limit) }} {{ user.currency }}</span></div>
+                <div class="progress-bar"><div class="progress-fill {% if (user.used_monthly / monthly_div * 100) > 80 %}danger{% elif (user.used_monthly / monthly_div * 100) > 50 %}warning{% endif %}" style="width:{{ (user.used_monthly / monthly_div * 100) | round(1) }}%" id="monthlyBar"></div></div>
+                <div class="limit-label" style="font-size:11px;color:var(--text-4);font-weight:400">Utilisé : {{ '{:,.0f}'.format(user.used_monthly) }} {{ user.currency }}</div>
+            </div>
+
+            <!-- STATISTIQUES -->
+            <div class="section-card" id="section-stats">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-chart-bar"></i> Statistiques</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item"><i class="fa-solid fa-arrows-rotate"></i><div class="stat-value">{{ tx_count }}</div><div class="stat-label">Transferts</div></div>
+                    <div class="stat-item"><i class="fa-solid fa-arrow-up"></i><div class="stat-value">{{ '{:,.0f}'.format(total_sent) }}</div><div class="stat-label">Envoyé</div></div>
+                    <div class="stat-item"><i class="fa-solid fa-arrow-down"></i><div class="stat-value">{{ '{:,.0f}'.format(total_received) }}</div><div class="stat-label">Reçu</div></div>
+                    <div class="stat-item"><i class="fa-solid fa-address-book"></i><div class="stat-value">{{ beneficiary_count }}</div><div class="stat-label">Bénéficiaires</div></div>
+                    <div class="stat-item"><i class="fa-solid fa-qrcode"></i><div class="stat-value">{{ qr_count }}</div><div class="stat-label">QR générés</div></div>
+                    <div class="stat-item"><i class="fa-solid fa-list-check"></i><div class="stat-value">{{ ticket_count }}</div><div class="stat-label">Tickets</div></div>
+                </div>
+            </div>
+
+            <div class="section-card" id="section-preferences">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-sliders"></i> Préférences</div>
+                    <button class="btn btn-primary btn-sm" onclick="savePreferences()" id="savePrefsBtn"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Langue</label>
+                        <select class="form-select" id="prefLanguage">
+                            <option value="fr" {% if user.language=='fr' or not user.language %}selected{% endif %}>🇫🇷 Français</option>
+                            <option value="en" {% if user.language=='en' %}selected{% endif %}>🇬🇧 English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Devise par défaut</label>
+                        <select class="form-select" id="prefCurrency">
+                            <option value="XOF" {% if user.currency=='XOF' %}selected{% endif %}>XOF — Franc CFA</option>
+                            <option value="EUR" {% if user.currency=='EUR' %}selected{% endif %}>EUR — Euro</option>
+                            <option value="USD" {% if user.currency=='USD' %}selected{% endif %}>USD — Dollar</option>
+                            <option value="GBP" {% if user.currency=='GBP' %}selected{% endif %}>GBP — Livre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pays</label>
+                        <select class="form-select" id="prefCountry">
+                            {% for code, name in country_names.items() %}
+                            <option value="{{ code }}" {% if user.country==code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mode sombre</label>
+                        <select class="form-select" id="prefTheme">
+                            <option value="light" {% if user.theme=='light' or not user.theme %}selected{% endif %}>☀️ Clair</option>
+                            <option value="dark" {% if user.theme=='dark' %}selected{% endif %}>🌙 Sombre</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top:18px">
+                    <div class="toggle-row">
+                        <div class="toggle-info"><div class="toggle-title"><i class="fa-solid fa-envelope"></i> Notifications Email</div></div>
+                        <label class="toggle-switch"><input type="checkbox" id="prefNotifEmail" {% if user.notification_email %}checked{% endif %}><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info"><div class="toggle-title"><i class="fa-solid fa-sms"></i> Notifications SMS</div></div>
+                        <label class="toggle-switch"><input type="checkbox" id="prefNotifSms" {% if user.notification_sms %}checked{% endif %}><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info"><div class="toggle-title"><i class="fa-solid fa-bell"></i> Notifications Push</div></div>
+                        <label class="toggle-switch"><input type="checkbox" id="prefNotifPush" {% if user.notification_push %}checked{% endif %}><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info"><div class="toggle-title"><i class="fa-solid fa-mobile-screen"></i> Vibrations</div></div>
+                        <label class="toggle-switch"><input type="checkbox" id="prefVibrations" {% if user.vibrations %}checked{% endif %}><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPTE -->
+            <div class="section-card" id="section-account">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-circle-info green"></i> Compte</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-calendar"></i> Date de création</div>
+                    <div class="info-value">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-circle"></i> Statut</div>
+                    <div class="info-value">{% if user.is_active %}<span style="color:var(--green)">Actif</span>{% else %}<span style="color:var(--red)">Suspendu</span>{% endif %}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-fingerprint"></i> Identifiant</div>
+                    <div class="info-value mono">#{{ user.id }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-gift"></i> Code de parrainage</div>
+                    <div class="info-value mono">{{ user.referral_code }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label"><i class="fa-solid fa-users"></i> Filleuls</div>
+                    <div class="info-value">{{ referral_count }}</div>
+                </div>
+            </div>
+
+            <!-- ACTIONS RAPIDES -->
+            <div class="section-card" id="section-actions">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-bolt"></i> Actions rapides</div>
+                </div>
+                <div class="actions-grid">
+                    <button class="action-card" onclick="scrollToSection('section-info')"><i class="fa-solid fa-user-pen"></i> Modifier le profil</button>
+                    <button class="action-card" onclick="openModal('passwordModal')"><i class="fa-solid fa-lock green"></i> Changer le mot de passe</button>
+                    <a href="{{ url_for('settings_page') }}" class="action-card"><i class="fa-solid fa-gear yellow"></i> Paramètres</a>
+                    <a href="{{ url_for('beneficiaries_page') }}" class="action-card"><i class="fa-solid fa-users"></i> Mes bénéficiaires</a>
+                    <a href="{{ url_for('history') }}" class="action-card"><i class="fa-solid fa-clock-rotate-left green"></i> Historique</a>
+                    <a href="{{ url_for('support_page') }}" class="action-card"><i class="fa-solid fa-headset yellow"></i> Support</a>
+                    <button class="action-card" onclick="downloadMyData()"><i class="fa-solid fa-download green"></i> Télécharger mes données</button>
+                </div>
+            </div>
+
+            <!-- ZONE DANGEREUSE -->
+            <div class="section-card danger-card" id="section-danger">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-triangle-exclamation red"></i> Zone dangereuse</div>
+                </div>
+                <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Ces actions sont irréversibles. Soyez prudent.</p>
+                <div class="danger-actions">
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>
+                    <button class="btn btn-danger btn-sm" onclick="openModal('deleteAccountModal')"><i class="fa-solid fa-trash"></i> Supprimer mon compte</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- ===== MODAL : CHANGER PIN ===== -->
-    <div class="modal-overlay" id="pinModal">
-        <div class="modal">
-            <h3><i class="fa-solid fa-key"></i> {% if user.pin_hash %}Modifier{% else %}Définir{% endif %} le PIN</h3>
-            <p>Code PIN à 4 chiffres pour sécuriser vos transactions.</p>
-            <form id="pinForm" method="POST" action="{{ url_for('profile_change_pin') }}">
-                <div class="form-group" style="margin-bottom:12px">
-                    <label class="form-label">Mot de passe actuel</label>
-                    <input type="password" class="form-input" name="current_password" required placeholder="••••••••">
-                </div>
-                <div class="form-group" style="margin-bottom:12px">
-                    <label class="form-label">{% if user.pin_hash %}Nouveau PIN{% else %}PIN{% endif %}</label>
-                    <input type="password" class="form-input" name="pin" required placeholder="••••" minlength="4" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
-                </div>
-                <div class="form-group" style="margin-bottom:20px">
-                    <label class="form-label">Confirmer le PIN</label>
-                    <input type="password" class="form-input" name="confirm_pin" required placeholder="••••" minlength="4" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('pinModal')">Annuler</button>
-                    <button type="submit" class="btn btn-primary btn-sm">{% if user.pin_hash %}Modifier{% else %}Définir{% endif %}</button>
-                </div>
-            </form>
-        </div>
+</div>
+</main>
+
+<!-- ===== MODAL : MOT DE PASSE ===== -->
+<div class="modal-overlay" id="passwordModal">
+    <div class="modal">
+        <h3><i class="fa-solid fa-lock"></i> Changer le mot de passe</h3>
+        <p>Pour des raisons de sécurité, entrez votre mot de passe actuel puis le nouveau.</p>
+        <form id="passwordForm" method="POST" action="{{ url_for('profile_change_password') }}">
+            <div class="form-group" style="margin-bottom:12px">
+                <label class="form-label">Mot de passe actuel</label>
+                <input type="password" class="form-input" name="current_password" required placeholder="••••••••">
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+                <label class="form-label">Nouveau mot de passe</label>
+                <input type="password" class="form-input" name="new_password" required placeholder="Min. 8 caractères" minlength="8">
+            </div>
+            <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">Confirmer le nouveau mot de passe</label>
+                <input type="password" class="form-input" name="confirm_password" required placeholder="••••••••">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('passwordModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary btn-sm">Changer le mot de passe</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- ===== MODAL : 2FA ===== -->
-    <div class="modal-overlay" id="twoFactorModal">
-        <div class="modal">
-            <h3><i class="fa-solid fa-fingerprint"></i> Authentification à deux facteurs</h3>
-            <p>Choisissez votre méthode de vérification en deux étapes.</p>
-            <form id="twoFactorForm" method="POST" action="{{ url_for('profile_two_factor') }}">
-                <div class="form-group" style="margin-bottom:16px">
-                    <label class="form-label">Méthode</label>
-                    <select class="form-select" name="two_factor_method">
-                        <option value="sms" {% if user.two_factor_method=='sms' %}selected{% endif %}>OTP par SMS</option>
-                        <option value="email" {% if user.two_factor_method=='email' %}selected{% endif %}>OTP par Email</option>
-                        <option value="authenticator" {% if user.two_factor_method=='authenticator' %}selected{% endif %}>Application Authenticator</option>
-                    </select>
-                </div>
-                <div class="toggle-row" style="border-bottom:none;padding-top:0;justify-content:flex-start;gap:16px">
-                    <span style="font-size:14px;font-weight:600">
-                        {% if user.two_factor_enabled %}Désactiver{% else %}Activer{% endif %}
-                    </span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" name="two_factor_enabled" {% if user.two_factor_enabled %}checked{% endif %}>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="modal-actions" style="margin-top:20px">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('twoFactorModal')">Annuler</button>
-                    <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
-                </div>
-            </form>
-        </div>
+<!-- ===== MODAL : PIN ===== -->
+<div class="modal-overlay" id="pinModal">
+    <div class="modal">
+        <h3><i class="fa-solid fa-key"></i> {% if user.pin_hash %}Modifier{% else %}Définir{% endif %} le PIN</h3>
+        <p>Code PIN à 4 chiffres pour sécuriser vos transactions.</p>
+        <form id="pinForm" method="POST" action="{{ url_for('profile_change_pin') }}">
+            <div class="form-group" style="margin-bottom:12px">
+                <label class="form-label">Mot de passe actuel</label>
+                <input type="password" class="form-input" name="current_password" required placeholder="••••••••">
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+                <label class="form-label">{% if user.pin_hash %}Nouveau PIN{% else %}PIN{% endif %}</label>
+                <input type="password" class="form-input" name="pin" required placeholder="••••" minlength="4" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
+            </div>
+            <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">Confirmer le PIN</label>
+                <input type="password" class="form-input" name="confirm_pin" required placeholder="••••" minlength="4" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('pinModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary btn-sm">{% if user.pin_hash %}Modifier{% else %}Définir{% endif %}</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- ===== MODAL : SUPPRIMER COMPTE ===== -->
-    <div class="modal-overlay" id="deleteAccountModal">
-        <div class="modal">
-            <h3 style="color:var(--red)"><i class="fa-solid fa-triangle-exclamation"></i> Supprimer mon compte</h3>
-            <p>Cette action est <strong>irréversible</strong>. Toutes vos données seront supprimées définitivement. Entrez votre mot de passe pour confirmer.</p>
-            <form id="deleteAccountForm" method="POST" action="{{ url_for('profile_delete_account') }}">
-                <div class="form-group" style="margin-bottom:12px">
-                    <label class="form-label">Mot de passe</label>
-                    <input type="password" class="form-input" name="password" required placeholder="••••••••">
-                </div>
-                <div class="form-group" style="margin-bottom:20px">
-                    <label class="form-label">Tapez "SUPPRIMER" pour confirmer</label>
-                    <input type="text" class="form-input" name="confirm_text" required placeholder="SUPPRIMER" pattern="SUPPRIMER">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('deleteAccountModal')">Annuler</button>
-                    <button type="submit" class="btn btn-danger btn-sm">Supprimer définitivement</button>
-                </div>
-            </form>
-        </div>
+<!-- ===== MODAL : 2FA ===== -->
+<div class="modal-overlay" id="twoFactorModal">
+    <div class="modal">
+        <h3><i class="fa-solid fa-fingerprint"></i> Authentification à deux facteurs</h3>
+        <p>Choisissez votre méthode de vérification en deux étapes.</p>
+        <form id="twoFactorForm" method="POST" action="{{ url_for('profile_two_factor') }}">
+            <div class="form-group" style="margin-bottom:16px">
+                <label class="form-label">Méthode</label>
+                <select class="form-select" name="two_factor_method">
+                    <option value="sms" {% if user.two_factor_method=='sms' %}selected{% endif %}>OTP par SMS</option>
+                    <option value="email" {% if user.two_factor_method=='email' %}selected{% endif %}>OTP par Email</option>
+                    <option value="authenticator" {% if user.two_factor_method=='authenticator' %}selected{% endif %}>Application Authenticator</option>
+                </select>
+            </div>
+            <div class="toggle-row" style="border-bottom:none;padding-top:0;justify-content:flex-start;gap:16px">
+                <span style="font-size:14px;font-weight:600">{% if user.two_factor_enabled %}Désactiver{% else %}Activer{% endif %}</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="two_factor_enabled" {% if user.two_factor_enabled %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="modal-actions" style="margin-top:20px">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('twoFactorModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- ===== FLASH MESSAGES ===== -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="flash flash-{{ category }}" id="flash-{{ loop.index }}">
-        {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
-        {% elif category == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
-        {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
-        {{ message }}
-        <button class="flash-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+<!-- ===== MODAL : SUPPRIMER COMPTE ===== -->
+<div class="modal-overlay" id="deleteAccountModal">
+    <div class="modal">
+        <h3 style="color:var(--red)"><i class="fa-solid fa-triangle-exclamation"></i> Supprimer mon compte</h3>
+        <p>Cette action est <strong>irréversible</strong>. Toutes vos données seront supprimées définitivement. Entrez votre mot de passe pour confirmer.</p>
+        <form id="deleteAccountForm" method="POST" action="{{ url_for('profile_delete_account') }}">
+            <div class="form-group" style="margin-bottom:12px">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" class="form-input" name="password" required placeholder="••••••••">
+            </div>
+            <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">Tapez "SUPPRIMER" pour confirmer</label>
+                <input type="text" class="form-input" name="confirm_text" required placeholder="SUPPRIMER" pattern="SUPPRIMER">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('deleteAccountModal')">Annuler</button>
+                <button type="submit" class="btn btn-danger btn-sm">Supprimer définitivement</button>
+            </div>
+        </form>
     </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+</div>
 
-    <script>
-        // ========== LANGUAGE DROPDOWN ==========
-        const langToggle = document.getElementById('langToggle');
-        const langDropdown = document.getElementById('langDropdown');
-        langToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            langDropdown.classList.toggle('show');
-        });
-        document.addEventListener('click', () => langDropdown.classList.remove('show'));
+<!-- ===== FLASH ===== -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}" id="flash-{{ loop.index }}">
+    {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+    {% elif category == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
+    {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+    {{ message }}
+    <button class="flash-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
 
-        function changeLanguage(lang) {
-            fetch('{{ url_for("profile_preferences") }}', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'language=' + lang
-            }).then(() => location.reload());
+<script>
+// ========== LANGUAGE DROPDOWN ==========
+const langToggle = document.getElementById('langToggle');
+const langDropdown = document.getElementById('langDropdown');
+langToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    langDropdown.classList.toggle('show');
+});
+document.addEventListener('click', () => langDropdown.classList.remove('show'));
+
+function changeLanguage(lang) {
+    fetch('{{ url_for("profile_preferences") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'language=' + lang
+    }).then(() => location.reload());
+}
+
+// ========== MODALS ==========
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) closeModal(this.id);
+    });
+});
+
+// ========== PHOTO UPLOAD ==========
+function previewAndUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Le fichier dépasse la limite de 5 Mo.');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('photoPreview');
+        const img = document.getElementById('photoImg');
+        const initials = document.getElementById('photoInitials');
+        if (img) {
+            img.src = e.target.result;
+            img.style.display = 'block';
+        } else {
+            preview.innerHTML = '<img src="' + e.target.result + '" alt="Photo" id="photoImg" style="width:100%;height:100%;object-fit:cover">';
         }
-
-        // ========== MODALS ==========
-        function openModal(id) { document.getElementById(id).classList.add('show'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) closeModal(this.id);
-            });
-        });
-
-        // ========== PHOTO UPLOAD ==========
-        function previewAndUpload(input) {
-            if (!input.files || !input.files[0]) return;
-            const file = input.files[0];
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Le fichier dépasse la limite de 5 Mo.');
-                return;
-            }
-            // Preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('photoPreview');
-                const img = document.getElementById('photoImg');
-                const initials = document.getElementById('photoInitials');
-                if (img) {
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                } else {
-                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Photo" id="photoImg" style="width:100%;height:100%;object-fit:cover">';
-                }
-                if (initials) initials.style.display = 'none';
-                // Also update top bar avatar
-                const topAvatar = document.getElementById('topAvatar');
-                if (topAvatar) topAvatar.innerHTML = '<img src="' + e.target.result + '" alt="Photo" style="width:100%;height:100%;object-fit:cover">';
-            };
-            reader.readAsDataURL(file);
-            // Upload
-            const formData = new FormData();
-            formData.append('avatar', file);
-            fetch('{{ url_for("profile_upload_avatar") }}', {
-                method: 'POST',
-                body: formData
-            }).then(r => r.json()).then(d => {
-                if (d.success) {
-                    showFlash('Photo de profil mise à jour !', 'success');
-                } else {
-                    showFlash(d.message || 'Erreur lors de l\'upload.', 'error');
-                }
-            }).catch(() => showFlash('Erreur réseau.', 'error'));
+        if (initials) initials.style.display = 'none';
+        const topAvatar = document.getElementById('topAvatar');
+        if (topAvatar) topAvatar.innerHTML = '<img src="' + e.target.result + '" alt="Photo" style="width:100%;height:100%;object-fit:cover">';
+    };
+    reader.readAsDataURL(file);
+    const formData = new FormData();
+    formData.append('avatar', file);
+    fetch('{{ url_for("profile_upload_avatar") }}', {
+        method: 'POST',
+        body: formData
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            showFlash('Photo de profil mise à jour !', 'success');
+        } else {
+            showFlash(d.message || 'Erreur lors de l\'upload.', 'error');
         }
+    }).catch(() => showFlash('Erreur réseau.', 'error'));
+}
 
-        function openCamera() {
-            // Simple fallback — trigger file input with capture
-            const input = document.getElementById('avatarInput');
-            input.setAttribute('capture', 'user');
-            input.click();
-            input.removeAttribute('capture');
+function openCamera() {
+    const input = document.getElementById('avatarInput');
+    input.setAttribute('capture', 'user');
+    input.click();
+    input.removeAttribute('capture');
+}
+
+function removePhoto() {
+    if (!confirm('Supprimer votre photo de profil ?')) return;
+    fetch('{{ url_for("profile_upload_avatar") }}', {
+        method: 'DELETE',
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            const preview = document.getElementById('photoPreview');
+            const img = document.getElementById('photoImg');
+            if (img) img.remove();
+            preview.innerHTML = '<span id="photoInitials">{{ user.first_name[:2].upper() }}</span>';
+            const topAvatar = document.getElementById('topAvatar');
+            if (topAvatar) topAvatar.innerHTML = '{{ user.first_name[:2].upper() }}';
+            showFlash('Photo supprimée.', 'info');
         }
+    });
+}
 
-        function removePhoto() {
-            if (!confirm('Supprimer votre photo de profil ?')) return;
-            fetch('{{ url_for("profile_upload_avatar") }}', {
-                method: 'DELETE',
-            }).then(r => r.json()).then(d => {
-                if (d.success) {
-                    const preview = document.getElementById('photoPreview');
-                    const initials = document.getElementById('photoInitials');
-                    const img = document.getElementById('photoImg');
-                    if (img) img.remove();
-                    preview.innerHTML = '<span id="photoInitials">{{ user.first_name[:2].upper() }}</span>';
-                    const topAvatar = document.getElementById('topAvatar');
-                    if (topAvatar) topAvatar.innerHTML = '{{ user.first_name[:2].upper() }}';
-                    showFlash('Photo supprimée.', 'info');
-                }
-            });
+// ========== PREFERENCES ==========
+function savePreferences() {
+    const data = new URLSearchParams();
+    data.append('language', document.getElementById('prefLanguage').value);
+    data.append('currency', document.getElementById('prefCurrency').value);
+    data.append('country', document.getElementById('prefCountry').value);
+    data.append('theme', document.getElementById('prefTheme').value);
+    data.append('notification_email', document.getElementById('prefNotifEmail').checked ? '1' : '0');
+    data.append('notification_sms', document.getElementById('prefNotifSms').checked ? '1' : '0');
+    data.append('notification_push', document.getElementById('prefNotifPush').checked ? '1' : '0');
+    data.append('vibrations', document.getElementById('prefVibrations').checked ? '1' : '0');
+
+    fetch('{{ url_for("profile_preferences") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: data.toString()
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            showFlash('Préférences enregistrées !', 'success');
+            if (d.theme) document.documentElement.setAttribute('data-theme', d.theme);
+        } else {
+            showFlash(d.message || 'Erreur.', 'error');
         }
+    }).catch(() => showFlash('Erreur réseau.', 'error'));
+}
 
-        // ========== PREFERENCES ==========
-        function savePreferences() {
-            const data = new URLSearchParams();
-            data.append('language', document.getElementById('prefLanguage').value);
-            data.append('currency', document.getElementById('prefCurrency').value);
-            data.append('country', document.getElementById('prefCountry').value);
-            data.append('theme', document.getElementById('prefTheme').value);
-            data.append('notification_email', document.getElementById('prefNotifEmail').checked ? '1' : '0');
-            data.append('notification_sms', document.getElementById('prefNotifSms').checked ? '1' : '0');
-            data.append('notification_push', document.getElementById('prefNotifPush').checked ? '1' : '0');
-            data.append('vibrations', document.getElementById('prefVibrations').checked ? '1' : '0');
+// ========== LOGOUT ALL DEVICES ==========
+function logoutAllDevices() {
+    if (!confirm('Se déconnecter de tous les appareils connectés ?')) return;
+    fetch('{{ url_for("logout") }}', {method: 'POST'}).then(() => window.location.href = '{{ url_for("login") }}');
+}
 
-            fetch('{{ url_for("profile_preferences") }}', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: data.toString()
-            }).then(r => r.json()).then(d => {
-                if (d.success) {
-                    showFlash('Préférences enregistrées !', 'success');
-                    // Apply theme immediately
-                    if (d.theme) document.documentElement.setAttribute('data-theme', d.theme);
-                } else {
-                    showFlash(d.message || 'Erreur.', 'error');
-                }
-            }).catch(() => showFlash('Erreur réseau.', 'error'));
-        }
+// ========== SCROLL ==========
+function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
 
-        // ========== LOGOUT ALL DEVICES ==========
-        function logoutAllDevices() {
-            if (!confirm('Se déconnecter de tous les appareils connectés ?')) return;
-            fetch('{{ url_for("logout") }}', {method: 'POST'}).then(() => window.location.href = '{{ url_for("login") }}');
-        }
+// ========== DOWNLOAD DATA ==========
+function downloadMyData() {
+    showFlash('Préparation de vos données... Cette fonction sera disponible prochainement.', 'info');
+}
 
-        // ========== SCROLL TO SECTION ==========
-        function scrollToSection(id) {
-            const el = document.getElementById(id);
-            if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
-        }
+// ========== FLASH HELPER ==========
+function showFlash(message, type) {
+    const existing = document.querySelector('.flash');
+    if (existing) existing.remove();
+    const flash = document.createElement('div');
+    flash.className = 'flash flash-' + type;
+    const icons = {success:'fa-circle-check',error:'fa-circle-xmark',info:'fa-circle-info'};
+    flash.innerHTML = '<i class="fa-solid ' + (icons[type] || 'fa-circle-info') + '"></i> ' + message +
+        '<button class="flash-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>';
+    document.body.appendChild(flash);
+    setTimeout(() => { if (flash.parentElement) flash.remove(); }, 5000);
+}
 
-        // ========== DOWNLOAD DATA ==========
-        function downloadMyData() {
-            showFlash('Préparation de vos données... Cette fonction sera disponible prochainement.', 'info');
-        }
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const dailyBar = document.getElementById('dailyBar');
+        const monthlyBar = document.getElementById('monthlyBar');
+        const kycBar = document.getElementById('kycProgressBar');
+        if (dailyBar) dailyBar.style.transition = 'width 1.5s ease';
+        if (monthlyBar) monthlyBar.style.transition = 'width 1.5s ease';
+        if (kycBar) kycBar.style.transition = 'width 1.5s ease';
+    }, 300);
+    document.querySelectorAll('.flash').forEach(f => {
+        setTimeout(() => { if (f.parentElement) f.remove(); }, 5000);
+    });
+});
+</script>
 
-        // ========== FLASH HELPER ==========
-        function showFlash(message, type) {
-            const existing = document.querySelector('.flash');
-            if (existing) existing.remove();
-            const flash = document.createElement('div');
-            flash.className = 'flash flash-' + type;
-            const icons = {success:'fa-circle-check',error:'fa-circle-xmark',info:'fa-circle-info'};
-            flash.innerHTML = '<i class="fa-solid ' + (icons[type] || 'fa-circle-info') + '"></i> ' + message +
-                '<button class="flash-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>';
-            document.body.appendChild(flash);
-            setTimeout(() => { if (flash.parentElement) flash.remove(); }, 5000);
-        }
-
-        // ========== INIT ==========
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animate progress bars
-            setTimeout(() => {
-                const dailyBar = document.getElementById('dailyBar');
-                const monthlyBar = document.getElementById('monthlyBar');
-                const kycBar = document.getElementById('kycProgressBar');
-                if (dailyBar) dailyBar.style.transition = 'width 1.5s ease';
-                if (monthlyBar) monthlyBar.style.transition = 'width 1.5s ease';
-                if (kycBar) kycBar.style.transition = 'width 1.5s ease';
-            }, 300);
-
-            // Auto-hide flash messages
-            document.querySelectorAll('.flash').forEach(f => {
-                setTimeout(() => { if (f.parentElement) f.remove(); }, 5000);
-            });
-        });
-    </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
