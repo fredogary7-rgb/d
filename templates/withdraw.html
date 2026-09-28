@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
 <head>
@@ -12,34 +11,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --blue: #2563EB; --blue-dark: #1D4ED8; --blue-light: #DBEAFE; --blue-glow: rgba(37,99,235,.25);
-            --green: #10B981; --green-dark: #059669; --green-light: #D1FAE5; --green-glow: rgba(16,185,129,.25);
-            --yellow: #F59E0B; --orange: #F97316; --orange-light: #FFEDD5;
-            --bg: #F1F5F9; --surface: #FFFFFF; --surface-hover: #F8FAFC;
-            --text: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
-            --border: #E2E8F0;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow: 0 4px 20px rgba(0,0,0,.05); --shadow-md: 0 8px 30px rgba(0,0,0,.07); --shadow-lg: 0 16px 50px rgba(0,0,0,.09); --shadow-xl: 0 24px 70px rgba(0,0,0,.11);
-            --radius-sm: 12px; --radius: 18px; --radius-lg: 24px; --radius-xl: 32px;
-            --transition: .3s cubic-bezier(.25,.46,.45,.94);
-            --sidebar-w: 260px;
-            --danger: #EF4444; --danger-light: #FEE2E2;
-            --warning: #F59E0B; --warning-light: #FEF3C7;
+            --blue:#2563EB; --blue-dark:#1D4ED8; --blue-light:#DBEAFE; --blue-glow:rgba(37,99,235,.25);
+            --green:#10B981; --green-dark:#059669; --green-light:#D1FAE5; --green-glow:rgba(16,185,129,.25);
+            --yellow:#F59E0B; --orange:#F97316; --orange-light:#FFEDD5;
+            --bg:#F1F5F9; --surface:#FFFFFF; --surface-hover:#F8FAFC;
+            --text:#0F172A; --text-2:#334155; --text-3:#64748B; --text-4:#94A3B8;
+            --border:#E2E8F0;
+            --shadow-sm:0 1px 2px rgba(0,0,0,.04); --shadow:0 4px 20px rgba(0,0,0,.05); --shadow-md:0 8px 30px rgba(0,0,0,.07); --shadow-lg:0 16px 50px rgba(0,0,0,.09); --shadow-xl:0 24px 70px rgba(0,0,0,.11);
+            --radius-sm:12px; --radius:18px; --radius-lg:24px; --radius-xl:32px;
+            --transition:.3s cubic-bezier(.25,.46,.45,.94);
+            --sidebar-w:260px;
+            --danger:#EF4444; --danger-light:#FEE2E2;
+            --warning:#F59E0B; --warning-light:#FEF3C7;
         }
         [data-theme="dark"] {
-            --bg: #0B1120; --surface: #111827; --surface-hover: #1F2937;
-            --text: #F1F5F9; --text-2: #CBD5E1; --text-3: #94A3B8; --text-4: #64748B;
-            --border: #1E293B;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow: 0 4px 20px rgba(0,0,0,.3); --shadow-md: 0 8px 30px rgba(0,0,0,.4); --shadow-lg: 0 16px 50px rgba(0,0,0,.5); --shadow-xl: 0 24px 70px rgba(0,0,0,.6);
-            --danger-light: rgba(239,68,68,.15);
-            --warning-light: rgba(245,158,11,.15);
+            --bg:#0B1120; --surface:#111827; --surface-hover:#1F2937;
+            --text:#F1F5F9; --text-2:#CBD5E1; --text-3:#94A3B8; --text-4:#64748B;
+            --border:#1E293B;
+            --shadow-sm:0 1px 2px rgba(0,0,0,.2); --shadow:0 4px 20px rgba(0,0,0,.3); --shadow-md:0 8px 30px rgba(0,0,0,.4); --shadow-lg:0 16px 50px rgba(0,0,0,.5); --shadow-xl:0 24px 70px rgba(0,0,0,.6);
+            --blue-light:rgba(37,99,235,.18); --green-light:rgba(16,185,129,.16);
+            --danger-light:rgba(239,68,68,.15); --warning-light:rgba(245,158,11,.15);
         }
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-        html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden;max-width:100vw}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;max-width:100vw;width:100%;-webkit-font-smoothing:antialiased;transition:background .5s,color .5s;line-height:1.6;min-height:100vh}
+        html{scroll-behavior:smooth;font-size:16px;overflow-x:hidden}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;width:100%;max-width:100vw;min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .5s,color .5s}
         a{text-decoration:none;color:inherit}
         h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         img{max-width:100%;height:auto}
-        .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+        button{font-family:inherit;cursor:pointer}
+        input,select{font-family:inherit}
+        .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
         @keyframes spin{to{transform:rotate(360deg)}}
 
         /* ===== TOP BAR ===== */
@@ -47,186 +48,209 @@
         .topbar-left{display:flex;align-items:center;gap:16px}
         .topbar-logo{display:flex;align-items:center;gap:10px}
         .topbar-logo img{width:38px;height:38px;border-radius:10px;flex-shrink:0}
-        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
         .topbar-right{display:flex;align-items:center;gap:16px}
-        .topbar-icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all var(--transition);color:var(--text-3)}
-        .topbar-icon-btn:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm);color:var(--blue)}
-        .topbar-icon-btn .badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:#EF4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
-        .topbar-lang{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;color:var(--text-2);transition:all var(--transition);position:relative}
-        .topbar-lang:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
-        .topbar-language-dropdown{position:absolute;top:100%;right:0;margin-top:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);padding:4px;min-width:140px;display:none;z-index:200}
+        .topbar-profile{display:flex;align-items:center;gap:12px}
+        .topbar-profile-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+        .topbar-profile-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.2}
+        .topbar-profile-role{font-size:12px;color:var(--text-3);line-height:1.2}
+        .topbar-lang{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-size:13px;font-weight:600;transition:all var(--transition)}
+        .topbar-lang:hover{border-color:var(--blue);color:var(--blue)}
+        .topbar-language-dropdown{display:none;position:absolute;top:56px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);padding:6px;min-width:160px;z-index:120}
         .topbar-language-dropdown.show{display:block}
-        .topbar-language-dropdown button{width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;text-align:left;font-size:13px;font-family:'Inter',sans-serif;border-radius:8px;transition:all .2s;color:var(--text-2);display:flex;align-items:center;gap:8px}
-        .topbar-language-dropdown button:hover{background:var(--surface-hover);color:var(--blue)}
-        .topbar-language-dropdown button.active{background:var(--blue-light);color:var(--blue);font-weight:600}
-        .topbar-profile{display:flex;align-items:center;gap:12px;padding:6px 16px 6px 6px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface)}
-        .topbar-profile:hover{background:var(--surface-hover);box-shadow:var(--shadow-sm)}
-        .topbar-profile-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
-        .topbar-profile-name{font-size:13px;font-weight:600;color:var(--text)}
-        .topbar-profile-role{font-size:10px;color:var(--text-4)}
+        .topbar-language-dropdown button{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:none;background:none;color:var(--text-2);font-size:13px;border-radius:8px;text-align:left;transition:background .2s}
+        .topbar-language-dropdown button:hover{background:var(--surface-hover)}
+        .topbar-language-dropdown button.active{color:var(--blue);font-weight:600}
 
         /* ===== SIDEBAR ===== */
-        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:99;padding:24px 16px;display:flex;flex-direction:column;gap:4px;transition:all var(--transition)}
-        .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
-        .sidebar-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);padding:16px 14px 8px}
-        .sidebar-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}
+        .sidebar{position:fixed;top:72px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:90;overflow-y:auto;transition:transform var(--transition)}
+        .sidebar-nav{padding:16px 14px;display:flex;flex-direction:column;gap:4px}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--text-2);font-size:14px;font-weight:500;transition:all .2s}
+        .sidebar-link i{width:20px;text-align:center;font-size:16px;color:var(--text-3);transition:color .2s}
         .sidebar-link:hover{background:var(--surface-hover);color:var(--text)}
         .sidebar-link.active{background:var(--blue-light);color:var(--blue);font-weight:600}
-        .sidebar-link i{font-size:17px;width:20px;text-align:center;flex-shrink:0}
+        .sidebar-link.active i{color:var(--blue)}
+        .sidebar-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4);font-weight:600;padding:18px 14px 6px}
         .sidebar-footer{padding:16px 14px;border-top:1px solid var(--border);margin-top:auto;font-size:11px;color:var(--text-4)}
 
         /* ===== MAIN CONTENT ===== */
-        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px);max-width:calc(100vw - var(--sidebar-w))}
+        .main-content{margin-left:var(--sidebar-w);margin-top:72px;padding:32px;min-height:calc(100vh - 72px);max-width:calc(100vw - var(--sidebar-w));min-width:0}
 
-        /* ---------- WITHDRAW SPECIFIC ---------- */
-        .withdraw-container{max-width:860px;margin:0 auto}
-        .withdraw-header{margin-bottom:28px}
-        .withdraw-back{display:inline-flex;align-items:center;gap:6px;color:var(--text-3);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:14px;transition:color var(--transition)}
+        /* ===== WITHDRAW ===== */
+        .withdraw-container{max-width:900px;margin:0 auto;min-width:0}
+        .withdraw-header{margin-bottom:26px}
+        .withdraw-back{display:inline-flex;align-items:center;gap:6px;color:var(--text-3);font-size:13px;font-weight:500;margin-bottom:14px;transition:color var(--transition)}
         .withdraw-back:hover{color:var(--blue)}
         .withdraw-back i{font-size:12px}
-        .withdraw-title{font-size:28px;font-weight:700;color:var(--text);margin-bottom:4px}
-        .withdraw-subtitle{font-size:14px;color:var(--text-3)}
+        .withdraw-title{font-size:clamp(24px,3vw,30px);font-weight:800;margin-bottom:4px}
+        .withdraw-subtitle{font-size:14px;color:var(--text-3);max-width:560px}
 
-        /* ---------- BALANCE CARD ---------- */
-        .balance-card{background:linear-gradient(135deg,#1E3A8A,#2563EB,#1D4ED8,#059669,#047857);background-size:300% 300%;border-radius:var(--radius-xl);padding:22px 28px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(37,99,235,.3);animation:bgShift 8s ease-in-out infinite}
+        /* ===== BALANCE CARD ===== */
+        .balance-card{background:linear-gradient(135deg,#1E3A8A,#2563EB,#1D4ED8,#059669,#047857);background-size:300% 300%;border-radius:var(--radius-xl);padding:24px 28px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(37,99,235,.3);animation:bgShift 8s ease-in-out infinite}
         @keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-        .balance-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(245,158,11,.15),transparent 60%),radial-gradient(circle at 20% 80%,rgba(16,185,129,.15),transparent 60%);pointer-events:none}
-        .balance-pattern{position:absolute;top:-30px;right:-30px;width:200px;height:200px;border-radius:50%;border:2px solid rgba(255,255,255,.08);pointer-events:none;z-index:0}
+        .balance-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(245,158,11,.18),transparent 55%),radial-gradient(circle at 20% 80%,rgba(16,185,129,.18),transparent 55%);pointer-events:none}
+        .balance-pattern{position:absolute;top:-30px;right:-30px;width:200px;height:200px;border-radius:50%;border:2px solid rgba(255,255,255,.08);pointer-events:none}
         .balance-pattern:nth-child(2){width:280px;height:280px;top:-80px;right:-80px;border-width:1px}
         .balance-pattern:nth-child(3){width:360px;height:360px;top:-130px;right:-130px;border-width:1px;opacity:.5}
-        .balance-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
-        .balance-label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:600;opacity:.75}
+        .balance-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;gap:16px;flex-wrap:wrap}
+        .balance-label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:600;opacity:.8}
         .balance-amount{font-size:clamp(26px,3.8vw,38px);font-weight:900;font-family:'Outfit',sans-serif;letter-spacing:-.02em;margin:4px 0 2px}
-        .balance-currency{font-size:14px;opacity:.7;font-weight:500}
+        .balance-currency{font-size:14px;opacity:.75;font-weight:500}
+        .balance-hint{font-size:12px;opacity:.7;margin-top:10px;position:relative;z-index:1}
 
-        /* ---------- FORM CARD ---------- */
-        .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;margin-bottom:24px;box-shadow:var(--shadow-sm)}
-        .form-steps{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
-        .form-step{flex:1;min-width:100px;text-align:center;padding:10px 8px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;background:var(--surface-hover);color:var(--text-4);transition:all .2s}
-        .form-step.active{background:var(--blue-light);color:var(--blue)}
-        .form-step.done{background:var(--green-light);color:var(--green)}
-        .form-step i{margin-right:4px}
-        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-        @media(max-width:720px){.form-row{grid-template-columns:1fr}}
-        .fg-label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+        /* ===== FORM CARD & STEPPER ===== */
+        .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;margin-bottom:24px;box-shadow:var(--shadow-sm);min-width:0}
+        .stepper{display:flex;align-items:center;gap:0;margin-bottom:28px;width:100%}
+        .step{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;min-width:0}
+        .step-dot{width:38px;height:38px;border-radius:50%;background:var(--surface-hover);border:2px solid var(--border);color:var(--text-4);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .3s;position:relative;z-index:2}
+        .step.active .step-dot{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 6px 18px var(--blue-glow)}
+        .step.done .step-dot{background:var(--green);border-color:var(--green);color:#fff}
+        .step-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-4);text-align:center;transition:color .3s;padding:0 4px}
+        .step.active .step-label{color:var(--blue)}
+        .step.done .step-label{color:var(--green)}
+        .step-line{position:absolute;top:19px;left:50%;width:100%;height:2px;background:var(--border);z-index:1}
+        .step:last-child .step-line{display:none}
+        .step.done .step-line,.step.active .step-line{background:var(--blue)}
+
+        .form-section{display:none;animation:fadeInUp .35s ease}
+        .form-section.visible{display:block}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;min-width:0}
+        .fg-label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
         .fg-label .flag{margin-right:6px;font-size:16px}
-        .fg-select,.fg-input{width:100%;padding:12px 14px;font-size:14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);transition:border-color var(--transition),box-shadow var(--transition);outline:none;font-family:inherit;appearance:none}
-        .fg-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
-        .fg-select:focus,.fg-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
-        .fg-input.error,.fg-select.error{border-color:var(--danger)}
-        .fg-error{font-size:11px;color:var(--danger);margin-top:4px;display:none}
+        .fg-select,.fg-input{width:100%;min-width:0;padding:13px 14px;font-size:14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);transition:border-color .2s,box-shadow .2s;outline:none}
+        .fg-select:focus,.fg-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-glow)}
+        .fg-select:disabled{background:var(--surface-hover);cursor:not-allowed;color:var(--text-4)}
+        .fg-input.error{border-color:var(--danger)}
+        .fg-error{display:none;font-size:11px;color:var(--danger);margin-top:5px;font-weight:500}
         .fg-error.visible{display:block}
+        .input-wrap{position:relative}
+        .input-wrap .input-suffix{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--text-3);pointer-events:none}
 
-        /* ---------- CURRENCY ---------- */
-        .currency-toggle{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
-        .currency-btn{padding:6px 14px;font-size:12px;font-weight:600;border:1.5px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text-2);cursor:pointer;transition:all .2s}
-        .currency-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
-        .currency-btn:hover:not(.active){border-color:var(--blue);color:var(--blue)}
+        /* Operator cards */
+        .operator-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;min-width:0}
+        .operator-card{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);text-align:left;transition:all .2s;position:relative;min-width:0}
+        .operator-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:var(--shadow)}
+        .operator-card.selected{border-color:var(--blue);background:var(--blue-light);box-shadow:0 0 0 4px var(--blue-glow)}
+        .operator-icon{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;background:var(--brand,#2563EB)}
+        .operator-name{font-size:14px;font-weight:600;display:block;line-height:1.2}
+        .operator-sub{font-size:11px;color:var(--text-3)}
+        .operator-check{position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:none;align-items:center;justify-content:center;font-size:10px}
+        .operator-card.selected .operator-check{display:flex}
+        .operator-empty{grid-column:1/-1;text-align:center;padding:24px;color:var(--text-4);font-size:13px}
 
-        /* ---------- FEE SUMMARY ---------- */
-        .fee-summary{background:var(--surface-hover);border-radius:var(--radius);padding:20px;margin-top:20px;display:none}
-        .fee-summary.visible{display:block;animation:fadeInUp .3s ease}
-        .fee-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
-        .fee-row:last-child{border-bottom:none}
-        .fee-row.total{font-size:16px;font-weight:700;color:var(--text);padding-top:14px}
+        /* Quick amounts */
+        .quick-amounts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-width:0}
+        .quick-amount{padding:8px 14px;border:1.5px solid var(--border);border-radius:100px;background:var(--surface);color:var(--text-2);font-size:13px;font-weight:600;transition:all .2s}
+        .quick-amount:hover{border-color:var(--blue);color:var(--blue)}
+        .quick-amount.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+        /* ===== FEE SUMMARY ===== */
+        .fee-summary{background:var(--surface-hover);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;display:none;animation:fadeInUp .3s ease}
+        .fee-summary.visible{display:block}
+        .fee-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;color:var(--text-2);min-width:0;gap:12px}
         .fee-row .label{color:var(--text-3)}
-        .fee-row .value{color:var(--text-2);font-weight:500}
-        .fee-row.total .value{color:var(--blue);font-size:20px}
-        .fee-note{font-size:11px;color:var(--text-4);margin-top:8px}
-        .exchange-badge{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;margin-left:8px}
+        .fee-row .value{font-weight:600;text-align:right}
+        .fee-row.total{border-top:1px solid var(--border);margin-top:8px;padding-top:12px;font-weight:700;color:var(--text)}
+        .fee-row.total .value{color:var(--blue);font-size:16px}
+        .fee-note{font-size:12px;color:var(--text-3);margin-top:10px;padding:8px 12px;background:var(--blue-light);border-radius:8px;color:var(--blue);font-weight:500;min-width:0}
+        .fee-note:empty{display:none}
+        .exchange-badge{display:inline-block;background:var(--green-light);color:var(--green-dark);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
 
-        /* ---------- BUTTONS ---------- */
-        .btn-withdraw{width:100%;padding:14px;font-size:15px;font-weight:700;border:none;border-radius:var(--radius);background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;cursor:pointer;transition:all var(--transition);margin-top:20px;letter-spacing:.3px;position:relative;overflow:hidden}
-        .btn-withdraw:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,99,235,.35)}
-        .btn-withdraw:active{transform:translateY(0)}
-        .btn-withdraw:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
-        .btn-withdraw .spinner{display:none;margin:0 auto}
-        .btn-withdraw.loading .btn-text{display:none}
-        .btn-withdraw.loading .spinner{display:block}
+        /* ===== BUTTONS ===== */
+        .btn-withdraw{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border:none;border-radius:var(--radius);background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;font-weight:700;font-size:15px;transition:all var(--transition);position:relative}
+        .btn-withdraw:hover:not(:disabled){box-shadow:0 8px 22px rgba(37,99,235,.35);transform:translateY(-1px)}
+        .btn-withdraw:disabled{opacity:.45;cursor:not-allowed}
+        .btn-withdraw.loading .btn-text{visibility:hidden}
+        .btn-withdraw.loading .spinner{display:block;position:absolute}
 
-        /* ---------- MODAL ---------- */
+        /* ===== MODAL ===== */
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
         .modal-overlay.open{display:flex;animation:fadeIn .2s ease}
-        .modal-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:480px;width:100%;box-shadow:var(--shadow-xl);animation:fadeInUp .3s ease}
+        .modal-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:480px;width:100%;box-shadow:var(--shadow-xl);animation:fadeInUp .3s ease;max-height:90vh;overflow-y:auto}
         .modal-icon{width:56px;height:56px;border-radius:50%;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 20px}
         .modal-title{font-size:19px;font-weight:700;text-align:center;margin-bottom:8px;color:var(--text)}
         .modal-subtitle{font-size:13px;color:var(--text-3);text-align:center;margin-bottom:24px}
         .modal-summary{background:var(--surface-hover);border-radius:var(--radius);padding:16px;margin-bottom:24px}
-        .summary-row{display:flex;justify-content:space-between;padding:8px 0;font-size:13px}
+        .summary-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:13px;min-width:0}
+        .summary-row span:last-child{text-align:right;word-break:break-word}
         .summary-row:last-child{border-top:1px solid var(--border);margin-top:8px;padding-top:12px;font-weight:700}
         .modal-actions{display:flex;gap:12px}
-        .btn-cancel{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text-2);font-weight:600;cursor:pointer;font-size:14px;transition:all var(--transition)}
+        .btn-cancel{flex:1;padding:13px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text-2);font-weight:600;font-size:14px;transition:all var(--transition)}
         .btn-cancel:hover{background:var(--surface-hover)}
-        .btn-confirm{flex:2;padding:12px;border:none;border-radius:var(--radius);background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;font-weight:700;cursor:pointer;font-size:14px;transition:all var(--transition);position:relative}
+        .btn-confirm{flex:2;padding:13px;border:none;border-radius:var(--radius);background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;font-weight:700;font-size:14px;transition:all var(--transition);position:relative;display:flex;align-items:center;justify-content:center;gap:8px}
         .btn-confirm:hover{box-shadow:0 6px 18px rgba(37,99,235,.3)}
-        .btn-confirm.loading .btn-text{display:none}
-        .btn-confirm.loading .spinner{display:block}
-        .btn-confirm .spinner{display:none;margin:0 auto}
+        .btn-confirm.loading .btn-text{visibility:hidden}
+        .btn-confirm.loading .spinner{display:block;position:absolute}
         .success-icon{width:64px;height:64px;border-radius:50%;background:var(--green-light);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 20px;animation:popIn .4s cubic-bezier(.68,-.55,.27,1.55)}
 
-        /* ---------- HISTORY TABLE ---------- */
+        /* ===== HISTORY ===== */
         .history-section{margin-top:32px}
         .history-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-        .history-table{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
-        .history-table table{width:100%;border-collapse:collapse;font-size:13px}
-        .history-table th{text-align:left;padding:14px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-4);background:var(--surface-hover);border-bottom:1px solid var(--border)}
-        .history-table td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text-2)}
-        .history-table tr:last-child td{border-bottom:none}
-        .history-table tr:hover td{background:var(--surface-hover)}
-        .status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600}
-        .status-badge.success{background:var(--green-light);color:#065F46}
-        .status-badge.pending{background:var(--warning-light);color:#92400E}
-        .status-badge.failed{background:var(--danger-light);color:#991B1B}
-        .status-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
-        .status-dot.success{background:var(--green)}
-        .status-dot.pending{background:var(--warning);animation:pulse 1.5s infinite}
-        .status-dot.failed{background:var(--danger)}
+        .history-list{display:flex;flex-direction:column;gap:12px}
+        .history-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);transition:all .2s;min-width:0}
+        .history-item:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+        .history-item-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;min-width:0}
+        .history-ref{font-family:monospace;font-size:12px;color:var(--blue);font-weight:600;word-break:break-all}
+        .history-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 16px;min-width:0}
+        .history-cell{min-width:0}
+        .history-cell-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4);font-weight:600;margin-bottom:2px}
+        .history-cell-value{font-size:13px;color:var(--text-2);font-weight:500;word-break:break-word}
         .history-empty{text-align:center;padding:48px 16px;color:var(--text-4)}
         .history-empty i{font-size:40px;margin-bottom:12px;display:block}
-        .history-pagination{display:flex;justify-content:center;gap:8px;padding:16px}
-        .history-pagination button{padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--transition);color:var(--text-2)}
+        .history-pagination{display:flex;justify-content:center;gap:8px;padding:16px 0;flex-wrap:wrap}
+        .history-pagination button{padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-size:13px;font-weight:500;color:var(--text-2);transition:all var(--transition)}
         .history-pagination button:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
         .history-pagination button:disabled{opacity:.4;cursor:not-allowed}
         .history-pagination button.active{background:var(--blue);border-color:var(--blue);color:#fff}
 
-        /* ---------- SKELETON / TOAST ---------- */
-        .skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--surface-hover) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:var(--radius-sm)}
-        .skeleton-row{height:14px;margin:8px 0}
-        .skeleton-row.short{width:40%}
-        .skeleton-row.medium{width:70%}
-        .toast{position:fixed;bottom:24px;right:24px;padding:14px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;color:#fff;z-index:2000;animation:fadeInUp .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.15);display:none}
+        /* Status badges */
+        .status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+        .status-badge.success{background:var(--green-light);color:#065F46}
+        .status-badge.pending{background:var(--warning-light);color:#92400E}
+        .status-badge.failed{background:var(--danger-light);color:#991B1B}
+        .status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+        .status-dot.success{background:var(--green)}
+        .status-dot.pending{background:var(--warning);animation:pulse 1.5s infinite}
+        .status-dot.failed{background:var(--danger)}
+
+        /* ===== TOAST & MOBILE NAV ===== */
+        .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:14px 22px;border-radius:var(--radius);font-size:13px;font-weight:600;color:#fff;z-index:2000;animation:fadeInUp .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.15);display:none;max-width:90vw}
         .toast.show{display:block}
         .toast.error{background:var(--danger)}
         .toast.success{background:var(--green)}
-
-        /* ---------- ANIMATIONS ---------- */
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-        @keyframes popIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
-
-        /* ---------- MOBILE ---------- */
         .mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:0 12px;justify-content:space-around;align-items:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
-        .mb-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-4);cursor:pointer;transition:all .2s;padding:6px 10px;border-radius:10px}
+        .mb-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-4);padding:6px 10px;border-radius:10px;transition:all .2s}
         .mb-nav-item.active{color:var(--blue)}
         .mb-nav-item i{font-size:20px}
 
-        @media(max-width:768px){
-            .sidebar{display:none}
-            .main-content{margin-left:0;padding:20px 16px 80px;max-width:100vw}
-            .topbar{padding:0 16px}
-            .topbar-lang,.topbar-profile-name,.topbar-profile-role{display:none}
-            .mobile-bottom-nav{display:flex}
-            .fee-summary{padding:16px}
-            .form-card{padding:20px 16px}
-            .history-table{overflow-x:auto}
-            .history-table table{min-width:600px}
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes popIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1024px){
+            :root{--sidebar-w:220px}
         }
-        @media(max-width:480px){
+        @media(max-width:900px){
+            .sidebar{transform:translateX(-100%)}
+            .main-content{margin-left:0;max-width:100vw;padding:24px 20px 90px}
+            .mobile-bottom-nav{display:flex}
+        }
+        @media(max-width:640px){
+            .topbar{padding:0 16px}
+            .topbar-profile-name,.topbar-profile-role{display:none}
+            .main-content{padding:20px 14px 90px}
+            .form-card{padding:20px 16px}
             .form-row{grid-template-columns:1fr}
-            .withdraw-title{font-size:22px}
-            .balance-amount{font-size:26px}
+            .history-grid{grid-template-columns:1fr 1fr}
+            .step-label{font-size:9px}
+            .withdraw-subtitle{font-size:13px}
+        }
+        @media(max-width:400px){
+            .operator-grid{grid-template-columns:1fr 1fr}
+            .history-grid{grid-template-columns:1fr}
             .modal-card{padding:24px 16px}
         }
     </style>
@@ -237,15 +261,11 @@
 <header class="topbar">
     <div class="topbar-left">
         <a href="/" class="topbar-logo">
-            <img src="{{ url_for('static', filename='img/trans1.png') }}" alt="TransAfrik">
+            <img src="{{ url_for('static', filename='icons/icon-192.png') }}" alt="TransAfrik" onerror="this.style.display='none'">
             <span>TransAfrik</span>
         </a>
     </div>
     <div class="topbar-right">
-        <button class="topbar-icon-btn" title="Notifications">
-            <i class="fa-solid fa-bell"></i>
-            {% if unread_notifications > 0 %}<span class="badge">{{ unread_notifications }}</span>{% endif %}
-        </button>
         <div style="position:relative">
             <button class="topbar-lang" id="langBtn" onclick="document.getElementById('langDropdown').classList.toggle('show')">
                 <i class="fa-solid fa-globe"></i> FR
@@ -308,22 +328,24 @@
         <div class="balance-card-top">
             <div>
                 <div class="balance-label">Solde disponible</div>
-                <div class="balance-amount">{{ "%.2f"|format(user.balance) }}</div>
-                <div class="balance-currency">{{ user.currency }}</div>
+                <div class="balance-amount">{{ "{:,}".format(user.balance or 0).replace(",", " ") }}</div>
+                <div class="balance-currency">{{ user.currency or 'XOF' }}</div>
             </div>
         </div>
+        <div class="balance-hint"><i class="fa-solid fa-circle-info" style="margin-right:6px"></i>Montant minimum : 500 · Maximum : 500 000</div>
     </div>
 
     <!-- FORM CARD -->
     <div class="form-card" id="withdrawForm">
-        <div class="form-steps">
-            <div class="form-step active" id="step1"><i class="fas fa-globe-africa"></i> Pays / Opérateur</div>
-            <div class="form-step" id="step2"><i class="fas fa-coins"></i> Montant & Détails</div>
-            <div class="form-step" id="step3"><i class="fas fa-check-circle"></i> Confirmation</div>
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="step active" id="step1"><span class="step-line"></span><div class="step-dot"><i class="fa-solid fa-globe-africa"></i></div><span class="step-label">Pays &amp; Opérateur</span></div>
+            <div class="step" id="step2"><span class="step-line"></span><div class="step-dot"><i class="fa-solid fa-coins"></i></div><span class="step-label">Montant &amp; Détails</span></div>
+            <div class="step" id="step3"><span class="step-line"></span><div class="step-dot"><i class="fa-solid fa-check"></i></div><span class="step-label">Confirmation</span></div>
         </div>
 
         <!-- Étape 1 -->
-        <div id="section-country">
+        <div class="form-section visible" id="section-country">
             <div class="form-row">
                 <div class="form-group">
                     <label class="fg-label"><span class="flag" id="selectedFlag">🌍</span> Pays</label>
@@ -335,51 +357,45 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="fg-label"><i class="fas fa-mobile-alt"></i> Opérateur</label>
-                    <select class="fg-select" id="operatorSelect" disabled>
-                        <option value="">-- Sélectionnez un pays d'abord --</option>
-                    </select>
+                    <label class="fg-label"><i class="fas fa-store"></i> Opérateur</label>
+                    <div class="operator-grid" id="operatorGrid">
+                        <div class="operator-empty" id="operatorEmpty">Sélectionnez d'abord un pays.</div>
+                    </div>
                     <div class="fg-error" id="operatorError">Veuillez sélectionner un opérateur.</div>
                 </div>
             </div>
         </div>
 
         <!-- Étape 2 -->
-        <div id="section-amount" style="display:none;">
+        <div class="form-section" id="section-amount">
             <div class="form-row">
                 <div class="form-group">
                     <label class="fg-label"><i class="fas fa-phone"></i> Numéro de téléphone</label>
                     <input type="tel" class="fg-input" id="phoneInput" placeholder="Ex: 90123456" />
-                    <div class="fg-error" id="phoneError">Numéro invalide (min 6 chiffres).</div>
+                    <div class="fg-error" id="phoneError">Numéro invalide (6 à 15 chiffres).</div>
                 </div>
                 <div class="form-group">
                     <label class="fg-label"><i class="fas fa-user"></i> Nom du destinataire</label>
                     <input type="text" class="fg-input" id="recipientName" placeholder="Ex: Jean Dupont" />
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="fg-label"><i class="fas fa-coins"></i> Montant</label>
-                    <input type="number" class="fg-input" id="amountInput" placeholder="Ex: 5000" min="500" step="1" />
-                    <div class="fg-error" id="amountError">Montant minimum : 500 {{ user.currency }}.</div>
+            <div class="form-group" style="margin-bottom:16px">
+                <label class="fg-label"><i class="fas fa-coins"></i> Montant à retirer</label>
+                <div class="input-wrap">
+                    <input type="number" class="fg-input" id="amountInput" placeholder="Ex: 5000" min="500" max="500000" step="1" inputmode="numeric" />
+                    <span class="input-suffix" id="amountCurrency">{{ user.currency or 'XOF' }}</span>
                 </div>
-                <div class="form-group">
-                    <label class="fg-label"><i class="fas fa-money-bill-wave"></i> Devise</label>
-                    <div class="currency-toggle" id="currencyToggle">
-                        <button class="currency-btn active" data-currency="XOF">XOF</button>
-                        <button class="currency-btn" data-currency="XAF">XAF</button>
-                        <button class="currency-btn" data-currency="USD">USD</button>
-                        <button class="currency-btn" data-currency="EUR">EUR</button>
-                    </div>
-                </div>
+                <div class="fg-error" id="amountError">Montant minimum : 500 {{ user.currency or 'XOF' }}.</div>
+                <div class="quick-amounts" id="quickAmounts"></div>
             </div>
 
-            <!-- Fee Summary -->
+            <!-- Fee summary -->
             <div class="fee-summary" id="feeSummary">
                 <div class="fee-row"><span class="label">Montant envoyé</span><span class="value" id="feeSenderAmount">---</span></div>
-                <div class="fee-row" id="feeConversionRow" style="display:none;"><span class="label">Montant converti</span><span class="value" id="feeConvertedAmount">---</span></div>
+                <div class="fee-row" id="feeConversionRow" style="display:none"><span class="label">Montant converti</span><span class="value" id="feeConvertedAmount">---</span></div>
                 <div class="fee-row"><span class="label">Frais de retrait</span><span class="value" id="feeAmount">---</span></div>
-                <div class="fee-row total"><span class="label">Montant reçu</span><span class="value" id="feeReceiverGets">---</span></div>
+                <div class="fee-row total"><span class="label">Total débité</span><span class="value" id="feeTotalDebited">---</span></div>
+                <div class="fee-row"><span class="label">Montant reçu</span><span class="value" id="feeReceiverGets">---</span></div>
                 <div class="fee-note" id="feeNote"></div>
             </div>
 
@@ -390,7 +406,7 @@
         </div>
     </div>
 
-    <!-- ========== CONFIRMATION MODAL ========== -->
+    <!-- ===== CONFIRMATION MODAL ===== -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal-card">
             <div class="modal-icon"><i class="fas fa-paper-plane"></i></div>
@@ -413,7 +429,7 @@
         </div>
     </div>
 
-    <!-- ========== SUCCESS MODAL ========== -->
+    <!-- ===== SUCCESS MODAL ===== -->
     <div class="modal-overlay" id="successModal">
         <div class="modal-card">
             <div class="success-icon"><i class="fas fa-check"></i></div>
@@ -423,30 +439,11 @@
         </div>
     </div>
 
-    <!-- ========== HISTORY ========== -->
+    <!-- ===== HISTORY ===== -->
     <div class="history-section">
         <div class="history-title"><i class="fas fa-history"></i> Historique des retraits</div>
-        <div class="history-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Référence</th>
-                        <th>Destinataire</th>
-                        <th>Opérateur</th>
-                        <th>Montant</th>
-                        <th>Frais</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody id="historyBody">
-                    <tr><td colspan="7" style="padding:24px;">
-                        <div class="skeleton skeleton-row medium"></div>
-                        <div class="skeleton skeleton-row"></div>
-                        <div class="skeleton skeleton-row short"></div>
-                    </td></tr>
-                </tbody>
-            </table>
+        <div class="history-list" id="historyList">
+            <div class="history-item"><div class="history-empty"><i class="fas fa-spinner fa-spin"></i><p>Chargement…</p></div></div>
         </div>
         <div class="history-pagination" id="historyPagination"></div>
     </div>
@@ -471,25 +468,42 @@
    WITHDRAW PAGE — TransAfrik
    =================================================================== */
 
+const USER_CURRENCY = "{{ user.currency or 'XOF' }}";
+const USER_BALANCE = {{ user.balance or 0 }};
+
+const OPERATOR_BRANDS = {
+    tmoney:  { color: '#F5A623', icon: 'fa-mobile-screen' },
+    moov:    { color: '#0072BC', icon: 'fa-mobile-screen' },
+    mtn:     { color: '#FFCB05', icon: 'fa-mobile-screen' },
+    orange:  { color: '#FF7900', icon: 'fa-mobile-screen' },
+    wave:    { color: '#1DC4FF', icon: 'fa-wave-square' },
+    airtel:  { color: '#ED1C24', icon: 'fa-mobile-screen' },
+    vodacom: { color: '#E60000', icon: 'fa-mobile-screen' },
+    free:    { color: '#E2012D', icon: 'fa-mobile-screen' },
+    zamtel:  { color: '#00A651', icon: 'fa-mobile-screen' },
+    mpesa:   { color: '#00A651', icon: 'fa-mobile-screen' }
+};
+
 let selectedCountry = null;
 let selectedOperator = null;
-let selectedCurrency = 'XOF';
 let currentFees = null;
 let historyPage = 1;
 let totalHistoryPages = 1;
 
 const $countrySelect = document.getElementById('countrySelect');
-const $operatorSelect = document.getElementById('operatorSelect');
-const $phoneInput = document.getElementById('phoneInput');
+const $operatorGrid  = document.getElementById('operatorGrid');
+const $operatorError = document.getElementById('operatorError');
+const $phoneInput    = document.getElementById('phoneInput');
 const $recipientName = document.getElementById('recipientName');
-const $amountInput = document.getElementById('amountInput');
-const $feeSummary = document.getElementById('feeSummary');
-const $btnReview = document.getElementById('btnReview');
-const $confirmModal = document.getElementById('confirmModal');
-const $successModal = document.getElementById('successModal');
-const $historyBody = document.getElementById('historyBody');
+const $amountInput   = document.getElementById('amountInput');
+const $feeSummary    = document.getElementById('feeSummary');
+const $btnReview     = document.getElementById('btnReview');
+const $confirmModal  = document.getElementById('confirmModal');
+const $successModal  = document.getElementById('successModal');
+const $historyList   = document.getElementById('historyList');
 const $historyPagination = document.getElementById('historyPagination');
-const $sectionAmount = document.getElementById('section-amount');
+const $sectionCountry = document.getElementById('section-country');
+const $sectionAmount  = document.getElementById('section-amount');
 const $toast = document.getElementById('toast');
 
 function showToast(msg, type) {
@@ -500,64 +514,112 @@ function showToast(msg, type) {
     $toast._timeout = setTimeout(function(){ $toast.classList.remove('show'); }, 4000);
 }
 
+function fmt(n) {
+    return Math.round(Number(n) || 0).toLocaleString('fr-FR');
+}
 function cleanPhone(v) { return v.replace(/[\s\-\.\(\)\+]/g, ''); }
 function isValidPhone(v) { return /^\d{6,15}$/.test(cleanPhone(v)); }
 
-// Currency toggle
-document.getElementById('currencyToggle').addEventListener('click', function(e) {
-    var btn = e.target.closest('.currency-btn');
-    if (!btn) return;
-    document.querySelectorAll('#currencyToggle .currency-btn').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-    selectedCurrency = btn.dataset.currency;
+function setStep(n) {
+    for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById('step' + i);
+        el.classList.remove('active', 'done');
+        if (i < n) el.classList.add('done');
+        if (i === n) el.classList.add('active');
+    }
+}
+
+function showSection(el) {
+    document.querySelectorAll('.form-section').forEach(s => s.classList.remove('visible'));
+    el.classList.add('visible');
+}
+
+// Quick amount chips
+function buildQuickAmounts() {
+    const amounts = [500, 1000, 2000, 5000, 10000, 25000, 50000, 100000];
+    const wrap = document.getElementById('quickAmounts');
+    wrap.innerHTML = '';
+    amounts.forEach(function(a) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'quick-amount';
+        b.textContent = a.toLocaleString('fr-FR');
+        b.addEventListener('click', function() {
+            $amountInput.value = a;
+            document.querySelectorAll('#quickAmounts .quick-amount').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            onAmountChange();
+        });
+        wrap.appendChild(b);
+    });
+}
+
+// Operator rendering
+function renderOperators(operators) {
+    $operatorGrid.innerHTML = '';
+    if (!operators || operators.length === 0) {
+        $operatorGrid.innerHTML = '<div class="operator-empty">Aucun opérateur disponible</div>';
+        return;
+    }
+    operators.forEach(function(op) {
+        const brand = OPERATOR_BRANDS[op.slug] || { color: '#2563EB', icon: 'fa-mobile-screen' };
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'operator-card';
+        card.dataset.id = op.id;
+        card.dataset.name = op.name;
+        card.dataset.slug = op.slug || '';
+        card.dataset.currency = op.currency || USER_CURRENCY;
+        card.innerHTML =
+            '<span class="operator-icon" style="--brand:' + brand.color + '"><i class="fa-solid ' + brand.icon + '"></i></span>' +
+            '<span style="min-width:0"><span class="operator-name">' + op.name + '</span>' +
+            '<span class="operator-sub">' + (op.type === 'bank' ? 'Compte bancaire' : 'Mobile Money') + ' · ' + (op.currency || '') + '</span></span>' +
+            '<span class="operator-check"><i class="fa-solid fa-check"></i></span>';
+        card.addEventListener('click', function() { selectOperator(card, op); });
+        $operatorGrid.appendChild(card);
+    });
+}
+
+function selectOperator(card, op) {
+    document.querySelectorAll('.operator-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedOperator = {
+        id: parseInt(op.id),
+        name: op.name,
+        slug: op.slug || '',
+        currency: op.currency || USER_CURRENCY
+    };
+    $operatorError.classList.remove('visible');
+    setStep(2);
+    showSection($sectionAmount);
     recalcFees();
-});
+}
 
 // Country select
 $countrySelect.addEventListener('change', async function() {
-    var code = this.value;
+    const code = this.value;
     selectedCountry = code;
     selectedOperator = null;
-    $operatorSelect.innerHTML = '<option value="">-- Opérateur --</option>';
-    $operatorSelect.disabled = !code;
-    var opt = this.selectedOptions[0];
+    $operatorGrid.innerHTML = '';
+    const opt = this.selectedOptions[0];
     document.getElementById('selectedFlag').textContent = opt ? (opt.dataset.flag || '🌍') : '🌍';
-    $sectionAmount.style.display = code ? 'block' : 'none';
-    $feeSummary.classList.remove('visible');
-    $btnReview.disabled = true;
-    if (!code) return;
-
+    if (!code) {
+        $operatorGrid.innerHTML = '<div class="operator-empty">Sélectionnez d\'abord un pays.</div>';
+        showSection($sectionCountry);
+        setStep(1);
+        return;
+    }
+    $operatorGrid.innerHTML = '<div class="operator-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>';
     try {
-        var resp = await fetch('/api/withdraw/operators/' + code);
-        var data = await resp.json();
-        if (data.success && data.operators.length > 0) {
-            data.operators.forEach(function(op) {
-                var opOpt = document.createElement('option');
-                opOpt.value = op.id;
-                opOpt.textContent = op.name;
-                opOpt.dataset.currency = op.currency;
-                $operatorSelect.appendChild(opOpt);
-            });
-        } else {
-            $operatorSelect.innerHTML = '<option value="">Aucun opérateur disponible</option>';
-        }
-    } catch(e) {
-        showToast('Erreur lors du chargement des opérateurs.');
+        const resp = await fetch('/api/withdraw/operators/' + code);
+        const data = await resp.json();
+        renderOperators(data.operators || []);
+    } catch (e) {
+        $operatorGrid.innerHTML = '<div class="operator-empty">Erreur de chargement.</div>';
     }
 });
 
-// Operator select
-$operatorSelect.addEventListener('change', function() {
-    var sel = this.selectedOptions[0];
-    selectedOperator = {
-        id: parseInt(this.value),
-        name: sel ? sel.textContent : '',
-        currency: sel && sel.dataset ? sel.dataset.currency : selectedCurrency
-    };
-    recalcFees();
-});
-
-// Phone
+// Phone input
 $phoneInput.addEventListener('input', function() {
     if (this.value && !isValidPhone(this.value)) {
         this.classList.add('error');
@@ -569,105 +631,117 @@ $phoneInput.addEventListener('input', function() {
     validateForm();
 });
 
-// Amount
-$amountInput.addEventListener('input', function() {
-    var v = parseFloat(this.value);
+// Amount input
+function onAmountChange() {
+    const v = parseFloat($amountInput.value);
     if (isNaN(v) || v < 500) {
-        this.classList.add('error');
+        $amountInput.classList.add('error');
         document.getElementById('amountError').classList.add('visible');
     } else {
-        this.classList.remove('error');
+        $amountInput.classList.remove('error');
         document.getElementById('amountError').classList.remove('visible');
     }
     recalcFees();
-});
+}
+$amountInput.addEventListener('input', onAmountChange);
 
 // Recalc fees
 async function recalcFees() {
-    var amount = parseFloat($amountInput.value);
+    const amount = parseFloat($amountInput.value);
     if (!selectedOperator || isNaN(amount) || amount < 500) {
         $feeSummary.classList.remove('visible');
         $btnReview.disabled = true;
+        validateForm();
         return;
     }
     try {
-        var resp = await fetch('/api/withdraw/fees', {
+        const resp = await fetch('/api/withdraw/fees', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: amount, currency: selectedCurrency, operator_id: selectedOperator.id }),
+            body: JSON.stringify({ amount: amount, currency: USER_CURRENCY, operator_id: selectedOperator.id }),
         });
-        var data = await resp.json();
+        const data = await resp.json();
         if (!data.success) { showToast(data.message || 'Erreur de calcul.'); return; }
         currentFees = data;
-        document.getElementById('feeSenderAmount').textContent = amount.toFixed(2) + ' ' + selectedCurrency;
-        if (data.exchange_rate !== 1.0 && data.currency !== data.op_currency) {
+        const opCur = data.op_currency || selectedOperator.currency || USER_CURRENCY;
+        document.getElementById('feeSenderAmount').textContent = fmt(data.amount) + ' ' + USER_CURRENCY;
+        if (data.exchange_rate && data.exchange_rate !== 1.0 && data.currency !== data.op_currency) {
             document.getElementById('feeConversionRow').style.display = 'flex';
-            document.getElementById('feeConvertedAmount').textContent = data.converted_amount.toFixed(2) + ' ' + data.op_currency;
-            var note = document.getElementById('feeNote');
-            note.textContent = 'Taux : 1 ' + selectedCurrency + ' = ' + data.exchange_rate.toFixed(4) + ' ' + data.op_currency;
-            note.innerHTML += ' <span class="exchange-badge">Conversion</span>';
+            document.getElementById('feeConvertedAmount').textContent = fmt(data.converted_amount) + ' ' + opCur;
+            const note = document.getElementById('feeNote');
+            note.innerHTML = 'Taux : 1 ' + USER_CURRENCY + ' = ' + Number(data.exchange_rate).toFixed(4) + ' ' + opCur + ' <span class="exchange-badge">Conversion</span>';
         } else {
             document.getElementById('feeConversionRow').style.display = 'none';
             document.getElementById('feeNote').textContent = '';
         }
-        var opCur = data.op_currency || selectedOperator.currency || selectedCurrency;
-        document.getElementById('feeAmount').textContent = data.fees.toFixed(2) + ' ' + opCur;
-        document.getElementById('feeReceiverGets').textContent = data.converted_amount.toFixed(2) + ' ' + opCur;
+        document.getElementById('feeAmount').textContent = fmt(data.fees) + ' ' + opCur;
+        document.getElementById('feeTotalDebited').textContent = fmt(data.total_debited) + ' ' + opCur;
+        const gets = data.receiver_gets !== undefined ? data.receiver_gets : data.converted_amount;
+        document.getElementById('feeReceiverGets').textContent = fmt(gets) + ' ' + opCur;
+        const noteEl = document.getElementById('feeNote');
+        if (Number(data.total_debited) > USER_BALANCE) {
+            noteEl.textContent = 'Solde insuffisant pour ce retrait.';
+            noteEl.style.color = 'var(--danger)';
+        } else {
+            noteEl.style.color = '';
+        }
         $feeSummary.classList.add('visible');
-        validateForm();
-    } catch(e) {
+    } catch (e) {
         showToast('Erreur lors du calcul des frais.');
     }
+    validateForm();
 }
 
 function validateForm() {
-    var amount = parseFloat($amountInput.value);
-    var phoneOk = $phoneInput.value && isValidPhone($phoneInput.value);
-    var amountOk = !isNaN(amount) && amount >= 500;
-    var opOk = !!selectedOperator;
-    $btnReview.disabled = !(phoneOk && amountOk && opOk);
+    const amount = parseFloat($amountInput.value);
+    const phoneOk = $phoneInput.value && isValidPhone($phoneInput.value);
+    const amountOk = !isNaN(amount) && amount >= 500 && amount <= 500000;
+    const balanceOk = !currentFees || Number(currentFees.total_debited) <= USER_BALANCE;
+    const opOk = !!selectedOperator;
+    $btnReview.disabled = !(phoneOk && amountOk && opOk && balanceOk);
 }
 
 // Review button
 $btnReview.addEventListener('click', function() {
-    var amount = parseFloat($amountInput.value);
-    var phone = cleanPhone($phoneInput.value);
-    var name = $recipientName.value.trim() || 'N/A';
+    const amount = parseFloat($amountInput.value);
+    const phone = cleanPhone($phoneInput.value);
+    const name = $recipientName.value.trim() || 'N/A';
     if (!selectedOperator || !currentFees) { showToast('Veuillez remplir tous les champs.'); return; }
-    var opCur = currentFees.op_currency || selectedOperator.currency || selectedCurrency;
+    const opCur = currentFees.op_currency || selectedOperator.currency || USER_CURRENCY;
     document.getElementById('sumRecipient').textContent = name + ' (' + phone + ')';
     document.getElementById('sumOperator').textContent = selectedOperator.name;
-    document.getElementById('sumAmount').textContent = amount.toFixed(2) + ' ' + selectedCurrency;
-    document.getElementById('sumFees').textContent = currentFees.fees.toFixed(2) + ' ' + opCur;
-    document.getElementById('sumTotal').textContent = currentFees.converted_amount.toFixed(2) + ' ' + opCur;
+    document.getElementById('sumAmount').textContent = fmt(amount) + ' ' + USER_CURRENCY;
+    document.getElementById('sumFees').textContent = fmt(currentFees.fees) + ' ' + opCur;
+    const gets = currentFees.receiver_gets !== undefined ? currentFees.receiver_gets : currentFees.converted_amount;
+    document.getElementById('sumTotal').textContent = fmt(gets) + ' ' + opCur;
     $confirmModal.classList.add('open');
-    document.getElementById('step3').classList.add('active');
+    setStep(3);
 });
 
 // Cancel modal
 document.getElementById('btnCancelModal').addEventListener('click', function() {
     $confirmModal.classList.remove('open');
-    document.getElementById('step3').classList.remove('active');
+    setStep(2);
 });
 $confirmModal.addEventListener('click', function(e) {
-    if (e.target === this) { this.classList.remove('open'); document.getElementById('step3').classList.remove('active'); }
+    if (e.target === this) { this.classList.remove('open'); setStep(2); }
 });
 
 // Confirm withdraw
 document.getElementById('btnConfirmWithdraw').addEventListener('click', async function() {
-    var btn = this;
+    const btn = this;
     btn.classList.add('loading');
     btn.disabled = true;
-    var amount = parseFloat($amountInput.value);
-    var phone = cleanPhone($phoneInput.value);
-    var name = $recipientName.value.trim();
+    const amount = parseFloat($amountInput.value);
+    const phone = cleanPhone($phoneInput.value);
+    const name = $recipientName.value.trim();
     try {
-        var resp = await fetch('/withdraw/create', {
+        const resp = await fetch('/withdraw/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ operator_id: selectedOperator.id, phone: phone, amount: amount, currency: selectedCurrency, recipient_name: name }),
+            body: JSON.stringify({ operator_id: selectedOperator.id, phone: phone, amount: amount, currency: USER_CURRENCY, recipient_name: name }),
         });
-        var data = await resp.json();
+        const data = await resp.json();
         if (!resp.ok || !data.success) {
             showToast(data.error || data.message || 'Erreur lors du retrait.');
             btn.classList.remove('loading');
@@ -677,16 +751,11 @@ document.getElementById('btnConfirmWithdraw').addEventListener('click', async fu
         $confirmModal.classList.remove('open');
         $successModal.classList.add('open');
         document.getElementById('successMessage').textContent = data.message || 'Votre retrait est en cours de traitement.';
-        document.getElementById('step3').classList.add('done');
-        $amountInput.value = '';
-        $phoneInput.value = '';
-        $recipientName.value = '';
-        $feeSummary.classList.remove('visible');
-        $btnReview.disabled = true;
+        resetForm();
         historyPage = 1;
         loadHistory();
-        setTimeout(function(){ location.reload(); }, 3000);
-    } catch(e) {
+        setTimeout(function(){ location.reload(); }, 3500);
+    } catch (e) {
         showToast('Erreur réseau. Veuillez réessayer.');
     } finally {
         btn.classList.remove('loading');
@@ -697,73 +766,82 @@ document.getElementById('btnConfirmWithdraw').addEventListener('click', async fu
 // Success close
 document.getElementById('btnSuccessClose').addEventListener('click', function() {
     $successModal.classList.remove('open');
-    $sectionAmount.style.display = 'none';
-    document.getElementById('step1').classList.add('active');
-    document.getElementById('step2').classList.remove('active');
-    document.getElementById('step3').classList.remove('active', 'done');
-    $countrySelect.value = '';
-    $operatorSelect.innerHTML = '<option value="">-- Sélectionnez un pays d\'abord --</option>';
-    $operatorSelect.disabled = true;
-    selectedCountry = null;
-    selectedOperator = null;
 });
 
-// Load history
+function resetForm() {
+    $countrySelect.value = '';
+    $operatorGrid.innerHTML = '<div class="operator-empty">Sélectionnez d\'abord un pays.</div>';
+    $amountInput.value = '';
+    $phoneInput.value = '';
+    $recipientName.value = '';
+    $feeSummary.classList.remove('visible');
+    $btnReview.disabled = true;
+    selectedCountry = null;
+    selectedOperator = null;
+    currentFees = null;
+    document.getElementById('selectedFlag').textContent = '🌍';
+    showSection($sectionCountry);
+    setStep(1);
+    buildQuickAmounts();
+}
+
+// Load history (card-based, no horizontal scroll)
 async function loadHistory(page) {
     page = page || 1;
     historyPage = page;
     try {
-        var resp = await fetch('/api/withdraw/history?page=' + page + '&per_page=10');
-        var data = await resp.json();
+        const resp = await fetch('/api/withdraw/history?page=' + page + '&per_page=10');
+        const data = await resp.json();
         if (!data.success) return;
         totalHistoryPages = data.pages;
-        var withdrawals = data.withdrawals;
-        if (withdrawals.length === 0) {
-            $historyBody.innerHTML = '<tr><td colspan="7"><div class="history-empty"><i class="fas fa-inbox"></i><p>Aucun retrait pour le moment.</p></div></td></tr>';
+        const withdrawals = data.withdrawals;
+        if (!withdrawals.length) {
+            $historyList.innerHTML = '<div class="history-item"><div class="history-empty"><i class="fas fa-inbox"></i><p>Aucun retrait pour le moment.</p></div></div>';
             $historyPagination.innerHTML = '';
             return;
         }
-        $historyBody.innerHTML = withdrawals.map(function(w) {
-            var date = w.created_at ? new Date(w.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '---';
-            var statusClass = w.status === 'COMPLETED' ? 'success' : (['FAILED','REJECTED','CANCELLED'].indexOf(w.status) >= 0 ? 'failed' : 'pending');
-            var statusLabel = w.status_label || w.status;
-            return '<tr>' +
-                '<td>' + date + '</td>' +
-                '<td><code style="font-size:11px;color:var(--blue)">' + w.reference + '</code></td>' +
-                '<td>' + w.recipient_phone + (w.recipient_name ? '<br><small style="color:var(--text-4)">' + w.recipient_name + '</small>' : '') + '</td>' +
-                '<td>' + w.recipient_operator + '</td>' +
-                '<td>' + (w.amount || 0).toLocaleString() + ' ' + (w.currency || '') + '</td>' +
-                '<td>' + (w.fees || 0).toLocaleString() + ' ' + (w.currency || '') + '</td>' +
-                '<td><span class="status-badge ' + statusClass + '"><span class="status-dot ' + statusClass + '"></span>' + statusLabel + '</span></td>' +
-                '</tr>';
+        $historyList.innerHTML = withdrawals.map(function(w) {
+            const date = w.created_at ? new Date(w.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '---';
+            const statusClass = w.status === 'COMPLETED' ? 'success' : (['FAILED','REJECTED','CANCELLED'].indexOf(w.status) >= 0 ? 'failed' : 'pending');
+            const statusLabel = w.status_label || w.status;
+            const currency = w.currency || '';
+            return '<div class="history-item">' +
+                '<div class="history-item-top">' +
+                    '<span class="history-ref">' + (w.reference || '—') + '</span>' +
+                    '<span class="status-badge ' + statusClass + '"><span class="status-dot ' + statusClass + '"></span>' + statusLabel + '</span>' +
+                '</div>' +
+                '<div class="history-grid">' +
+                    '<div class="history-cell"><div class="history-cell-label">Date</div><div class="history-cell-value">' + date + '</div></div>' +
+                    '<div class="history-cell"><div class="history-cell-label">Destinataire</div><div class="history-cell-value">' + (w.recipient_name ? w.recipient_name + ' · ' : '') + (w.recipient_phone || '') + '</div></div>' +
+                    '<div class="history-cell"><div class="history-cell-label">Opérateur</div><div class="history-cell-value">' + (w.recipient_operator || '—') + '</div></div>' +
+                    '<div class="history-cell"><div class="history-cell-label">Montant</div><div class="history-cell-value">' + fmt(w.amount) + ' ' + currency + '</div></div>' +
+                '</div>' +
+            '</div>';
         }).join('');
         $historyPagination.innerHTML = '';
         if (totalHistoryPages > 1) {
-            var prevBtn = document.createElement('button');
+            const prevBtn = document.createElement('button');
             prevBtn.textContent = '←';
             prevBtn.disabled = page <= 1;
             prevBtn.addEventListener('click', function(){ loadHistory(page - 1); });
             $historyPagination.appendChild(prevBtn);
-            for (var i = 1; i <= totalHistoryPages; i++) {
-                var btn = document.createElement('button');
+            for (let i = 1; i <= totalHistoryPages; i++) {
+                const btn = document.createElement('button');
                 btn.textContent = i;
                 if (i === page) btn.classList.add('active');
                 btn.addEventListener('click', (function(p){ return function(){ loadHistory(p); }; })(i));
                 $historyPagination.appendChild(btn);
             }
-            var nextBtn = document.createElement('button');
+            const nextBtn = document.createElement('button');
             nextBtn.textContent = '→';
             nextBtn.disabled = page >= totalHistoryPages;
             nextBtn.addEventListener('click', function(){ loadHistory(page + 1); });
             $historyPagination.appendChild(nextBtn);
         }
-    } catch(e) {
-        $historyBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--danger)">Erreur de chargement.</td></tr>';
+    } catch (e) {
+        $historyList.innerHTML = '<div class="history-item"><div class="history-empty" style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement.</p></div></div>';
     }
 }
-
-// Init
-loadHistory();
 
 // Lang switch placeholder
 function switchLang(lang, btn) {
@@ -773,13 +851,21 @@ function switchLang(lang, btn) {
     document.getElementById('langDropdown').classList.remove('show');
 }
 
-// Step2 highlight on amount focus
-$amountInput.addEventListener('focus', function() {
-    if ($sectionAmount.style.display !== 'none') {
-        document.getElementById('step2').classList.add('active');
-    }
-});
+// Init
+buildQuickAmounts();
+loadHistory();
 </script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
