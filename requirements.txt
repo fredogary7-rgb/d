@@ -8,5 +8,6 @@ pillow
 pywebpush
 gunicorn
 psycopg2-binary
+psycopg[binary]
 requests
 apscheduler
