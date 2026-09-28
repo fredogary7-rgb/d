@@ -818,9 +818,35 @@ def support_close(ticket_id):
     admin = get_admin()
     ticket = SupportTicket.query.get_or_404(ticket_id)
     ticket.status = 'CLOSED'
+    ticket.closed_at = datetime.utcnow()
     ticket.updated_at = datetime.utcnow()
     log_action(admin, 'support_close', 'support_ticket', ticket.id)
     db.session.commit()
+
+    # Notification à l'utilisateur (push + in-app)
+    try:
+        notif_title = "Ticket clôturé"
+        notif_body = f"Votre ticket #{ticket.ticket_number} a été clôturé par notre équipe."
+        send_push_to_user(
+            user_id=ticket.user_id,
+            title=notif_title,
+            body=notif_body,
+            url="/support",
+            tag=f"support-closed-{ticket.id}",
+            data={"ticket_id": ticket.id, "ticket_number": ticket.ticket_number},
+        )
+        notif = Notification(
+            user_id=ticket.user_id,
+            title=notif_title,
+            message=notif_body,
+            category="support",
+            link="/support",
+        )
+        db.session.add(notif)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
     flash('Ticket fermé.', 'success')
     return redirect(url_for('admin.support'))
 

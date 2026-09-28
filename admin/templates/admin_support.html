@@ -51,9 +51,9 @@
                     <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>
                         <a href="/admin/support/{{ ticket.id }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i></a>
-                        {% if ticket.status == 'OPEN' %}
+                        {% if ticket.status not in ('CLOSED', 'RESOLVED') %}
                         <form method="POST" action="/admin/support/{{ ticket.id }}/close" style="display:inline">
-                            <button class="btn btn-warning btn-sm"><i class="fa-solid fa-check"></i></button>
+                            <button class="btn btn-warning btn-sm" title="Fermer le ticket"><i class="fa-solid fa-check"></i></button>
                         </form>
                         {% endif %}
                     </td>

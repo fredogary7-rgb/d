@@ -8,7 +8,7 @@
     </div>
     <div class="page-header-actions">
         <a href="/admin/support" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Retour</a>
-        {% if ticket.status == 'OPEN' %}
+        {% if ticket.status not in ('CLOSED', 'RESOLVED') %}
         <form method="POST" action="/admin/support/{{ ticket.id }}/close" style="display:inline">
             <button class="btn btn-warning btn-sm">Fermer le ticket</button>
         </form>
