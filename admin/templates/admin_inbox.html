@@ -1,0 +1,64 @@
+{% extends "admin_layout.html" %}
+{% block page_content %}
+
+<div class="page-header">
+    <div>
+        <h1>Notifications</h1>
+        <p>Activité récente du support et de la plateforme</p>
+    </div>
+    <div>
+        {% if notifications %}
+        <form method="POST" action="/admin/inbox/read-all">
+            <button class="btn btn-outline btn-sm">Tout marquer comme lu</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrap">
+        {% if notifications %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Notification</th>
+                    <th>Date</th>
+                    <th style="text-align:right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in notifications %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:12px">
+                            {% if not n.is_read %}
+                            <span style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0"></span>
+                            {% else %}
+                            <span style="width:8px;height:8px;flex-shrink:0"></span>
+                            {% endif %}
+                            <div>
+                                <strong>{{ n.title }}</strong>
+                                <div style="color:var(--text-3);font-size:12px">{{ n.message }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="white-space:nowrap">{{ n.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td style="text-align:right;white-space:nowrap">
+                        {% if n.link %}<a href="{{ n.link }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i></a>{% endif %}
+                        {% if not n.is_read %}
+                        <form method="POST" action="/admin/inbox/{{ n.id }}/read" style="display:inline">
+                            <button class="btn btn-outline btn-sm" title="Marquer comme lu"><i class="fa-solid fa-check"></i></button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-bell"></i>Aucune notification.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

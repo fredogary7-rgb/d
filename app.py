@@ -49,7 +49,7 @@ from services.withdraw_service import (
     process_withdrawal_webhook,
 )
 from admin import admin_bp
-from admin.models import AdminUser, AdminLog, SystemConfig
+from admin.models import AdminUser, AdminLog, SystemConfig, AdminNotification
 from services.seo_service import (
     get_seo_context, generate_sitemap_xml, ROBOTS_TXT,
     SITE_NAME, SITE_DOMAIN, SITE_LOGO, SITE_THEME_COLOR, SITE_BG_COLOR
@@ -3468,6 +3468,19 @@ def support_create_ticket():
 
     app.logger.info(f'[SUPPORT] Ticket créé: {ticket.ticket_number} par {current_user.email}')
 
+    # Notification aux administrateurs
+    try:
+        db.session.add(AdminNotification(
+            title="Nouveau ticket de support",
+            message=f"{current_user.fullname} a ouvert un ticket : « {subject} »",
+            kind="support_ticket",
+            link=f"/admin/support/{ticket.id}",
+            related_id=ticket.id,
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
     return jsonify({
         'success': True,
         'message': 'Ticket créé avec succès.',
@@ -3539,6 +3552,19 @@ def support_send_message():
     db.session.commit()
 
     app.logger.info(f'[SUPPORT] Message envoyé sur ticket {ticket.ticket_number}')
+
+    # Notification aux administrateurs
+    try:
+        db.session.add(AdminNotification(
+            title="Nouveau message de support",
+            message=f"{current_user.fullname} a envoyé un message sur le ticket #{ticket.ticket_number}",
+            kind="support_message",
+            link=f"/admin/support/{ticket.id}",
+            related_id=ticket.id,
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
     return jsonify({
         'success': True,

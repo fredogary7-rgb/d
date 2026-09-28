@@ -10,7 +10,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from admin import admin_bp
-from admin.models import AdminLog, AdminUser, PlatformNotification, SystemConfig, UserNotification
+from admin.models import AdminLog, AdminNotification, AdminUser, PlatformNotification, SystemConfig, UserNotification
 from models import (Beneficiary, KycRequest, Notification, PaymentRequest, Review, SupportMessage, SupportTicket,
                     Transaction, TransactionReceive, User, PushSubscription, db)
 from services.push_service import send_push_to_user
@@ -55,6 +55,16 @@ def log_action(admin, action, target_type=None, target_id=None, detail=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
+
+
+@admin_bp.app_context_processor
+def inject_admin_notifications():
+    """Injecte le nombre de notifications admin non lues dans tous les templates admin."""
+    try:
+        unread = AdminNotification.query.filter_by(is_read=False).count()
+    except Exception:
+        unread = 0
+    return {'admin_unread_notifications': unread}
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -825,6 +835,32 @@ def support_assign(ticket_id):
     db.session.commit()
     flash(f'Ticket assigné à {current_user.fullname}.', 'success')
     return redirect(url_for('admin.support'))
+
+
+@admin_bp.route('/inbox')
+@admin_required
+def inbox():
+    notifications = AdminNotification.query.order_by(
+        AdminNotification.created_at.desc()
+    ).limit(100).all()
+    return render_template('admin_inbox.html', page='inbox', notifications=notifications)
+
+
+@admin_bp.route('/inbox/<int:notif_id>/read', methods=['POST'])
+@admin_required
+def inbox_mark_read(notif_id):
+    notif = AdminNotification.query.get_or_404(notif_id)
+    notif.is_read = True
+    db.session.commit()
+    return redirect(url_for('admin.inbox'))
+
+
+@admin_bp.route('/inbox/read-all', methods=['POST'])
+@admin_required
+def inbox_mark_all_read():
+    AdminNotification.query.filter_by(is_read=False).update({'is_read': True})
+    db.session.commit()
+    return redirect(url_for('admin.inbox'))
 
 
 # ══════════════════════════════════════════════════════════════════════════

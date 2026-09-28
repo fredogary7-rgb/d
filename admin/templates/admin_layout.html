@@ -275,9 +275,10 @@
             <input type="text" id="globalSearchInput" placeholder="Rechercher un utilisateur, une transaction..." autocomplete="off">
             <div class="search-dropdown" id="searchDropdown"></div>
         </div>
-        <button class="topbar-icon-btn" title="Notifications">
+        <a href="/admin/inbox" class="topbar-icon-btn" title="Notifications">
             <i class="fa-solid fa-bell"></i>
-        </button>
+            {% if admin_unread_notifications %}<span class="badge">{{ admin_unread_notifications }}</span>{% endif %}
+        </a>
         <a href="/dashboard" class="topbar-icon-btn" title="Voir le site" target="_blank">
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
         </a>

@@ -188,3 +188,21 @@ class UserNotification(db.Model):
 
     def __repr__(self):
         return f'<UserNotification user={self.user_id} notif={self.notification_id}>'
+
+
+class AdminNotification(db.Model):
+    """Notification destinée aux administrateurs (ex: nouveau ticket support)."""
+
+    __tablename__ = 'admin_notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    kind = db.Column(db.String(30), nullable=False, default='support')
+    link = db.Column(db.String(500), nullable=True)
+    related_id = db.Column(db.Integer, nullable=True)   # ticket id
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    def __repr__(self):
+        return f'<AdminNotification {self.id} {self.kind} read={self.is_read}>'
