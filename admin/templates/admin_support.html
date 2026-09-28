@@ -15,9 +15,9 @@
 <!-- FILTERS -->
 <div class="card">
     <div class="filter-bar">
-        <a href="?status=open" class="btn {% if status_filter == 'open' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Ouverts</a>
-        <a href="?status=closed" class="btn {% if status_filter == 'closed' %}btn-outline{% endif %} btn-sm">Fermés</a>
-        <a href="?" class="btn {% if not status_filter %}btn-outline{% endif %} btn-sm">Tous</a>
+        <a href="?status=OPEN" class="btn {% if status_filter == 'OPEN' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Ouverts</a>
+        <a href="?status=CLOSED" class="btn {% if status_filter == 'CLOSED' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Fermés</a>
+        <a href="?" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %} btn-sm">Tous</a>
     </div>
 </div>
 
@@ -43,13 +43,15 @@
                     <td><a href="/admin/support/{{ ticket.id }}"><strong>{{ ticket.subject }}</strong></a></td>
                     <td>{{ ticket.user.fullname if ticket.user else 'N/A' }}</td>
                     <td>
-                        {% if ticket.status == 'open' %}<span class="badge-status bs-open">Ouvert</span>
-                        {% else %}<span class="badge-status bs-closed">Fermé</span>{% endif %}
+                        {% if ticket.status == 'OPEN' %}<span class="badge-status bs-open">Ouvert</span>
+                        {% elif ticket.status == 'CLOSED' %}<span class="badge-status bs-closed">Fermé</span>
+                        {% elif ticket.status == 'RESOLVED' %}<span class="badge-status bs-closed">Résolu</span>
+                        {% else %}<span class="badge-status bs-open">{{ ticket.status_label }}</span>{% endif %}
                     </td>
                     <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>
                         <a href="/admin/support/{{ ticket.id }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i></a>
-                        {% if ticket.status == 'open' %}
+                        {% if ticket.status == 'OPEN' %}
                         <form method="POST" action="/admin/support/{{ ticket.id }}/close" style="display:inline">
                             <button class="btn btn-warning btn-sm"><i class="fa-solid fa-check"></i></button>
                         </form>

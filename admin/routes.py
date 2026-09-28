@@ -107,7 +107,7 @@ def dashboard():
     qr_count = User.query.filter(User.qr_identifier.isnot(None), User.is_deleted == False).count()
 
     # Support tickets
-    open_tickets = SupportTicket.query.filter_by(status='open').count()
+    open_tickets = SupportTicket.query.filter_by(status='OPEN').count()
 
     # Today's deposits & withdrawals
     today_deposits = Transaction.query.filter(
@@ -734,8 +734,8 @@ def support():
     tickets = query.order_by(SupportTicket.created_at.desc()).paginate(
         page=page, per_page=per_page, error_out=False)
 
-    open_count = SupportTicket.query.filter_by(status='open').count()
-    closed_count = SupportTicket.query.filter_by(status='closed').count()
+    open_count = SupportTicket.query.filter_by(status='OPEN').count()
+    closed_count = SupportTicket.query.filter_by(status='CLOSED').count()
 
     return render_template('admin_support.html', page='support',
                            tickets=tickets, open_count=open_count,
@@ -766,13 +766,38 @@ def support_reply(ticket_id):
     message = SupportMessage(
         ticket_id=ticket.id,
         sender_type='admin',
-        sender_name=f"Admin: {current_user.fullname}",
-        content=content
+        sender_id=admin.id,
+        message=content
     )
     db.session.add(message)
     ticket.updated_at = datetime.utcnow()
     log_action(admin, 'support_reply', 'support_ticket', ticket.id)
     db.session.commit()
+
+    # Notification à l'utilisateur (push + in-app), même si le ticket est fermé
+    try:
+        notif_title = "Nouvelle réponse du support"
+        notif_body = f"Votre ticket #{ticket.ticket_number} a reçu une réponse : « {content[:120]} »"
+        send_push_to_user(
+            user_id=ticket.user_id,
+            title=notif_title,
+            body=notif_body,
+            url="/support",
+            tag=f"support-reply-{ticket.id}",
+            data={"ticket_id": ticket.id, "ticket_number": ticket.ticket_number},
+        )
+        notif = Notification(
+            user_id=ticket.user_id,
+            title=notif_title,
+            message=notif_body,
+            category="support",
+            link="/support",
+        )
+        db.session.add(notif)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
     flash('Réponse envoyée.', 'success')
     return redirect(url_for('admin.support_detail', ticket_id=ticket_id))
 
@@ -782,7 +807,7 @@ def support_reply(ticket_id):
 def support_close(ticket_id):
     admin = get_admin()
     ticket = SupportTicket.query.get_or_404(ticket_id)
-    ticket.status = 'closed'
+    ticket.status = 'CLOSED'
     ticket.updated_at = datetime.utcnow()
     log_action(admin, 'support_close', 'support_ticket', ticket.id)
     db.session.commit()
@@ -795,7 +820,7 @@ def support_close(ticket_id):
 def support_assign(ticket_id):
     admin = get_admin()
     ticket = SupportTicket.query.get_or_404(ticket_id)
-    ticket.assigned_admin_id = admin.id
+    ticket.assigned_to = admin.id
     ticket.updated_at = datetime.utcnow()
     db.session.commit()
     flash(f'Ticket assigné à {current_user.fullname}.', 'success')
