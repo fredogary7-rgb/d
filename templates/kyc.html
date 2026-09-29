@@ -69,8 +69,8 @@
         background: linear-gradient(135deg, var(--kyc-blue), var(--kyc-violet)); color: #fff;
         box-shadow: 0 8px 24px rgba(37,99,235,.25);
     }
-    .kyc-header-title { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
-    .kyc-header-sub { font-size: 13px; color: var(--kyc-text-3); margin-top: 2px; }
+    .kyc-header-title { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+    .kyc-header-sub { font-size: 15px; color: var(--kyc-text-3); margin-top: 3px; }
 
     /* ==================== TOP STATS ROW ==================== */
     .kyc-stats-row {
@@ -105,8 +105,8 @@
     /* ==================== PROGRESS BAR ==================== */
     .kyc-progress-wrap { margin-bottom: 28px; }
     .kyc-progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .kyc-progress-label { font-size: 12px; font-weight: 700; color: var(--kyc-text-3); text-transform: uppercase; letter-spacing: .06em; }
-    .kyc-progress-pct { font-size: 14px; font-weight: 800; color: var(--kyc-blue); }
+    .kyc-progress-label { font-size: 13px; font-weight: 700; color: var(--kyc-text-3); text-transform: uppercase; letter-spacing: .06em; }
+    .kyc-progress-pct { font-size: 16px; font-weight: 800; color: var(--kyc-blue); }
     .kyc-progress-bar-outer { height: 8px; background: var(--kyc-border); border-radius: 100px; overflow: hidden; }
     .kyc-progress-bar-inner { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--kyc-blue), var(--kyc-violet), var(--kyc-green)); background-size: 200% 100%; transition: width .5s ease; animation: kycShimmer 3s linear infinite; }
     @keyframes kycShimmer { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
@@ -132,7 +132,7 @@
     .kyc-step.active .kyc-step-circle { background: var(--kyc-blue); border-color: var(--kyc-blue); color: #fff; box-shadow: 0 0 0 6px var(--kyc-blue-light); animation: kycPulse 2s ease-in-out infinite; }
     @keyframes kycPulse { 0%,100% { box-shadow: 0 0 0 6px var(--kyc-blue-light); } 50% { box-shadow: 0 0 0 12px rgba(37,99,235,.06); } }
     .kyc-step.done .kyc-step-circle { background: var(--kyc-green); border-color: var(--kyc-green); color: #fff; }
-    .kyc-step-label { font-size: 11px; font-weight: 600; color: var(--kyc-text-4); text-align: center; max-width: 80px; line-height: 1.3; }
+    .kyc-step-label { font-size: 12.5px; font-weight: 600; color: var(--kyc-text-3); text-align: center; max-width: 110px; line-height: 1.3; }
     .kyc-step.active .kyc-step-label { color: var(--kyc-blue); }
     .kyc-step.done .kyc-step-label { color: var(--kyc-green); }
 
@@ -146,18 +146,18 @@
         border-radius: var(--kyc-radius); padding: 32px; max-width: 760px; margin: 0 auto;
         box-shadow: var(--kyc-shadow-sm);
     }
-    .kyc-card-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
-    .kyc-card-sub { font-size: 13px; color: var(--kyc-text-3); margin-bottom: 24px; }
+    .kyc-card-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+    .kyc-card-sub { font-size: 14px; color: var(--kyc-text-3); margin-bottom: 24px; }
 
     /* ==================== FORM ==================== */
     .kyc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .kyc-form-grid.col-1 { grid-template-columns: 1fr; }
     .kyc-form-group { display: flex; flex-direction: column; gap: 6px; }
     .kyc-form-group.full { grid-column: 1 / -1; }
-    .kyc-form-label { font-size: 12px; font-weight: 700; color: var(--kyc-text-2); text-transform: uppercase; letter-spacing: .04em; }
+    .kyc-form-label { font-size: 13px; font-weight: 700; color: var(--kyc-text-2); text-transform: uppercase; letter-spacing: .03em; }
     .kyc-form-input, .kyc-form-select {
-        padding: 12px 16px; border: 1.5px solid var(--kyc-border); border-radius: var(--kyc-radius-xs);
-        font-size: 14px; font-family: 'Inter', sans-serif; color: var(--kyc-text); background: var(--kyc-surface);
+        padding: 13px 16px; border: 1.5px solid var(--kyc-border); border-radius: var(--kyc-radius-xs);
+        font-size: 15px; font-family: 'Inter', sans-serif; color: var(--kyc-text); background: var(--kyc-surface);
         transition: all var(--kyc-transition); outline: none;
     }
     .kyc-form-input:focus, .kyc-form-select:focus { border-color: var(--kyc-blue); box-shadow: 0 0 0 3px var(--kyc-blue-light); }
@@ -184,8 +184,8 @@
         background: var(--kyc-surface); color: var(--kyc-text-4); transition: all .2s; border: 1px solid var(--kyc-border);
     }
     .kyc-doc-option.selected i { background: var(--kyc-blue); color: #fff; border-color: var(--kyc-blue); }
-    .kyc-doc-option .kyc-doc-name { font-size: 13px; font-weight: 700; color: var(--kyc-text); margin-bottom: 4px; }
-    .kyc-doc-option .kyc-doc-hint { font-size: 11px; color: var(--kyc-text-4); }
+    .kyc-doc-option .kyc-doc-name { font-size: 14px; font-weight: 700; color: var(--kyc-text); margin-bottom: 4px; }
+    .kyc-doc-option .kyc-doc-hint { font-size: 12px; color: var(--kyc-text-4); }
 
     /* ==================== UPLOAD ZONE ==================== */
     .kyc-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -210,8 +210,8 @@
     }
     .kyc-upload-zone:hover i { background: var(--kyc-blue); color: #fff; border-color: var(--kyc-blue); }
     .kyc-upload-zone.has-file i { background: var(--kyc-green); color: #fff; border-color: var(--kyc-green); }
-    .kyc-upload-zone .kyc-upload-title { font-size: 13px; font-weight: 700; color: var(--kyc-text-2); }
-    .kyc-upload-zone .kyc-upload-hint { font-size: 11px; color: var(--kyc-text-4); }
+    .kyc-upload-zone .kyc-upload-title { font-size: 14px; font-weight: 700; color: var(--kyc-text-2); }
+    .kyc-upload-zone .kyc-upload-hint { font-size: 12px; color: var(--kyc-text-4); }
     .kyc-upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     .kyc-img-thumb { max-width: 100%; max-height: 120px; border-radius: var(--kyc-radius-xs); object-fit: cover; box-shadow: var(--kyc-shadow-sm); }
     .kyc-upload-remove {
@@ -273,10 +273,10 @@
         background: var(--kyc-surface); border: 1px solid var(--kyc-border);
         border-radius: var(--kyc-radius); padding: 22px 24px;
     }
-    .kyc-info-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .kyc-info-card p { font-size: 12px; color: var(--kyc-text-3); line-height: 1.7; }
+    .kyc-info-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .kyc-info-card p { font-size: 13px; color: var(--kyc-text-3); line-height: 1.7; }
     .kyc-why-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .kyc-why-list li { font-size: 12px; color: var(--kyc-text-2); display: flex; align-items: center; gap: 8px; }
+    .kyc-why-list li { font-size: 13px; color: var(--kyc-text-2); display: flex; align-items: center; gap: 8px; }
     .kyc-why-list li i { color: var(--kyc-green); font-size: 14px; }
 
     /* ==================== SUBMITTED / APPROVED STATE ==================== */
@@ -307,7 +307,7 @@
     .kyc-checklist-title { font-size: 12px; font-weight: 700; color: var(--kyc-text-2); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .04em; }
     .kyc-checklist-item {
         display: flex; align-items: center; justify-content: space-between; gap: 12px;
-        padding: 9px 0; border-bottom: 1px solid var(--kyc-border); font-size: 13px; color: var(--kyc-text-2);
+        padding: 10px 0; border-bottom: 1px solid var(--kyc-border); font-size: 14px; color: var(--kyc-text-2);
     }
     .kyc-checklist-item:last-child { border-bottom: none; }
     .kyc-checklist-state { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; }
