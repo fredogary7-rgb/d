@@ -67,8 +67,9 @@
         width: 52px; height: 52px; border-radius: var(--kyc-radius-sm); display: flex;
         align-items: center; justify-content: center; font-size: 24px;
         background: linear-gradient(135deg, var(--kyc-blue), var(--kyc-violet)); color: #fff;
-        box-shadow: 0 8px 24px rgba(37,99,235,.25);
+        box-shadow: 0 8px 24px rgba(37,99,235,.25); animation: kycIconGlow 3s ease-in-out infinite;
     }
+    @keyframes kycIconGlow { 0%,100% { box-shadow: 0 8px 24px rgba(37,99,235,.25); } 50% { box-shadow: 0 8px 32px rgba(37,99,235,.45); } }
     .kyc-header-title { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
     .kyc-header-sub { font-size: 15px; color: var(--kyc-text-3); margin-top: 3px; }
 
@@ -131,7 +132,8 @@
     }
     .kyc-step.active .kyc-step-circle { background: var(--kyc-blue); border-color: var(--kyc-blue); color: #fff; box-shadow: 0 0 0 6px var(--kyc-blue-light); animation: kycPulse 2s ease-in-out infinite; }
     @keyframes kycPulse { 0%,100% { box-shadow: 0 0 0 6px var(--kyc-blue-light); } 50% { box-shadow: 0 0 0 12px rgba(37,99,235,.06); } }
-    .kyc-step.done .kyc-step-circle { background: var(--kyc-green); border-color: var(--kyc-green); color: #fff; }
+    .kyc-step.done .kyc-step-circle { background: var(--kyc-green); border-color: var(--kyc-green); color: transparent; }
+    .kyc-step.done .kyc-step-circle::before { content: '\2713'; font-size: 16px; font-weight: 700; color: #fff; }
     .kyc-step-label { font-size: 12.5px; font-weight: 600; color: var(--kyc-text-3); text-align: center; max-width: 110px; line-height: 1.3; }
     .kyc-step.active .kyc-step-label { color: var(--kyc-blue); }
     .kyc-step.done .kyc-step-label { color: var(--kyc-green); }
@@ -395,11 +397,11 @@
     <div class="kyc-stepper" id="kycStepper">
         <div class="kyc-step active" data-step="1" onclick="kycGoToStep(1)">
             <div class="kyc-step-circle">1</div>
-            <div class="kyc-step-label">Informations personnelles</div>
+            <div class="kyc-step-label">Informations</div>
         </div>
         <div class="kyc-step" data-step="2" onclick="kycGoToStep(2)">
             <div class="kyc-step-circle">2</div>
-            <div class="kyc-step-label">Type de document</div>
+            <div class="kyc-step-label">Document</div>
         </div>
         <div class="kyc-step" data-step="3" onclick="kycGoToStep(3)">
             <div class="kyc-step-circle">3</div>
@@ -478,15 +480,15 @@
                 <div class="kyc-form-grid">
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Prénom *</label>
-                        <input type="text" class="kyc-form-input" id="kycFirstName" placeholder="Votre prénom" value="{{ kyc.first_name if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="text" class="kyc-form-input" id="kycFirstName" placeholder="Votre prénom" value="{{ (kyc and kyc.first_name) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Nom *</label>
-                        <input type="text" class="kyc-form-input" id="kycLastName" placeholder="Votre nom de famille" value="{{ kyc.last_name if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="text" class="kyc-form-input" id="kycLastName" placeholder="Votre nom de famille" value="{{ (kyc and kyc.last_name) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Date de naissance *</label>
-                        <input type="date" class="kyc-form-input" id="kycBirthDate" value="{{ kyc.birth_date if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="date" class="kyc-form-input" id="kycBirthDate" value="{{ kyc.birth_date.strftime('%Y-%m-%d') if kyc and kyc.birth_date else '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Genre</label>
@@ -499,23 +501,23 @@
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Nationalité</label>
-                        <input type="text" class="kyc-form-input" id="kycNationality" placeholder="Ex: Togolaise" value="{{ kyc.nationality if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="text" class="kyc-form-input" id="kycNationality" placeholder="Ex: Togolaise" value="{{ (kyc and kyc.nationality) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Profession</label>
-                        <input type="text" class="kyc-form-input" id="kycProfession" placeholder="Votre profession" value="{{ kyc.profession if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="text" class="kyc-form-input" id="kycProfession" placeholder="Votre profession" value="{{ (kyc and kyc.profession) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group full">
                         <label class="kyc-form-label">Adresse</label>
-                        <input type="text" class="kyc-form-input" id="kycAddress" placeholder="Rue, quartier" value="{{ kyc.address if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="text" class="kyc-form-input" id="kycAddress" placeholder="Rue, quartier" value="{{ (kyc and kyc.address) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Ville</label>
-                        <input type="text" class="kyc-form-input" id="kycCity" placeholder="Votre ville" value="{{ kyc.city if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="text" class="kyc-form-input" id="kycCity" placeholder="Votre ville" value="{{ (kyc and kyc.city) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Code postal</label>
-                        <input type="text" class="kyc-form-input" id="kycPostalCode" placeholder="Code postal" value="{{ kyc.postal_code if kyc else '' }}" onchange="kycSaveStep1()">
+                        <input type="text" class="kyc-form-input" id="kycPostalCode" placeholder="Code postal" value="{{ (kyc and kyc.postal_code) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Pays de résidence</label>
@@ -536,11 +538,11 @@
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Téléphone</label>
-                        <input type="tel" class="kyc-form-input" id="kycPhone" placeholder="+228 90 00 00 00" value="{{ kyc.phone if kyc else user.phone }}" onchange="kycSaveStep1()">
+                        <input type="tel" class="kyc-form-input" id="kycPhone" placeholder="+228 90 00 00 00" value="{{ (kyc and kyc.phone) or user.phone }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
                         <label class="kyc-form-label">Email</label>
-                        <input type="email" class="kyc-form-input" id="kycEmailInput" placeholder="votre@email.com" value="{{ kyc.email if kyc else user.email }}" onchange="kycSaveStep1()">
+                        <input type="email" class="kyc-form-input" id="kycEmailInput" placeholder="votre@email.com" value="{{ (kyc and kyc.email) or user.email }}" onchange="kycSaveStep1()">
                     </div>
                 </div>
                 <div class="kyc-btn-row">

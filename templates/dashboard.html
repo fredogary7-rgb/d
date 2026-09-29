@@ -233,7 +233,7 @@
         .dashboard-footer a:hover{color:var(--blue)}
 
         /* ===== MOBILE BOTTOM NAV ===== */
-        .mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:0 12px;justify-content:space-around;align-items:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+        .mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(64px + env(safe-area-inset-bottom, 0px));background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:0 12px env(safe-area-inset-bottom, 0px);justify-content:space-around;align-items:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
         .mb-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-4);cursor:pointer;transition:all .2s;padding:6px 10px;border-radius:10px}
         .mb-nav-item.active{color:var(--blue)}
         .mb-nav-item i{font-size:20px}
@@ -246,7 +246,7 @@
         }
         @media(max-width:768px){
             .sidebar{display:none}
-            .main-content{margin-left:0;padding:20px 16px 80px}
+            .main-content{margin-left:0;padding:20px 16px calc(92px + env(safe-area-inset-bottom, 0px))}
             .dashboard-grid{grid-template-columns:1fr}
             .quick-actions-grid{grid-template-columns:repeat(3,1fr)}
             .stats-grid{grid-template-columns:repeat(2,1fr)}
