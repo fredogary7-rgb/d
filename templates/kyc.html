@@ -52,10 +52,11 @@
     /* ==================== PAGE CONTAINER ==================== */
     .kyc-page { padding: 8px 0 40px; }
 
-    /* ==================== 2-COLUMN LAYOUT ==================== */
-    .kyc-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+    /* ==================== LAYOUT (1 colonne) ==================== */
+    .kyc-layout { display: block; }
     .kyc-main { min-width: 0; }
-    .kyc-sidebar { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .kyc-trust { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; padding: 10px 16px; font-size: 12px; color: var(--kyc-text-3); }
+    .kyc-trust i { color: var(--kyc-green); }
 
     /* ==================== PAGE HEADER ==================== */
     .kyc-header {
@@ -671,35 +672,9 @@
     </div>
 
         </div><!-- /kyc-main -->
-
-        <div class="kyc-sidebar">
-
-    <!-- ========== INFO + SÉCURITÉ ========== -->
-    <div class="kyc-info-grid">
-        <div class="kyc-info-card">
-            <h4><i class="fa-solid fa-circle-info" style="color:var(--kyc-blue);"></i> Pourquoi vérifier mon identité ?</h4>
-            <ul class="kyc-why-list">
-                <li><i class="fa-solid fa-check-circle"></i> Augmentez vos limites de transfert</li>
-                <li><i class="fa-solid fa-check-circle"></i> Accédez à toutes les fonctionnalités</li>
-                <li><i class="fa-solid fa-check-circle"></i> Protégez votre compte contre la fraude</li>
-                <li><i class="fa-solid fa-check-circle"></i> Conformité réglementaire</li>
-                <li><i class="fa-solid fa-check-circle"></i> Transactions plus rapides</li>
-            </ul>
-        </div>
-        <div class="kyc-info-card">
-            <h4><i class="fa-solid fa-shield-halved" style="color:var(--kyc-green);"></i> Sécurité</h4>
-            <div class="kyc-security-grid">
-                <div class="kyc-security-item"><i class="fa-solid fa-lock"></i> AES-256</div>
-                <div class="kyc-security-item"><i class="fa-solid fa-shield-halved"></i> SSL</div>
-                <div class="kyc-security-item"><i class="fa-solid fa-key"></i> Données chiffrées</div>
-                <div class="kyc-security-item"><i class="fa-solid fa-globe"></i> Conforme RGPD</div>
-            </div>
-            <p class="kyc-security-note">Vos documents sont entièrement chiffrés et protégés. Ils ne sont jamais partagés avec des tiers.</p>
-        </div>
-    </div>
-
-        </div><!-- /kyc-sidebar -->
     </div><!-- /kyc-layout -->
+
+    <div class="kyc-trust"><i class="fa-solid fa-lock"></i> Vos documents sont chiffrés et protégés (AES-256 · SSL · RGPD).</div>
 
 </div>
 </main>
