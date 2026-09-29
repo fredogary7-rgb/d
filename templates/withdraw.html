@@ -368,16 +368,10 @@
 
         <!-- Étape 2 -->
         <div class="form-section" id="section-amount">
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="fg-label"><i class="fas fa-phone"></i> Numéro de téléphone</label>
-                    <input type="tel" class="fg-input" id="phoneInput" placeholder="Ex: 90123456" />
-                    <div class="fg-error" id="phoneError">Numéro invalide (6 à 15 chiffres).</div>
-                </div>
-                <div class="form-group">
-                    <label class="fg-label"><i class="fas fa-user"></i> Nom du destinataire</label>
-                    <input type="text" class="fg-input" id="recipientName" placeholder="Ex: Jean Dupont" />
-                </div>
+            <div class="form-group" style="margin-bottom:16px">
+                <label class="fg-label"><i class="fas fa-phone"></i> Numéro de téléphone</label>
+                <input type="tel" class="fg-input" id="phoneInput" placeholder="Ex: 90123456" />
+                <div class="fg-error" id="phoneError">Numéro invalide (6 à 15 chiffres).</div>
             </div>
             <div class="form-group" style="margin-bottom:16px">
                 <label class="fg-label"><i class="fas fa-coins"></i> Montant à retirer</label>
@@ -494,7 +488,6 @@ const $countrySelect = document.getElementById('countrySelect');
 const $operatorGrid  = document.getElementById('operatorGrid');
 const $operatorError = document.getElementById('operatorError');
 const $phoneInput    = document.getElementById('phoneInput');
-const $recipientName = document.getElementById('recipientName');
 const $amountInput   = document.getElementById('amountInput');
 const $feeSummary    = document.getElementById('feeSummary');
 const $btnReview     = document.getElementById('btnReview');
@@ -705,10 +698,9 @@ function validateForm() {
 $btnReview.addEventListener('click', function() {
     const amount = parseFloat($amountInput.value);
     const phone = cleanPhone($phoneInput.value);
-    const name = $recipientName.value.trim() || 'N/A';
     if (!selectedOperator || !currentFees) { showToast('Veuillez remplir tous les champs.'); return; }
     const opCur = currentFees.op_currency || selectedOperator.currency || USER_CURRENCY;
-    document.getElementById('sumRecipient').textContent = name + ' (' + phone + ')';
+    document.getElementById('sumRecipient').textContent = phone;
     document.getElementById('sumOperator').textContent = selectedOperator.name;
     document.getElementById('sumAmount').textContent = fmt(amount) + ' ' + USER_CURRENCY;
     document.getElementById('sumFees').textContent = fmt(currentFees.fees) + ' ' + opCur;
@@ -734,12 +726,11 @@ document.getElementById('btnConfirmWithdraw').addEventListener('click', async fu
     btn.disabled = true;
     const amount = parseFloat($amountInput.value);
     const phone = cleanPhone($phoneInput.value);
-    const name = $recipientName.value.trim();
     try {
         const resp = await fetch('/withdraw/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ operator_id: selectedOperator.id, phone: phone, amount: amount, currency: USER_CURRENCY, recipient_name: name }),
+            body: JSON.stringify({ operator_id: selectedOperator.id, phone: phone, amount: amount, currency: USER_CURRENCY }),
         });
         const data = await resp.json();
         if (!resp.ok || !data.success) {
@@ -773,7 +764,6 @@ function resetForm() {
     $operatorGrid.innerHTML = '<div class="operator-empty">Sélectionnez d\'abord un pays.</div>';
     $amountInput.value = '';
     $phoneInput.value = '';
-    $recipientName.value = '';
     $feeSummary.classList.remove('visible');
     $btnReview.disabled = true;
     selectedCountry = null;
@@ -812,7 +802,7 @@ async function loadHistory(page) {
                 '</div>' +
                 '<div class="history-grid">' +
                     '<div class="history-cell"><div class="history-cell-label">Date</div><div class="history-cell-value">' + date + '</div></div>' +
-                    '<div class="history-cell"><div class="history-cell-label">Destinataire</div><div class="history-cell-value">' + (w.recipient_name ? w.recipient_name + ' · ' : '') + (w.recipient_phone || '') + '</div></div>' +
+                    '<div class="history-cell"><div class="history-cell-label">Destinataire</div><div class="history-cell-value">' + (w.recipient_phone || '—') + '</div></div>' +
                     '<div class="history-cell"><div class="history-cell-label">Opérateur</div><div class="history-cell-value">' + (w.recipient_operator || '—') + '</div></div>' +
                     '<div class="history-cell"><div class="history-cell-label">Montant</div><div class="history-cell-value">' + fmt(w.amount) + ' ' + currency + '</div></div>' +
                 '</div>' +
