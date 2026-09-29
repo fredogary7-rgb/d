@@ -52,6 +52,11 @@
     /* ==================== PAGE CONTAINER ==================== */
     .kyc-page { padding: 8px 0 40px; }
 
+    /* ==================== 2-COLUMN LAYOUT ==================== */
+    .kyc-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+    .kyc-main { min-width: 0; }
+    .kyc-sidebar { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
     /* ==================== PAGE HEADER ==================== */
     .kyc-header {
         display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
@@ -240,7 +245,7 @@
     .kyc-toast.info { background: var(--kyc-blue); }
 
     /* ==================== INFO CARDS ==================== */
-    .kyc-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+    .kyc-info-grid { display: flex; flex-direction: column; gap: 16px; }
     .kyc-info-card {
         background: var(--kyc-surface); border: 1px solid var(--kyc-border);
         border-radius: var(--kyc-radius); padding: 22px 24px;
@@ -311,13 +316,14 @@
     .kyc-timeline-sub { font-size: 12px; color: var(--kyc-text-4); margin-top: 1px; }
 
     /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 960px) {
+        .kyc-layout { grid-template-columns: 1fr; }
+    }
     @media (max-width: 768px) {
-        .kyc-stats-row { grid-template-columns: repeat(2,1fr); }
         .kyc-form-grid { grid-template-columns: 1fr; }
         .kyc-doc-grid { grid-template-columns: 1fr; }
         .kyc-upload-grid { grid-template-columns: 1fr; }
         .kyc-upload-grid.col-3 { grid-template-columns: 1fr; }
-        .kyc-info-grid { grid-template-columns: 1fr; }
         .kyc-stepper::before { left: calc(50% - 120px); width: 240px; }
         .kyc-step { padding: 0 14px; }
         .kyc-card { padding: 20px 16px; }
@@ -348,29 +354,8 @@
         {% endif %}
     </div>
 
-    <!-- ========== STATS ROW ========== -->
-    <div class="kyc-stats-row">
-        <div class="kyc-stat-card">
-            <div class="kyc-stat-icon">📄</div>
-            <div class="kyc-stat-value" id="kycMetaDocs">{% if kyc %}{{ [16 - ((kyc.progress_percent or 0) * 16 // 100), 0]|max }}{% else %}16{% endif %}</div>
-            <div class="kyc-stat-label">Champs restants</div>
-        </div>
-        <div class="kyc-stat-card">
-            <div class="kyc-stat-icon">📊</div>
-            <div class="kyc-stat-value" id="kycMetaState">{% if kyc %}{{ kyc.status_label|default('—') }}{% else %}—{% endif %}</div>
-            <div class="kyc-stat-label">Statut</div>
-        </div>
-        <div class="kyc-stat-card">
-            <div class="kyc-stat-icon">⭐</div>
-            <div class="kyc-stat-value" id="kycMetaLevel">Non commencé</div>
-            <div class="kyc-stat-label">Niveau</div>
-        </div>
-        <div class="kyc-stat-card">
-            <div class="kyc-stat-icon">⏱️</div>
-            <div class="kyc-stat-value" id="kycMetaTime">≈ 5 min</div>
-            <div class="kyc-stat-label">Temps estimé</div>
-        </div>
-    </div>
+    <div class="kyc-layout">
+        <div class="kyc-main">
 
     <!-- ========== PROGRESS BAR ========== -->
     <div class="kyc-progress-wrap">
@@ -660,6 +645,10 @@
 
     </div>
 
+        </div><!-- /kyc-main -->
+
+        <div class="kyc-sidebar">
+
     <!-- ========== INFO + SÉCURITÉ ========== -->
     <div class="kyc-info-grid">
         <div class="kyc-info-card">
@@ -683,6 +672,9 @@
             <p class="kyc-security-note">Vos documents sont entièrement chiffrés et protégés. Ils ne sont jamais partagés avec des tiers.</p>
         </div>
     </div>
+
+        </div><!-- /kyc-sidebar -->
+    </div><!-- /kyc-layout -->
 
 </div>
 </main>
@@ -938,20 +930,10 @@ function kycUpdateUI() {
     if (!kycData) return;
 
     const pct = kycData.progress_percent || 0;
-    document.getElementById('kycProgressPercent').textContent = pct + '%';
-    document.getElementById('kycProgressBar').style.width = pct + '%';
-
-    const remaining = Math.max(0, 16 - Math.round((pct / 100) * 16));
-    document.getElementById('kycMetaDocs').textContent = remaining;
-    document.getElementById('kycMetaState').textContent = kycData.status_label || '—';
-    if (pct === 0) document.getElementById('kycMetaLevel').textContent = 'Non commencé';
-    else if (pct < 50) document.getElementById('kycMetaLevel').textContent = 'Brouillon';
-    else if (pct < 100) document.getElementById('kycMetaLevel').textContent = 'En cours';
-    else document.getElementById('kycMetaLevel').textContent = 'Complété';
-
-    if (pct > 0 && pct < 50) document.getElementById('kycMetaTime').textContent = '≈ 5 min';
-    else if (pct < 100) document.getElementById('kycMetaTime').textContent = '≈ 2 min';
-    else document.getElementById('kycMetaTime').textContent = '—';
+    const pctEl = document.getElementById('kycProgressPercent');
+    const barEl = document.getElementById('kycProgressBar');
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (barEl) barEl.style.width = pct + '%';
 
     const dot = document.getElementById('kycStatusDot');
     const label = document.getElementById('kycStatusLabel');
