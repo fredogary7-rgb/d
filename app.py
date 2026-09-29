@@ -80,6 +80,42 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,
 }
 
+
+def _compute_app_version():
+    """Détermine la version de l'application (pour la notification de mise à jour)."""
+    # 1. Variable d'environnement explicite
+    v = os.getenv('APP_VERSION')
+    if v:
+        return v.strip()
+    # 2. SHA du commit fourni par la plateforme d'hébergement
+    for key in ('RAILWAY_GIT_COMMIT_SHA', 'GIT_COMMIT_SHA', 'HEROKU_SLUG_COMMIT',
+                'RENDER_GIT_COMMIT', 'VERCEL_GIT_COMMIT_SHA', 'COMMIT_SHA'):
+        v = os.getenv(key)
+        if v:
+            return v.strip()[:8]
+    # 3. Hash du commit git local
+    try:
+        import subprocess
+        v = subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL,
+        ).decode().strip()
+        if v:
+            return v
+    except Exception:
+        pass
+    # 4. Horodatage du fichier app.py (fallback)
+    try:
+        mtime = os.path.getmtime(os.path.abspath(__file__))
+        return datetime.utcfromtimestamp(mtime).strftime('%Y%m%d%H%M%S')
+    except Exception:
+        pass
+    return '1.0.0'
+
+
+app.config['APP_VERSION'] = _compute_app_version()
+
 db.init_app(app)
 
 @app.teardown_appcontext
@@ -107,6 +143,18 @@ def inject_seo():
     seo["site_domain"] = SITE_DOMAIN
     seo["site_logo"] = SITE_LOGO
     return seo
+
+
+@app.context_processor
+def inject_app_version():
+    """Injecte la version de l'application dans tous les templates."""
+    return {"APP_VERSION": app.config.get("APP_VERSION", "1.0.0")}
+
+
+@app.route('/api/version')
+def api_version():
+    """Retourne la version actuelle de l'application (détection de mise à jour)."""
+    return jsonify({'version': app.config.get('APP_VERSION', '1.0.0')})
 
 # Flask-Login
 login_manager = LoginManager()

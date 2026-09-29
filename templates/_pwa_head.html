@@ -66,5 +66,9 @@
 {# --- Script PWA principal (installation, iOS, updates, push) --- #}
 <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 
+{# --- Version de l'application (détection de mise à jour) --- #}
+<script>window.__APP_VERSION__ = {{ APP_VERSION|default('1.0.0')|tojson }};</script>
+<script src="{{ url_for('static', filename='js/update_check.js') }}" defer></script>
+
 {# --- Browserconfig pour Windows / Edge --- #}
 {# browserconfig.xml généré séparément #}
