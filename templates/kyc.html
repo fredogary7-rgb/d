@@ -271,6 +271,45 @@
     }
     .kyc-security-note { font-size: 11px; color: var(--kyc-text-4); margin-top: 14px; line-height: 1.6; }
 
+    /* ==================== CHECKLIST ==================== */
+    .kyc-checklist {
+        background: var(--kyc-gray); border: 1px solid var(--kyc-border);
+        border-radius: var(--kyc-radius-sm); padding: 18px 20px; margin-bottom: 20px;
+    }
+    .kyc-checklist-title { font-size: 12px; font-weight: 700; color: var(--kyc-text-2); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .04em; }
+    .kyc-checklist-item {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 9px 0; border-bottom: 1px solid var(--kyc-border); font-size: 13px; color: var(--kyc-text-2);
+    }
+    .kyc-checklist-item:last-child { border-bottom: none; }
+    .kyc-checklist-state { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; }
+    .kyc-checklist-state.ok { color: var(--kyc-green); }
+    .kyc-checklist-state.pending { color: var(--kyc-orange); }
+    .kyc-checklist-state i { font-size: 13px; }
+
+    /* ==================== DRAG & DROP ==================== */
+    .kyc-upload-zone.dragover { border-color: var(--kyc-blue); background: var(--kyc-blue-light); transform: scale(1.02); }
+    .kyc-upload-error { font-size: 11px; color: var(--kyc-red); font-weight: 600; margin-top: 4px; }
+
+    /* ==================== TIMELINE ==================== */
+    .kyc-timeline { display: flex; flex-direction: column; gap: 0; margin: 20px 0 4px; text-align: left; }
+    .kyc-timeline-item { display: flex; gap: 14px; position: relative; padding-bottom: 20px; }
+    .kyc-timeline-item:last-child { padding-bottom: 0; }
+    .kyc-timeline-item::before {
+        content: ''; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--kyc-border);
+    }
+    .kyc-timeline-item:last-child::before { display: none; }
+    .kyc-timeline-dot {
+        width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+        font-size: 12px; background: var(--kyc-gray); border: 2px solid var(--kyc-border); color: var(--kyc-text-4); z-index: 1;
+    }
+    .kyc-timeline-item.done .kyc-timeline-dot { background: var(--kyc-green); border-color: var(--kyc-green); color: #fff; }
+    .kyc-timeline-item.active .kyc-timeline-dot { background: var(--kyc-blue); border-color: var(--kyc-blue); color: #fff; box-shadow: 0 0 0 5px var(--kyc-blue-light); }
+    .kyc-timeline-item.rejected .kyc-timeline-dot { background: var(--kyc-red); border-color: var(--kyc-red); color: #fff; }
+    .kyc-timeline-body { flex: 1; padding-top: 3px; }
+    .kyc-timeline-title { font-size: 13px; font-weight: 700; color: var(--kyc-text); }
+    .kyc-timeline-sub { font-size: 12px; color: var(--kyc-text-4); margin-top: 1px; }
+
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 768px) {
         .kyc-stats-row { grid-template-columns: repeat(2,1fr); }
@@ -387,6 +426,30 @@
             <span id="kycStatusDate">
                 {% if kyc.submitted_at %}Soumis le {{ kyc.submitted_at.strftime('%d/%m/%Y') }}{% elif kyc.updated_at %}Modifié le {{ kyc.updated_at.strftime('%d/%m/%Y') }}{% endif %}
             </span>
+        </div>
+
+        <div class="kyc-timeline">
+            <div class="kyc-timeline-item done">
+                <div class="kyc-timeline-dot"><i class="fa-solid fa-check"></i></div>
+                <div class="kyc-timeline-body">
+                    <div class="kyc-timeline-title">Dossier soumis</div>
+                    <div class="kyc-timeline-sub">Vos informations et documents ont été reçus</div>
+                </div>
+            </div>
+            <div class="kyc-timeline-item {% if kyc.status in ('APPROVED','REJECTED') %}done{% else %}active{% endif %}">
+                <div class="kyc-timeline-dot">{% if kyc.status in ('APPROVED','REJECTED') %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-magnifying-glass"></i>{% endif %}</div>
+                <div class="kyc-timeline-body">
+                    <div class="kyc-timeline-title">Examen par notre équipe</div>
+                    <div class="kyc-timeline-sub">Vérification des documents et des informations</div>
+                </div>
+            </div>
+            <div class="kyc-timeline-item {% if kyc.status == 'APPROVED' %}done{% elif kyc.status == 'REJECTED' %}rejected{% endif %}">
+                <div class="kyc-timeline-dot">{% if kyc.status == 'APPROVED' %}<i class="fa-solid fa-check"></i>{% elif kyc.status == 'REJECTED' %}<i class="fa-solid fa-xmark"></i>{% else %}<i class="fa-solid fa-flag-checkered"></i>{% endif %}</div>
+                <div class="kyc-timeline-body">
+                    <div class="kyc-timeline-title">{% if kyc.status == 'APPROVED' %}Vérification réussie{% elif kyc.status == 'REJECTED' %}Vérification refusée{% else %}Résultat{% endif %}</div>
+                    <div class="kyc-timeline-sub">{% if kyc.status == 'APPROVED' %}Compte entièrement vérifié{% elif kyc.status == 'REJECTED' %}{{ kyc.review_note or 'Documents non conformes' }}{% else %}En attente du résultat{% endif %}</div>
+                </div>
+            </div>
         </div>
         {% if kyc.status == 'REJECTED' %}
         <div style="margin-top:20px">
@@ -561,6 +624,29 @@
                     <tr><td>Type de document</td><td id="cfDoc">—</td></tr>
                     <tr><td>Selfie</td><td id="cfSelfie">—</td></tr>
                 </table>
+                <div class="kyc-checklist" id="kycChecklist">
+                    <div class="kyc-checklist-title"><i class="fa-solid fa-list-check"></i> Éléments requis</div>
+                    <div class="kyc-checklist-item">
+                        <span>Informations personnelles</span>
+                        <span class="kyc-checklist-state pending" id="checkInfo"><i class="fa-solid fa-clock"></i> À compléter</span>
+                    </div>
+                    <div class="kyc-checklist-item">
+                        <span>Type de document</span>
+                        <span class="kyc-checklist-state pending" id="checkDocType"><i class="fa-solid fa-clock"></i> À compléter</span>
+                    </div>
+                    <div class="kyc-checklist-item">
+                        <span>Recto du document</span>
+                        <span class="kyc-checklist-state pending" id="checkFront"><i class="fa-solid fa-clock"></i> À compléter</span>
+                    </div>
+                    <div class="kyc-checklist-item">
+                        <span>Verso du document</span>
+                        <span class="kyc-checklist-state pending" id="checkBack"><i class="fa-solid fa-clock"></i> À compléter</span>
+                    </div>
+                    <div class="kyc-checklist-item">
+                        <span>Selfie avec la pièce</span>
+                        <span class="kyc-checklist-state pending" id="checkSelfie"><i class="fa-solid fa-clock"></i> À compléter</span>
+                    </div>
+                </div>
                 <div style="margin-top:20px;padding:16px;background:var(--kyc-orange-light);border-radius:var(--kyc-radius-xs);font-size:12px;color:var(--kyc-text-2);line-height:1.6;">
                     <i class="fa-solid fa-triangle-exclamation" style="color:var(--kyc-orange);margin-right:6px;"></i>
                     En soumettant ce dossier, vous certifiez que toutes les informations fournies sont exactes et que les documents sont authentiques. Toute fausse déclaration peut entraîner la suspension définitive de votre compte.
@@ -645,7 +731,7 @@ function kycGoToStep(step) {
         if (i === step) el.classList.add('active');
     }
 
-    if (step === 4) kycBuildConfirm();
+    if (step === 4) { kycBuildConfirm(); kycBuildChecklist(); }
     window.scrollTo({ top: 200, behavior: 'smooth' });
 }
 
@@ -733,6 +819,22 @@ async function kycUploadFile(type) {
     if (!fileInput.files.length) return;
 
     const file = fileInput.files[0];
+
+    // Validation front-end (type + taille)
+    const allowed = type === 'selfie'
+        ? ['image/jpeg', 'image/png', 'image/jpg']
+        : ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+        showToast(type === 'selfie' ? 'Format non autorisé (JPG ou PNG uniquement)' : 'Format non autorisé (JPG, PNG ou PDF)', 'error');
+        fileInput.value = '';
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+        showToast('Fichier trop volumineux (max 10 Mo)', 'error');
+        fileInput.value = '';
+        return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', type);
@@ -877,9 +979,60 @@ function kycUpdateUI() {
     }
 }
 
+// ==================== CHECKLIST ====================
+function kycBuildChecklist() {
+    const d = kycData || {};
+    const items = [
+        { id: 'checkInfo', ok: !!(d.first_name && d.last_name && d.birth_date && d.gender && d.nationality && d.country && d.phone) },
+        { id: 'checkDocType', ok: !!d.document_type },
+        { id: 'checkFront', ok: !!d.document_front },
+        { id: 'checkBack', ok: !!d.document_back },
+        { id: 'checkSelfie', ok: !!d.selfie },
+    ];
+    items.forEach(function(it) {
+        const el = document.getElementById(it.id);
+        if (!el) return;
+        if (it.ok) {
+            el.className = 'kyc-checklist-state ok';
+            el.innerHTML = '<i class="fa-solid fa-circle-check"></i> Complété';
+        } else {
+            el.className = 'kyc-checklist-state pending';
+            el.innerHTML = '<i class="fa-solid fa-clock"></i> À compléter';
+        }
+    });
+    const allDone = items.every(i => i.ok);
+    const btn = document.getElementById('kycSubmitBtn');
+    if (btn) {
+        if (allDone) { btn.disabled = false; btn.style.opacity = '1'; }
+        else { btn.disabled = true; btn.style.opacity = '.5'; }
+    }
+}
+
+// ==================== DRAG & DROP ====================
+function kycSetupDragDrop() {
+    document.querySelectorAll('.kyc-upload-zone').forEach(function(zone) {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            zone.classList.add('dragover');
+        });
+        zone.addEventListener('dragleave', function() {
+            zone.classList.remove('dragover');
+        });
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            const input = zone.querySelector('input[type="file"]');
+            if (!input || !e.dataTransfer.files.length) return;
+            input.files = e.dataTransfer.files;
+            input.dispatchEvent(new Event('change'));
+        });
+    });
+}
+
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', function() {
     kycUpdateUI();
+    kycSetupDragDrop();
 
     {% if kyc and kyc.status in ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED') %}
     // Already submitted — stepper is hidden via Jinja, panels are hidden
