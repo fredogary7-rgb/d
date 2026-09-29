@@ -231,16 +231,18 @@
     .kyc-confirm-table td:last-child { color: var(--kyc-text); font-weight: 500; }
 
     /* ==================== BUTTONS ==================== */
-    .kyc-btn-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; }
+    .kyc-btn-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 24px; }
     .kyc-btn {
-        padding: 12px 28px; border-radius: var(--kyc-radius-xs); font-size: 13px; font-weight: 700;
+        padding: 15px 26px; border-radius: var(--kyc-radius); font-size: 15px; font-weight: 700;
         cursor: pointer; border: none; transition: all var(--kyc-transition); font-family: 'Inter', sans-serif;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px;
     }
-    .kyc-btn-primary { background: var(--kyc-blue); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,.3); }
+    .kyc-btn:active { transform: scale(.97); }
+    .kyc-btn-primary { background: var(--kyc-blue); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,.3); flex: 1; }
     .kyc-btn-primary:hover { background: var(--kyc-blue-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,.35); }
     .kyc-btn-secondary { background: var(--kyc-surface); color: var(--kyc-text-2); border: 1.5px solid var(--kyc-border); }
     .kyc-btn-secondary:hover { background: var(--kyc-surface-hover); border-color: var(--kyc-text-3); }
-    .kyc-btn-success { background: var(--kyc-green); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,.3); }
+    .kyc-btn-success { background: var(--kyc-green); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,.3); flex: 1; }
     .kyc-btn-success:hover { background: #059669; transform: translateY(-1px); }
     .kyc-btn:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
 
