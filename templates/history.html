@@ -30,14 +30,26 @@
         h1,h2,h3{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         a{text-decoration:none}
 
+        /* ======== TOPBAR ======== */
+        .topbar{position:fixed;top:0;left:0;right:0;height:64px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+        .topbar-left{display:flex;align-items:center;gap:14px}
+        .topbar-back{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1.5px solid var(--border);border-radius:10px;color:var(--text-2);font-size:13px;font-weight:600;transition:all .2s}
+        .topbar-back:hover{border-color:var(--blue);color:var(--blue)}
+        .topbar-logo{display:flex;align-items:center;gap:10px}
+        .topbar-logo img{width:34px;height:34px;border-radius:9px}
+        .topbar-logo span{font-family:'Outfit',sans-serif;font-weight:800;font-size:17px;background:linear-gradient(135deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .topbar-right{display:flex;align-items:center;gap:12px}
+        .topbar-title{font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;color:var(--text)}
+
         /* ======== MAIN ======== */
-        .main{flex:1;padding:32px 36px;min-height:100vh;animation:fadeIn .5s ease-out}
+        .main{flex:1;padding:96px 36px 32px;min-height:100vh;animation:fadeIn .5s ease-out}
         @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
         /* ======== HEADER ======== */
-        .page-header{margin-bottom:28px}
-        .page-header h1{font-size:26px;font-weight:800}
-        .page-header p{font-size:13px;color:var(--text-4);margin-top:4px}
+        .page-header{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+        .page-header-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 8px 24px rgba(37,99,235,.25)}
+        .page-header h1{font-size:24px;font-weight:800;line-height:1.2}
+        .page-header p{font-size:13px;color:var(--text-4);margin-top:3px}
 
         /* ======== STATS ROW ======== */
         .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
@@ -137,18 +149,36 @@
         /* ======== RESPONSIVE ======== */
         @media (max-width:1024px){.table-wrap{display:none}.cards-list{display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}}
         @media (max-width:768px){
-            .main{padding:20px 16px}.stats-row{grid-template-columns:1fr 1fr;gap:10px}.toolbar{flex-direction:column;align-items:stretch}
+            .topbar{padding:0 16px}
+            .topbar-logo span{display:none}
+            .main{padding:84px 16px 20px}.stats-row{grid-template-columns:1fr 1fr;gap:10px}.toolbar{flex-direction:column;align-items:stretch}
         }
     </style>
 </head>
 <body>
 
+<!-- ======== TOPBAR ======== -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="{{ url_for('dashboard') }}" class="topbar-back"><i class="fa-solid fa-arrow-left"></i> Retour</a>
+        <a href="{{ url_for('dashboard') }}" class="topbar-logo">
+            <img src="{{ url_for('static', filename='img/trans1.png') }}" alt="TransAfrik" onerror="this.style.display='none'">
+            <span>TransAfrik</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <span class="topbar-title">Historique</span>
+    </div>
+</header>
 
 <!-- ======== MAIN ======== -->
 <main class="main">
     <div class="page-header">
-        <h1>Historique</h1>
-        <p>Retrouvez tous vos transferts et paiements effectués avec TransAfrik.</p>
+        <div class="page-header-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <div>
+            <h1>Historique des transactions</h1>
+            <p>Retrouvez tous vos transferts et paiements effectués avec TransAfrik.</p>
+        </div>
     </div>
 
     <!-- STATS -->
