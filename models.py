@@ -27,7 +27,7 @@ class User(db.Model, UserMixin):
     pending_balance = db.Column(db.Integer, default=0)    # pending transfers
     currency = db.Column(db.String(10), default='XOF')
     profile_picture = db.Column(db.String(255), nullable=True)
-    kyc_status = db.Column(db.String(20), default='pending')   # pending | verified | rejected
+    kyc_status = db.Column(db.String(20), default='none')   # none | pending | verified | rejected
     referral_code = db.Column(db.String(30), unique=True, default=generate_referral_code)
     last_login = db.Column(db.DateTime, nullable=True)          # dernière connexion
     language = db.Column(db.String(5), default='fr')            # fr | en
@@ -410,11 +410,17 @@ class KycRequest(db.Model):
 
     # ---- Étape 2 — Document officiel ----
     document_type = db.Column(db.String(30), nullable=True)       # national_id | passport | driving_license
-    document_front = db.Column(db.String(500), nullable=True)     # chemin fichier recto
-    document_back = db.Column(db.String(500), nullable=True)      # chemin fichier verso
+    document_front = db.Column(db.String(255), nullable=True)         # nom de fichier recto
+    document_front_data = db.Column(db.LargeBinary, nullable=True)    # contenu binaire recto
+    document_front_mimetype = db.Column(db.String(100), nullable=True)
+    document_back = db.Column(db.String(255), nullable=True)          # nom de fichier verso
+    document_back_data = db.Column(db.LargeBinary, nullable=True)     # contenu binaire verso
+    document_back_mimetype = db.Column(db.String(100), nullable=True)
 
     # ---- Étape 3 — Selfie ----
-    selfie = db.Column(db.String(500), nullable=True)             # chemin fichier selfie
+    selfie = db.Column(db.String(255), nullable=True)                 # nom de fichier selfie
+    selfie_data = db.Column(db.LargeBinary, nullable=True)            # contenu binaire selfie
+    selfie_mimetype = db.Column(db.String(100), nullable=True)
 
     # ---- Statut & Révision ----
     status = db.Column(db.String(20), nullable=False, default='NOT_STARTED', index=True)
@@ -446,7 +452,7 @@ class KycRequest(db.Model):
                 filled += 1
 
         # Étape 2 : document (2 fichiers)
-        doc_fields = ['document_type', 'document_front', 'document_back']
+        doc_fields = ['document_type', 'document_front_data', 'document_back_data']
         for f in doc_fields:
             total += 1
             if getattr(self, f, None):
@@ -454,7 +460,7 @@ class KycRequest(db.Model):
 
         # Étape 3 : selfie
         total += 1
-        if self.selfie:
+        if self.selfie_data:
             filled += 1
 
         if total == 0:
@@ -486,6 +492,18 @@ class KycRequest(db.Model):
             'EXPIRED': 'neutral',
         }
         return colors.get(self.status, 'neutral')
+
+    @property
+    def has_document_front(self):
+        return bool(self.document_front_data)
+
+    @property
+    def has_document_back(self):
+        return bool(self.document_back_data)
+
+    @property
+    def has_selfie(self):
+        return bool(self.selfie_data)
 
     def to_dict(self):
         return {

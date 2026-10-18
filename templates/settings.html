@@ -246,8 +246,10 @@
                             <i class="fa-solid fa-shield-check"></i> KYC Vérifié
                         {% elif user.kyc_status == 'rejected' %}
                             <i class="fa-solid fa-shield-xmark"></i> KYC Rejeté
-                        {% else %}
+                        {% elif user.kyc_status == 'pending' %}
                             <i class="fa-solid fa-clock"></i> KYC En attente
+                        {% else %}
+                            <i class="fa-solid fa-circle-info"></i> KYC Non soumis
                         {% endif %}
                     </span>
                 </div>
@@ -304,7 +306,7 @@
                 {% if has_phone %}{% set _ = checks.append(('checked', 'Téléphone vérifié')) %}{% else %}{% set _ = checks.append(('unchecked', 'Téléphone non vérifié')) %}{% endif %}
                 {% set _ = checks.append(('checked', 'OTP activé')) %}
                 {% if has_pin %}{% set _ = checks.append(('checked', 'PIN de transaction')) %}{% else %}{% set _ = checks.append(('unchecked', 'PIN de transaction')) %}{% endif %}
-                {% if has_kyc %}{% set _ = checks.append(('checked', 'KYC validé')) %}{% else %}{% set _ = checks.append(('unchecked', 'KYC en attente')) %}{% endif %}
+                {% if has_kyc %}{% set _ = checks.append(('checked', 'KYC validé')) %}{% elif user.kyc_status == 'pending' %}{% set _ = checks.append(('unchecked', 'KYC en attente')) %}{% else %}{% set _ = checks.append(('unchecked', 'KYC non soumis')) %}{% endif %}
                 <div class="security-checklist">
                     {% for status, text in checks %}
                     <div class="security-item {{ status }}">

@@ -306,8 +306,10 @@
                     <span class="hero-badge verified"><i class="fa-solid fa-circle-check"></i> Vérifié</span>
                     {% elif user.kyc_status == 'rejected' %}
                     <span class="hero-badge" style="background:rgba(239,68,68,.35)"><i class="fa-solid fa-circle-xmark"></i> KYC refusé</span>
-                    {% else %}
+                    {% elif user.kyc_status == 'pending' %}
                     <span class="hero-badge" style="background:rgba(249,115,22,.3)"><i class="fa-solid fa-clock"></i> KYC en attente</span>
+                    {% else %}
+                    <span class="hero-badge" style="background:rgba(100,116,139,.25)"><i class="fa-solid fa-circle-info"></i> KYC non soumis</span>
                     {% endif %}
                 </div>
             </div>
@@ -458,7 +460,8 @@
                     <div class="info-value">
                         {% if user.kyc_status == 'verified' %}<span style="color:var(--green-dark)">🟢 Vérifié</span>
                         {% elif user.kyc_status == 'rejected' %}<span style="color:#b91c1c">🔴 Refusé</span>
-                        {% else %}<span style="color:#c2410c">🟡 En attente</span>{% endif %}
+                        {% elif user.kyc_status == 'pending' %}<span style="color:#c2410c">🟡 En attente</span>
+                        {% else %}<span style="color:#64748b">⚪ Non soumis</span>{% endif %}
                     </div>
                 </div>
                 <div style="margin-top:12px">

@@ -3273,26 +3273,23 @@ def api_kyc_upload():
         db.session.add(kyc)
         db.session.flush()
 
-    kyc_dir = os.path.join(app.root_path, 'uploads', 'kyc')
-    os.makedirs(kyc_dir, exist_ok=True)
-
     filename = _sanitize_kyc_filename(file.filename, prefix=f'kyc_{current_user.id}_{file_type}')
-    filepath = os.path.join(kyc_dir, filename)
-    file.save(filepath)
+    file_data = file.read()
+    mimetype = file.mimetype or 'application/octet-stream'
 
-    # Supprimer l'ancien fichier si existe
-    old_file = getattr(kyc, f'document_{file_type}' if file_type != 'selfie' else 'selfie', None)
-    if old_file:
-        old_path = os.path.join(kyc_dir, old_file)
-        if os.path.exists(old_path):
-            os.remove(old_path)
-
+    # Stockage du fichier directement en base de données
     if file_type == 'front':
         kyc.document_front = filename
+        kyc.document_front_data = file_data
+        kyc.document_front_mimetype = mimetype
     elif file_type == 'back':
         kyc.document_back = filename
+        kyc.document_back_data = file_data
+        kyc.document_back_mimetype = mimetype
     elif file_type == 'selfie':
         kyc.selfie = filename
+        kyc.selfie_data = file_data
+        kyc.selfie_mimetype = mimetype
 
     if kyc.status == 'NOT_STARTED':
         kyc.status = 'DRAFT'
@@ -3328,7 +3325,7 @@ def api_kyc_submit():
         missing.append('Date de naissance')
     if not kyc.document_type:
         missing.append('Type de document')
-    if not kyc.document_front:
+    if not kyc.document_front_data:
         missing.append('Document (recto)')
 
     if missing:

@@ -1,11 +1,12 @@
 """Admin Routes — Back Office TransAfrik"""
 
 import functools
+import io
 import json
 from datetime import datetime, timedelta
 
 from flask import (abort, flash, jsonify, redirect, render_template,
-                   request, session, url_for)
+                   request, send_file, session, url_for)
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
@@ -406,6 +407,28 @@ def reset_user_password(user_id):
 # KYC
 # ══════════════════════════════════════════════════════════════════════════
 
+@admin_bp.route('/kyc/<int:user_id>/file/<field>')
+@admin_required
+def kyc_file(user_id, field):
+    """Sert un fichier KYC stocké en base de données."""
+    if field not in ('document_front', 'document_back', 'selfie'):
+        abort(404)
+
+    kyc = KycRequest.query.filter_by(user_id=user_id).first()
+    if not kyc:
+        abort(404)
+
+    data = getattr(kyc, f'{field}_data', None)
+    if not data:
+        abort(404)
+
+    filename = getattr(kyc, field, None) or f'{field}.jpg'
+    mimetype = getattr(kyc, f'{field}_mimetype', None) or 'application/octet-stream'
+
+    return send_file(io.BytesIO(data), mimetype=mimetype,
+                     as_attachment=False, download_name=filename)
+
+
 @admin_bp.route('/kyc')
 @admin_required
 def kyc():
@@ -414,7 +437,8 @@ def kyc():
     page = request.args.get('page', 1, type=int)
     per_page = 15
 
-    query = User.query.filter_by(is_deleted=False)
+    # N'afficher que les utilisateurs ayant réellement un dossier KYC
+    query = User.query.filter_by(is_deleted=False).filter(User.kyc_status != 'none')
     if status_filter:
         query = query.filter_by(kyc_status=status_filter)
 
@@ -449,6 +473,11 @@ def kyc_approve(user_id):
     admin = get_admin()
     user = User.query.get_or_404(user_id)
     user.kyc_status = 'verified'
+    kyc_request = KycRequest.query.filter_by(user_id=user.id).first()
+    if kyc_request:
+        kyc_request.status = 'APPROVED'
+        kyc_request.reviewed_by = admin.id
+        kyc_request.verified_at = datetime.utcnow()
     log_action(admin, 'kyc_approve', 'user', user.id, {'user_email': user.email})
     db.session.commit()
     try:
@@ -466,6 +495,11 @@ def kyc_reject(user_id):
     user = User.query.get_or_404(user_id)
     user.kyc_status = 'rejected'
     note = request.form.get('note', '')
+    kyc_request = KycRequest.query.filter_by(user_id=user.id).first()
+    if kyc_request:
+        kyc_request.status = 'REJECTED'
+        kyc_request.reviewed_by = admin.id
+        kyc_request.review_note = note
     log_action(admin, 'kyc_reject', 'user', user.id, {
         'user_email': user.email,
         'note': note
