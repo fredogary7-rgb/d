@@ -3176,7 +3176,7 @@ def api_kyc_save_step1():
     except (ValueError, TypeError):
         pass
     kyc.gender = data.get('gender') or kyc.gender
-    kyc.nationality = data.get('nationality', '').strip().upper() or kyc.nationality
+    kyc.nationality = data.get('nationality', '').strip() or kyc.nationality
     kyc.profession = data.get('profession', '').strip() or kyc.profession
     kyc.address = data.get('address', '').strip() or kyc.address
     kyc.city = data.get('city', '').strip() or kyc.city

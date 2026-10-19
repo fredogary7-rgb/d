@@ -399,7 +399,7 @@ class KycRequest(db.Model):
     last_name = db.Column(db.String(150), nullable=True)
     birth_date = db.Column(db.Date, nullable=True)
     gender = db.Column(db.String(10), nullable=True)              # male | female | other
-    nationality = db.Column(db.String(5), nullable=True)
+    nationality = db.Column(db.String(50), nullable=True)
     profession = db.Column(db.String(150), nullable=True)
     address = db.Column(db.String(300), nullable=True)
     city = db.Column(db.String(100), nullable=True)
@@ -439,19 +439,22 @@ class KycRequest(db.Model):
 
     @property
     def progress_percent(self):
-        """Calcule le pourcentage de progression du KYC."""
+        """Calcule le pourcentage de progression du KYC.
+
+        Ne compte que les champs requis (aligné avec la checklist côté client).
+        """
         filled = 0
         total = 0
 
-        # Étape 1 : informations personnelles (11 champs)
-        step1_fields = ['first_name', 'last_name', 'birth_date', 'gender', 'nationality',
-                       'profession', 'address', 'city', 'postal_code', 'country', 'phone', 'email']
+        # Étape 1 : informations personnelles requises
+        step1_fields = ['first_name', 'last_name', 'birth_date', 'gender',
+                        'nationality', 'country', 'phone']
         for f in step1_fields:
             total += 1
             if getattr(self, f, None):
                 filled += 1
 
-        # Étape 2 : document (2 fichiers)
+        # Étape 2 : type de document + recto + verso
         doc_fields = ['document_type', 'document_front_data', 'document_back_data']
         for f in doc_fields:
             total += 1

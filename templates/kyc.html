@@ -494,7 +494,7 @@
                         <input type="date" class="kyc-form-input" id="kycBirthDate" value="{{ kyc.birth_date.strftime('%Y-%m-%d') if kyc and kyc.birth_date else '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
-                        <label class="kyc-form-label">Genre</label>
+                        <label class="kyc-form-label">Genre *</label>
                         <select class="kyc-form-select" id="kycGender" onchange="kycSaveStep1()">
                             <option value="" {% if not kyc or not kyc.gender %}selected{% endif %}>Sélectionner</option>
                             <option value="male" {% if kyc and kyc.gender == 'male' %}selected{% endif %}>Homme</option>
@@ -503,7 +503,7 @@
                         </select>
                     </div>
                     <div class="kyc-form-group">
-                        <label class="kyc-form-label">Nationalité</label>
+                        <label class="kyc-form-label">Nationalité *</label>
                         <input type="text" class="kyc-form-input" id="kycNationality" placeholder="Ex: Togolaise" value="{{ (kyc and kyc.nationality) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
@@ -523,24 +523,25 @@
                         <input type="text" class="kyc-form-input" id="kycPostalCode" placeholder="Code postal" value="{{ (kyc and kyc.postal_code) or '' }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
-                        <label class="kyc-form-label">Pays de résidence</label>
+                        <label class="kyc-form-label">Pays de résidence *</label>
+                        {% set sel_country = (kyc.country if kyc and kyc.country else user.country) %}
                         <select class="kyc-form-select" id="kycCountry" onchange="kycSaveStep1()">
                             <option value="">Sélectionner un pays</option>
-                            <option value="TG" {% if kyc and kyc.country == 'TG' %}selected{% endif %}>🇹🇬 Togo</option>
-                            <option value="BJ" {% if kyc and kyc.country == 'BJ' %}selected{% endif %}>🇧🇯 Bénin</option>
-                            <option value="CM" {% if kyc and kyc.country == 'CM' %}selected{% endif %}>🇨🇲 Cameroun</option>
-                            <option value="CI" {% if kyc and kyc.country == 'CI' %}selected{% endif %}>🇨🇮 Côte d'Ivoire</option>
-                            <option value="BF" {% if kyc and kyc.country == 'BF' %}selected{% endif %}>🇧🇫 Burkina Faso</option>
-                            <option value="CG" {% if kyc and kyc.country == 'CG' %}selected{% endif %}>🇨🇬 Congo</option>
-                            <option value="CD" {% if kyc and kyc.country == 'CD' %}selected{% endif %}>🇨🇩 RD Congo</option>
-                            <option value="GA" {% if kyc and kyc.country == 'GA' %}selected{% endif %}>🇬🇦 Gabon</option>
-                            <option value="UG" {% if kyc and kyc.country == 'UG' %}selected{% endif %}>🇺🇬 Ouganda</option>
-                            <option value="ZM" {% if kyc and kyc.country == 'ZM' %}selected{% endif %}>🇿🇲 Zambie</option>
-                            <option value="SN" {% if kyc and kyc.country == 'SN' %}selected{% endif %}>🇸🇳 Sénégal</option>
+                            <option value="TG" {% if sel_country == 'TG' %}selected{% endif %}>🇹🇬 Togo</option>
+                            <option value="BJ" {% if sel_country == 'BJ' %}selected{% endif %}>🇧🇯 Bénin</option>
+                            <option value="CM" {% if sel_country == 'CM' %}selected{% endif %}>🇨🇲 Cameroun</option>
+                            <option value="CI" {% if sel_country == 'CI' %}selected{% endif %}>🇨🇮 Côte d'Ivoire</option>
+                            <option value="BF" {% if sel_country == 'BF' %}selected{% endif %}>🇧🇫 Burkina Faso</option>
+                            <option value="CG" {% if sel_country == 'CG' %}selected{% endif %}>🇨🇬 Congo</option>
+                            <option value="CD" {% if sel_country == 'CD' %}selected{% endif %}>🇨🇩 RD Congo</option>
+                            <option value="GA" {% if sel_country == 'GA' %}selected{% endif %}>🇬🇦 Gabon</option>
+                            <option value="UG" {% if sel_country == 'UG' %}selected{% endif %}>🇺🇬 Ouganda</option>
+                            <option value="ZM" {% if sel_country == 'ZM' %}selected{% endif %}>🇿🇲 Zambie</option>
+                            <option value="SN" {% if sel_country == 'SN' %}selected{% endif %}>🇸🇳 Sénégal</option>
                         </select>
                     </div>
                     <div class="kyc-form-group">
-                        <label class="kyc-form-label">Téléphone</label>
+                        <label class="kyc-form-label">Téléphone *</label>
                         <input type="tel" class="kyc-form-input" id="kycPhone" placeholder="+228 90 00 00 00" value="{{ (kyc and kyc.phone) or user.phone }}" onchange="kycSaveStep1()">
                     </div>
                     <div class="kyc-form-group">
