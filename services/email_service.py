@@ -13,6 +13,7 @@ Fonctions :
 import os
 import logging
 import time
+import html
 import requests
 from dotenv import load_dotenv
 
@@ -550,3 +551,80 @@ def send_deposit_email(email: str, fullname: str, amount: float,
 
     email_logger.info(f"Confirmation depot envoyee -> {email} | ref={reference}")
     return _send_email(email, subject, html_body)
+
+
+# ================================================================
+# NOTIFICATIONS ADMIN (KYC / SUPPORT)
+# ================================================================
+
+ADMIN_NOTIFY_EMAIL = os.getenv("ADMIN_NOTIFY_EMAIL", "ameket4@gmail.com")
+
+
+def send_kyc_submission_notification(user_fullname: str, user_email: str,
+                                     reference: str = "") -> dict:
+    """Envoie un email à l'administrateur à chaque soumission KYC."""
+    user_fullname = html.escape(user_fullname or "")
+    user_email = html.escape(user_email or "")
+    reference = html.escape(reference or "")
+
+    ref_line = f"<br><strong>Référence :</strong> {reference}" if reference else ""
+
+    content = f"""
+            <div class="email-body">
+                <div class="email-title">Nouvelle soumission KYC</div>
+                <div class="email-text">
+                    Un utilisateur vient de soumettre son dossier de<br>
+                    vérification d'identité.<br><br>
+                    <strong>Utilisateur :</strong> {user_fullname}<br>
+                    <strong>Email :</strong> {user_email}{ref_line}
+                </div>
+                <div class="email-text" style="font-size:12px;color:#64748B;">
+                    Connectez-vous à l'espace administrateur<br>
+                    pour examiner et valider ce dossier KYC.
+                </div>
+            </div>
+    """
+
+    subject = f"Nouvelle soumission KYC - {user_fullname}"
+    html_body = _base_template(content)
+
+    email_logger.info(f"Notification KYC admin envoyée -> {ADMIN_NOTIFY_EMAIL}")
+    return _send_email(ADMIN_NOTIFY_EMAIL, subject, html_body)
+
+
+def send_support_ticket_notification(user_fullname: str, user_email: str,
+                                     subject_ticket: str, ticket_number: str = "",
+                                     category: str = "", message: str = "") -> dict:
+    """Envoie un email à l'administrateur à chaque création de ticket support."""
+    user_fullname = html.escape(user_fullname or "")
+    user_email = html.escape(user_email or "")
+    subject_ticket = html.escape(subject_ticket or "")
+    ticket_number = html.escape(ticket_number or "")
+    category = html.escape(category or "")
+    message = html.escape(message or "").replace("\n", "<br>")
+
+    tn_line = f"<br><strong>Ticket :</strong> {ticket_number}" if ticket_number else ""
+    cat_line = f"<br><strong>Catégorie :</strong> {category}" if category else ""
+
+    content = f"""
+            <div class="email-body">
+                <div class="email-title">Nouveau ticket de support</div>
+                <div class="email-text">
+                    Un utilisateur a ouvert un nouveau ticket de support.<br><br>
+                    <strong>Utilisateur :</strong> {user_fullname}<br>
+                    <strong>Email :</strong> {user_email}<br>
+                    <strong>Sujet :</strong> {subject_ticket}{tn_line}{cat_line}<br><br>
+                    <strong>Message :</strong><br>{message}
+                </div>
+                <div class="email-text" style="font-size:12px;color:#64748B;">
+                    Connectez-vous à l'espace administrateur<br>
+                    pour traiter ce ticket de support.
+                </div>
+            </div>
+    """
+
+    subject = f"Nouveau ticket support - {subject_ticket}"
+    html_body = _base_template(content)
+
+    email_logger.info(f"Notification ticket support admin envoyée -> {ADMIN_NOTIFY_EMAIL}")
+    return _send_email(ADMIN_NOTIFY_EMAIL, subject, html_body)

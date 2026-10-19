@@ -17,7 +17,8 @@ from services.receive_service import (
     generate_receive_reference, process_free_payment as process_wallet_to_wallet,
 )
 from services.push_service import send_push_to_user
-from services.email_service import send_otp_email
+from services.email_service import (send_otp_email, send_kyc_submission_notification,
+                                    send_support_ticket_notification)
 from services.otp_service import create_otp, verify_otp, resend_otp as resend_otp_service
 from beneficiary_utils import detect_country_from_phone, detect_operator_from_phone, detect_from_phone
 from transfer_config import COUNTRIES, get_operators, get_country
@@ -3350,6 +3351,16 @@ def api_kyc_submit():
     db.session.commit()
     app.logger.info(f'[KYC] Dossier soumis : {kyc.reference} par {current_user.email}')
 
+    # Notification email à l'administrateur
+    try:
+        send_kyc_submission_notification(
+            user_fullname=current_user.fullname,
+            user_email=current_user.email,
+            reference=kyc.reference,
+        )
+    except Exception:
+        app.logger.exception('[KYC] Échec de l\'envoi de l\'email de notification')
+
     return jsonify({
         'success': True,
         'message': 'Votre dossier KYC a été soumis avec succès. Nous vous tiendrons informé.',
@@ -3556,6 +3567,19 @@ def support_create_ticket():
         db.session.commit()
     except Exception:
         db.session.rollback()
+
+    # Notification email à l'administrateur
+    try:
+        send_support_ticket_notification(
+            user_fullname=current_user.fullname,
+            user_email=current_user.email,
+            subject_ticket=subject,
+            ticket_number=ticket.ticket_number,
+            category=category,
+            message=message,
+        )
+    except Exception:
+        app.logger.exception('[SUPPORT] Échec de l\'envoi de l\'email de notification')
 
     return jsonify({
         'success': True,
