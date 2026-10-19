@@ -441,8 +441,13 @@ class KycRequest(db.Model):
     def progress_percent(self):
         """Calcule le pourcentage de progression du KYC.
 
-        Ne compte que les champs requis (aligné avec la checklist côté client).
+        Un dossier soumis, en cours d'examen ou vérifié est considéré complet
+        (100 %). Les brouillons et dossiers refusés reflètent la progression
+        réelle (champs requis uniquement).
         """
+        if self.status in ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED'):
+            return 100
+
         filled = 0
         total = 0
 
