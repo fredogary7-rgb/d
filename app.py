@@ -3339,6 +3339,10 @@ def api_kyc_submit():
     kyc.updated_at = datetime.utcnow()
     kyc.ip_address = request.remote_addr
     kyc.device_info = request.headers.get('User-Agent', '')[:500]
+    # Réinitialise la révision (cas d'une nouvelle soumission après refus/expiration)
+    kyc.review_note = None
+    kyc.reviewed_by = None
+    kyc.verified_at = None
 
     # Mise à jour du statut KYC de l'utilisateur
     current_user.kyc_status = 'pending'
@@ -3349,6 +3353,33 @@ def api_kyc_submit():
     return jsonify({
         'success': True,
         'message': 'Votre dossier KYC a été soumis avec succès. Nous vous tiendrons informé.',
+        'kyc': kyc.to_dict(),
+    })
+
+
+@app.route('/api/kyc/reset', methods=['POST'])
+@login_required
+def api_kyc_reset():
+    """Réinitialise un dossier refusé/expiré pour permettre une nouvelle soumission."""
+    kyc = KycRequest.query.filter_by(user_id=current_user.id).first()
+    if not kyc:
+        return jsonify({'success': False, 'message': 'Aucun dossier KYC.'}), 400
+
+    if kyc.status not in ('REJECTED', 'EXPIRED'):
+        return jsonify({'success': False, 'message': 'Ce dossier ne peut pas être réinitialisé.'}), 400
+
+    kyc.status = 'DRAFT'
+    kyc.review_note = None
+    kyc.reviewed_by = None
+    kyc.verified_at = None
+    kyc.submitted_at = None
+    kyc.updated_at = datetime.utcnow()
+    current_user.kyc_status = 'none'
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Votre dossier a été réinitialisé. Vous pouvez le modifier et le soumettre à nouveau.',
         'kyc': kyc.to_dict(),
     })
 

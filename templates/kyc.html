@@ -466,7 +466,7 @@
         </div>
         {% if kyc.status == 'REJECTED' %}
         <div style="margin-top:20px">
-            <button class="kyc-btn kyc-btn-primary" onclick="document.getElementById('kycStepper').style.display='flex';this.closest('.kyc-result-card').style.display='none';kycGoToStep(1);">Réessayer la vérification</button>
+            <button class="kyc-btn kyc-btn-primary" onclick="kycRetry()">Réessayer la vérification</button>
         </div>
         {% endif %}
     </div>
@@ -898,6 +898,24 @@ function kycBuildConfirm() {
     setText('cfLand', country || '—');
     setText('cfDoc', docType === 'national_id' ? 'Carte nationale' : docType === 'passport' ? 'Passeport' : docType === 'driving_license' ? 'Permis de conduire' : '—');
     setText('cfSelfie', hasSelfie ? '✓ Selfie fourni' : '✗ Non fourni');
+}
+
+// ==================== RÉESSAYER (après refus) ====================
+async function kycRetry() {
+    showLoader();
+    try {
+        const res = await fetch('/api/kyc/reset', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Dossier réinitialisé. Vous pouvez le modifier et le resoumettre.', 'success');
+            setTimeout(() => { window.location.reload(); }, 900);
+        } else {
+            showToast(data.message || 'Erreur lors de la réinitialisation', 'error');
+        }
+    } catch (e) {
+        showToast('Erreur réseau', 'error');
+    }
+    hideLoader();
 }
 
 // ==================== SOUMISSION ====================
