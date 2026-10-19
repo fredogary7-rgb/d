@@ -317,6 +317,19 @@ function formatAmount(v){ return (v||0).toLocaleString('fr'); }
 function formatDate(d){ if(!d)return'';return new Date(d).toLocaleDateString('fr',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
 function avatarLetters(name){ if(!name)return'?';let p=name.split(' ');return(p[0][0]||'')+(p[1]?p[1][0]:''); }
 
+function getDetailUrl(t) {
+    switch (t.type) {
+        case 'deposit':
+            return '/deposit/' + t.reference;
+        case 'withdraw':
+            return '/withdraw';
+        case 'transfer':
+            return '/send-money/confirm?ref=' + t.reference;
+        default:
+            return '#';
+    }
+}
+
 function renderTable(transfers) {
     let tbody = document.getElementById('tableBody');
     if (!transfers.length) {
@@ -346,7 +359,7 @@ function renderTable(transfers) {
             <td class="fee-cell">${formatAmount(t.fees)} ${t.currency}</td>
             <td class="total-cell">${formatAmount(t.total_amount)} ${t.currency}</td>
             <td><span class="badge ${getStatusClass(t.status)}${isPulse(t.status)?' pulse':''}"><i class="fa-solid ${getStatusIcon(t.status)}"></i> ${t.status}</span></td>
-            <td><a href="${t.type === 'payment' ? '#' : '/send-money/confirm?ref=' + t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a></td>
+            <td><a href="${getDetailUrl(t)}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a></td>
         </tr>
     `}).join('');
 }
@@ -393,7 +406,7 @@ function renderCards(transfers) {
                 <span class="badge ${getStatusClass(t.status)}${isPulse(t.status)?' pulse':''}" style="padding:4px 10px;font-size:10px"><i class="fa-solid ${getStatusIcon(t.status)}"></i> ${t.status}</span>
             </div>
             <div class="mx-card-actions">
-                <a href="${t.type === 'payment' ? '#' : '/send-money/confirm?ref=' + t.reference}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a>
+                <a href="${getDetailUrl(t)}" class="btn-view"><i class="fa-solid fa-eye"></i> Voir</a>
             </div>
         </div>
     `}).join('');
