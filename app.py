@@ -3,7 +3,7 @@ import logging
 import hmac
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -257,6 +257,79 @@ def send_weekly_summaries_command():
 
 
 weekly_summary_scheduler = _start_weekly_summary_scheduler()
+
+
+# ==================== EXPIRATION DES DÉPÔTS EN ATTENTE ====================
+# Un dépôt dont le paiement n'est pas confirmé (webhook jamais reçu) ne doit
+# pas rester indéfiniment en CREATED / PAYMENT_PROCESSING : il passe en FAILED
+# après un délai configurable (DEPOSIT_EXPIRY_MINUTES, défaut 60 minutes).
+
+def _expire_stale_deposits():
+    """Marque comme FAILED les dépôts non confirmés après un délai donné."""
+    minutes = int(os.getenv('DEPOSIT_EXPIRY_MINUTES', '60') or '60')
+    cutoff = datetime.utcnow() - timedelta(minutes=minutes)
+
+    stale = Deposit.query.filter(
+        Deposit.status.in_(['CREATED', 'PAYMENT_PROCESSING']),
+        Deposit.created_at < cutoff,
+    ).all()
+
+    for d in stale:
+        d.status = 'FAILED'
+        d.status_message = f'Dépôt expiré — paiement non reçu après {minutes} min.'
+        d.updated_at = datetime.utcnow()
+
+    if stale:
+        db.session.commit()
+        app.logger.info(f'[DÉPÔTS] {len(stale)} dépôt(s) expiré(s) automatiquement.')
+    return len(stale)
+
+
+def _start_deposit_expiry_scheduler():
+    if os.getenv('DISABLE_DEPOSIT_EXPIRY') == '1':
+        app.logger.info('Expiration des dépôts désactivée (DISABLE_DEPOSIT_EXPIRY=1).')
+        return None
+
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from apscheduler.triggers.interval import IntervalTrigger
+    except ImportError:
+        app.logger.warning('apscheduler non installé — expiration des dépôts désactivée.')
+        return None
+
+    def _run_job():
+        with app.app_context():
+            try:
+                _expire_stale_deposits()
+            except Exception:
+                db.session.rollback()
+                app.logger.exception('[DÉPÔTS] Erreur lors de l\'expiration automatique.')
+
+    interval = int(os.getenv('DEPOSIT_EXPIRY_CHECK_MINUTES', '15') or '15')
+    scheduler = BackgroundScheduler(timezone='UTC', daemon=True)
+    scheduler.add_job(
+        _run_job,
+        trigger=IntervalTrigger(minutes=interval),
+        id='deposit_expiry',
+        name='Expiration des dépôts',
+        replace_existing=True,
+        misfire_grace_time=300,
+        coalesce=True,
+    )
+    scheduler.start()
+    app.logger.info(f'PLANIFICATEUR | Expiration des dépôts programmée toutes les {interval} min.')
+    return scheduler
+
+
+deposit_expiry_scheduler = _start_deposit_expiry_scheduler()
+
+
+@app.cli.command('expire-stale-deposits')
+def expire_stale_deposits_command():
+    """Marque manuellement comme expirés les dépôts en attente depuis trop longtemps."""
+    with app.app_context():
+        n = _expire_stale_deposits()
+    print(f'{n} dépôt(s) expiré(s).')
 
 # ==================== ROUTES ====================
 
