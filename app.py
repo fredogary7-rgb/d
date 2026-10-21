@@ -1382,14 +1382,15 @@ ch = logging.StreamHandler()
 ch.setFormatter(logging.Formatter('[%(asctime)s] WEBHOOK | %(message)s'))
 webhook_logger.addHandler(ch)
 
-SOLEAS_WEBHOOK_SECRET = os.getenv('SOLEAS_WEBHOOK_SECRET', '')  # Clé privée SoleasPay (envoyée dans x-private-key)
+SOLEAS_WEBHOOK_SECRET = os.getenv('SOLEAS_WEBHOOK_SECRET', '')  # Clé secrète HMAC pour la vérification des webhooks
 
 
 def _verify_webhook_signature(payload_body: bytes, private_key_header: str) -> bool:
-    """Vérifie que le header x-private-key correspond à une clé autorisée.
+    """Vérifie la signature HMAC-SHA256 du webhook SoleasPay.
 
-    SoleasPay envoie la clé privée dans le header x-private-key.
-    Plusieurs clés sont acceptées (SoleasPay utilise des clés différentes selon l'environnement).
+    SoleasPay signe le corps brut de la requête avec la clé secrète et envoie
+    la signature hexadécimale dans le header x-private-key.
+    Plusieurs clés sont acceptées (via SOLEAS_EXTRA_KEYS, séparées par des virgules).
     """
     keys = [SOLEAS_WEBHOOK_SECRET] if SOLEAS_WEBHOOK_SECRET else []
     extra = os.getenv('SOLEAS_EXTRA_KEYS', '')
@@ -1404,7 +1405,8 @@ def _verify_webhook_signature(payload_body: bytes, private_key_header: str) -> b
         return False
 
     for key in keys:
-        if hmac.compare_digest(key.encode('utf-8'), private_key_header.encode('utf-8')):
+        expected = hmac.new(key.encode('utf-8'), payload_body, hashlib.sha256).hexdigest()
+        if hmac.compare_digest(expected, private_key_header):
             webhook_logger.info(f'Signature webhook validée (clé {key[:8]}...)')
             return True
 
