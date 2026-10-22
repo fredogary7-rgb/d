@@ -1434,12 +1434,15 @@ def _handle_payment_webhook(payload: dict):
     webhook_logger.info(f'WEBHOOK PURCHASE format={format_type} payload_keys={list(payload.keys())[:10]}')
     external_ref = (
         data.get('external_reference')
-        or payload.get('externalRef')
+        or data.get('invoice_reference')
+        or data.get('order_id')
         or payload.get('external_reference')
+        or payload.get('externalRef')
+        or payload.get('invoice_reference')
         or payload.get('order_id')
         or ''
     )
-    internal_ref = data.get('reference') or payload.get('internalRef') or ''
+    internal_ref = data.get('reference') or payload.get('transaction_reference') or payload.get('internalRef') or ''
     transfer = get_transfer_by_reference(external_ref) if external_ref else None
 
     # ---- Fallback : chercher un Deposit par external_reference ----
@@ -1645,11 +1648,11 @@ def _handle_withdraw_webhook(payload: dict):
         soleas_ref = ''
         external_ref = ''
 
-    # ---- Format B : plat (internalRef/externalRef en top-level) ----
+    # ---- Format B : plat (internalRef/externalRef / V4 en top-level) ----
     if not soleas_ref:
-        soleas_ref = payload.get('internalRef') or payload.get('reference') or ''
+        soleas_ref = payload.get('internalRef') or payload.get('reference') or payload.get('transaction_reference') or ''
     if not external_ref:
-        external_ref = payload.get('externalRef') or payload.get('external_reference') or ''
+        external_ref = payload.get('externalRef') or payload.get('external_reference') or payload.get('invoice_reference') or ''
 
     display_ref = soleas_ref or external_ref
     _log_webhook('WITHDRAW', display_ref, payload.get('status', 'UNKNOWN'), payload)
@@ -1807,9 +1810,9 @@ def webhook_soleaspay():
     operation = operation.upper().strip()
 
     # Router selon le type d'opération
-    if operation == 'PURCHASE':
+    if operation in ('PURCHASE', 'COLLECTION', 'PAYMENT', 'PAY-IN', 'PAYIN'):
         return _handle_payment_webhook(payload)
-    elif operation in ('WITHDRAW', 'WITHDRAWAL'):
+    elif operation in ('WITHDRAW', 'WITHDRAWAL', 'DISBURSEMENT', 'PAYOUT'):
         return _handle_withdraw_webhook(payload)
     else:
         webhook_logger.warning(f'Type d\'opération inconnu: {operation}')
