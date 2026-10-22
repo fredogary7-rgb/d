@@ -2270,10 +2270,89 @@ def deposit_status(reference):
 
 @app.route('/api/deposit/status/<reference>')
 @login_required
+def _credit_deposit(deposit, payload=None) -> bool:
+    """Crédite le portefeuille pour un dépôt confirmé (idempotent)."""
+    if deposit.status == 'COMPLETED':
+        return False
+    if payload:
+        deposit.webhook_payload = payload
+    deposit.status = 'COMPLETED'
+    deposit.status_message = 'Dépôt confirmé — portefeuille crédité.'
+    deposit.user.balance = (deposit.user.balance or 0) + deposit.amount
+
+    tx = Transaction(
+        user_id=deposit.user_id,
+        type='deposit',
+        amount=deposit.amount,
+        currency=deposit.currency,
+        fee=deposit.fees,
+        status='success',
+        recipient_name=deposit.user.fullname,
+        recipient_phone=deposit.phone,
+        recipient_country=deposit.country,
+        recipient_operator=deposit.operator,
+        reference=deposit.reference,
+        status_message='Dépôt confirmé — portefeuille crédité.',
+    )
+    db.session.add(tx)
+    db.session.commit()
+
+    try:
+        send_push_to_user(
+            user_id=deposit.user_id,
+            title="💰 Dépôt confirmé",
+            body=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a été crédité avec succès sur votre compte TransAfrik.",
+            url="/wallet",
+            tag=f"deposit-{deposit.reference}",
+            data={"reference": deposit.reference, "amount": deposit.amount, "currency": deposit.currency},
+        )
+        notif = Notification(
+            user_id=deposit.user_id,
+            title="Dépôt confirmé",
+            message=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a été crédité avec succès.",
+            type="deposit_success",
+            data={"reference": deposit.reference},
+        )
+        db.session.add(notif)
+        db.session.commit()
+    except Exception as push_err:
+        app.logger.warning(f"[PUSH] Échec notification dépôt: {push_err}")
+
+    try:
+        from services.email_service import send_deposit_email
+        send_deposit_email(
+            email=deposit.user.email,
+            fullname=deposit.user.fullname,
+            amount=deposit.amount,
+            currency=deposit.currency,
+            reference=deposit.reference,
+        )
+    except Exception as email_err:
+        app.logger.warning(f"[EMAIL] Échec envoi email dépôt: {email_err}")
+
+    return True
+
+
 def api_deposit_status(reference):
     deposit = Deposit.query.filter_by(reference=reference, user_id=current_user.id).first()
     if not deposit:
         return jsonify({'success': False, 'message': 'Dépôt introuvable'}), 404
+
+    # Vérification défensive : interroger SoleasPay pour le statut réel
+    if deposit.status in ('CREATED', 'PAYMENT_PROCESSING'):
+        try:
+            from services.soleaspay import verify_pay
+            result = verify_pay(order_id=deposit.reference, pay_id=deposit.payin_reference or '')
+            status = str(result.get('status', '') or '').upper()
+            if result.get('success') is True and status in ('SUCCESS', 'COMPLETED', 'APPROVED'):
+                _credit_deposit(deposit, payload=result)
+            elif status in ('FAILURE', 'FAILED', 'FAIL', 'CANCELLED', 'CANCELED'):
+                deposit.status = 'FAILED'
+                deposit.status_message = 'Échec du paiement (vérifié via SoleasPay).'
+                db.session.commit()
+        except Exception as e:
+            app.logger.warning(f'[DÉPÔTS] Échec vérification verif-pay: {e}')
+
     return jsonify({'success': True, 'deposit': deposit.to_dict()})
 
 

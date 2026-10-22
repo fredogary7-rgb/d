@@ -568,3 +568,37 @@ def _mask_sensitive(headers: Dict[str, str]) -> Dict[str, str]:
     if auth.startswith("Bearer ") and len(auth) > 30:
         masked["Authorization"] = auth[:20] + "..." + auth[-10:]
     return masked
+
+
+def verify_pay(order_id: str, pay_id: str = "", service: int = 1) -> Dict[str, Any]:
+    """Vérifie si un paiement a été validé par le client.
+
+    GET /api/agent/verif-pay?orderId=...&payId=...
+
+    Args:
+        order_id: Référence unique de commande côté TransAfrik.
+        pay_id: Référence SoleasPay reçue lors du Pay-In (optionnelle).
+        service: ID du service (défaut 1).
+
+    Returns:
+        dict: Réponse JSON de SoleasPay (status SUCCESS/PROCESSING/FAILURE...).
+    """
+    url = f"{SOLEAS_BASE_URL}/api/agent/verif-pay"
+    params = {"orderId": order_id}
+    if pay_id:
+        params["payId"] = pay_id
+
+    headers = {
+        "x-api-key": SOLEAS_API_KEY,
+        "operation": "2",
+        "service": str(service),
+        "Content-Type": "application/json",
+    }
+
+    try:
+        resp = requests.get(url, headers=headers, params=params, timeout=30)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.RequestException as e:
+        logger.error(f"verify_pay() failed: {e}")
+        return {"success": False, "message": str(e), "code": 0, "status": "ERROR"}
