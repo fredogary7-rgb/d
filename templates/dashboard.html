@@ -36,6 +36,9 @@
         a{text-decoration:none;color:inherit}
         h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
         img{max-width:100%;height:auto}
+        /* Prévention du zoom accidentel par double-tap sur les éléments interactifs,
+           sans bloquer le zoom manuel (pincement) ni les champs de saisie. */
+        button,a,.quick-action-card,.mb-nav-item,.sidebar-link,.bal-action-btn,.topbar-profile,.topbar-icon-btn,.topbar-lang,.kyc-cta,.ref-copy-btn{touch-action:manipulation}
 
         .gradient-text{background:linear-gradient(135deg,var(--blue),var(--green),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
@@ -617,9 +620,9 @@
     <div class="dashboard-footer">
         <div>
             <a href="/support">Support</a> &nbsp;·&nbsp;
-            <a href="#">FAQ</a> &nbsp;·&nbsp;
-            <a href="#">Conditions</a> &nbsp;·&nbsp;
-            <a href="#">Politique de confidentialité</a>
+            <a href="/faq">FAQ</a> &nbsp;·&nbsp;
+            <a href="/terms">Conditions</a> &nbsp;·&nbsp;
+            <a href="/privacy">Politique de confidentialité</a>
         </div>
         <div>© 2026 TransAfrik · Version 1.0</div>
     </div>
