@@ -2215,6 +2215,30 @@ def api_create_deposit():
             deposit.status = 'FAILED'
             deposit.status_message = result.get('message', 'Échec du paiement')
         db.session.commit()
+
+        # Notification push : dépôt initié (en attente de confirmation)
+        if deposit.status == 'PAYMENT_PROCESSING':
+            try:
+                send_push_to_user(
+                    user_id=current_user.id,
+                    title="⏳ Dépôt initié",
+                    body=f"Votre dépôt de {deposit.amount:,} {deposit.currency} est en attente de confirmation.",
+                    url="/deposit/" + reference,
+                    tag=f"deposit-init-{deposit.reference}",
+                    data={"reference": deposit.reference, "amount": deposit.amount, "currency": deposit.currency},
+                )
+                notif = Notification(
+                    user_id=current_user.id,
+                    title="Dépôt initié",
+                    message=f"Votre dépôt de {deposit.amount:,} {deposit.currency} est en attente de confirmation.",
+                    type="deposit_processing",
+                    data={"reference": deposit.reference},
+                )
+                db.session.add(notif)
+                db.session.commit()
+            except Exception as push_err:
+                app.logger.warning(f"[PUSH] Échec notification dépôt initié: {push_err}")
+
         return jsonify({
             'success': True,
             'message': 'Dépôt créé, paiement en cours.',
