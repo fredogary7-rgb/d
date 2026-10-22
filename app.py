@@ -2206,8 +2206,9 @@ def api_create_deposit():
             payer_email=current_user.email,
         )
         deposit.payin_response = result
-        deposit.payin_reference = result.get('reference', '') or result.get('payin_reference', '')
-        deposit.external_reference = result.get('external_reference', '') or result.get('order_id', '')
+        data_block = result.get('data') if isinstance(result.get('data'), dict) else {}
+        deposit.payin_reference = data_block.get('reference') or result.get('reference') or result.get('payin_reference') or ''
+        deposit.external_reference = data_block.get('external_reference') or result.get('external_reference') or result.get('order_id') or ''
         if result.get('success') or result.get('code') == 0:
             deposit.status = 'PAYMENT_PROCESSING'
             deposit.status_message = 'Paiement en cours...'

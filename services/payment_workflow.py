@@ -83,11 +83,11 @@ def is_payment_failed(response: Dict[str, Any]) -> bool:
     """Vérifie si la réponse SoleasPay indique un échec."""
     if not isinstance(response, dict):
         return True  # Si pas de réponse, considérer comme échec
+    status = str(response.get("status", "") or "").upper()
     return (
         response.get("success") is False
         or response.get("code") == 400
-        or response.get("status") == "FAILURE"
-        or response.get("status") == "FAILED"
+        or status in ("FAILURE", "FAILED", "FAIL", "CANCELLED", "CANCELED", "EXPIRED", "REJECTED", "ERROR")
     )
 
 
