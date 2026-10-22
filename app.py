@@ -2329,6 +2329,29 @@ def webhook_deposit():
         deposit.status_message = payload.get('message', 'Échec du dépôt')
         db.session.commit()
         webhook_logger.info(f'Dépôt FAILED: {deposit.reference}')
+
+        # ---- Notification push échec ----
+        try:
+            send_push_to_user(
+                user_id=deposit.user_id,
+                title="❌ Dépôt échoué",
+                body=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a échoué : {deposit.status_message}",
+                url="/wallet",
+                tag=f"deposit-{deposit.reference}",
+                data={"reference": deposit.reference, "amount": deposit.amount, "currency": deposit.currency},
+            )
+            notif = Notification(
+                user_id=deposit.user_id,
+                title="Dépôt échoué",
+                message=f"Votre dépôt de {deposit.amount:,} {deposit.currency} a échoué.",
+                type="deposit_failed",
+                data={"reference": deposit.reference},
+            )
+            db.session.add(notif)
+            db.session.commit()
+        except Exception as push_err:
+            app.logger.warning(f"[PUSH] Échec notification échec dépôt: {push_err}")
+
         return jsonify({'success': False, 'message': 'Dépôt échoué', 'status': 'FAILED'})
     else:
         deposit.webhook_payload = payload
