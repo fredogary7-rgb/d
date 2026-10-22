@@ -12,8 +12,9 @@ from sqlalchemy import func
 
 from admin import admin_bp
 from admin.models import AdminLog, AdminNotification, AdminUser, PlatformNotification, SystemConfig, UserNotification
-from models import (Beneficiary, Deposit, KycRequest, Notification, PaymentRequest, Review, SupportMessage,
-                    SupportTicket, Transaction, TransactionReceive, User, PushSubscription, db)
+from models import (Beneficiary, Deposit, KycRequest, Notification, PaymentRequest, Review, ServiceStatus,
+                    StatusIncident, SupportMessage, SupportTicket, Transaction, TransactionReceive, User,
+                    PushSubscription, db)
 from services.push_service import send_push_to_user
 
 
@@ -672,6 +673,103 @@ def reject_deposit(tx_id):
     db.session.commit()
     flash('Dépôt refusé.', 'warning')
     return redirect(url_for('admin.deposits'))
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# STATUS PAGE
+# ══════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/status')
+@admin_required
+def status_admin():
+    admin = get_admin()
+    services = ServiceStatus.query.order_by(ServiceStatus.category, ServiceStatus.sort_order).all()
+    incidents = StatusIncident.query.order_by(StatusIncident.created_at.desc()).all()
+    return render_template('admin_status.html', page='status',
+                           services=services, incidents=incidents)
+
+
+@admin_bp.route('/status/service/update', methods=['POST'])
+@admin_required
+def status_service_update():
+    admin = get_admin()
+    service = ServiceStatus.query.get_or_404(request.form.get('service_id', type=int))
+    status = request.form.get('status', '')
+    if status in ServiceStatus.STATUS_CHOICES:
+        service.status = status
+        db.session.commit()
+        log_action(admin, 'status_update', 'service_status', service.id, {'status': status})
+        flash('Statut mis à jour.', 'success')
+    return redirect(url_for('admin.status_admin'))
+
+
+@admin_bp.route('/status/service/add', methods=['POST'])
+@admin_required
+def status_service_add():
+    admin = get_admin()
+    name = request.form.get('name', '').strip()
+    category = request.form.get('category', '').strip() or 'Systèmes'
+    if name:
+        db.session.add(ServiceStatus(
+            name=name,
+            category=category,
+            description=request.form.get('description', '').strip() or None,
+            status='operational',
+        ))
+        db.session.commit()
+        flash('Service ajouté.', 'success')
+    return redirect(url_for('admin.status_admin'))
+
+
+@admin_bp.route('/status/service/<int:service_id>/delete', methods=['POST'])
+@admin_required
+def status_service_delete(service_id):
+    admin = get_admin()
+    db.session.delete(ServiceStatus.query.get_or_404(service_id))
+    db.session.commit()
+    flash('Service supprimé.', 'success')
+    return redirect(url_for('admin.status_admin'))
+
+
+@admin_bp.route('/status/incident/add', methods=['POST'])
+@admin_required
+def status_incident_add():
+    admin = get_admin()
+    title = request.form.get('title', '').strip()
+    message = request.form.get('message', '').strip()
+    status = request.form.get('status', 'investigating')
+    if status not in StatusIncident.STATUS_CHOICES:
+        status = 'investigating'
+    if title and message:
+        db.session.add(StatusIncident(title=title, message=message, status=status))
+        db.session.commit()
+        flash('Incident créé.', 'success')
+    return redirect(url_for('admin.status_admin'))
+
+
+@admin_bp.route('/status/incident/<int:incident_id>/update', methods=['POST'])
+@admin_required
+def status_incident_update(incident_id):
+    admin = get_admin()
+    inc = StatusIncident.query.get_or_404(incident_id)
+    status = request.form.get('status', '')
+    if status in StatusIncident.STATUS_CHOICES:
+        inc.status = status
+        if status == 'resolved' and not inc.resolved_at:
+            inc.resolved_at = datetime.utcnow()
+        db.session.commit()
+        flash('Incident mis à jour.', 'success')
+    return redirect(url_for('admin.status_admin'))
+
+
+@admin_bp.route('/status/incident/<int:incident_id>/delete', methods=['POST'])
+@admin_required
+def status_incident_delete(incident_id):
+    admin = get_admin()
+    db.session.delete(StatusIncident.query.get_or_404(incident_id))
+    db.session.commit()
+    flash('Incident supprimé.', 'success')
+    return redirect(url_for('admin.status_admin'))
 
 
 # ══════════════════════════════════════════════════════════════════════════

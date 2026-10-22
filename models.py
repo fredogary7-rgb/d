@@ -1138,3 +1138,61 @@ class Review(db.Model):
         return f'<Review {self.id} user={self.user_id} rating={self.rating} approved={self.approved}>'
 
 
+class ServiceStatus(db.Model):
+    """Statut d'un composant/service (page de statut publique)."""
+    __tablename__ = 'service_statuses'
+
+    STATUS_CHOICES = ['operational', 'degraded', 'outage', 'maintenance']
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    category = db.Column(db.String(120), nullable=False, default='Systèmes')
+    status = db.Column(db.String(20), nullable=False, default='operational', index=True)
+    description = db.Column(db.String(300), nullable=True)
+    sort_order = db.Column(db.Integer, default=0)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'category': self.category,
+            'status': self.status,
+            'description': self.description,
+            'sort_order': self.sort_order,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    def __repr__(self):
+        return f'<ServiceStatus {self.name} {self.status}>'
+
+
+class StatusIncident(db.Model):
+    """Incident / maintenance affiché sur la page de statut publique."""
+    __tablename__ = 'status_incidents'
+
+    STATUS_CHOICES = ['investigating', 'identified', 'monitoring', 'resolved']
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='investigating', index=True)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'status': self.status,
+            'message': self.message,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'resolved_at': self.resolved_at.isoformat() if self.resolved_at else None,
+        }
+
+    def __repr__(self):
+        return f'<StatusIncident {self.id} {self.status}>'
+
+

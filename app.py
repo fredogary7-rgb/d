@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription, Withdrawal, PaymentRequest, TransactionReceive, Notification
+from models import db, User, Transfer, Deposit, Beneficiary, Transaction, OtpCode, KycRequest, SupportTicket, SupportMessage, PushSubscription, Withdrawal, PaymentRequest, TransactionReceive, Notification, ServiceStatus, StatusIncident
 from services.receive_service import (
     create_payment_request, cancel_payment_request, get_payment_request_by_code,
     get_user_payment_requests, get_recent_received_payments,
@@ -481,6 +481,28 @@ def terms():
 @app.route('/security')
 def security():
     return render_template('security.html')
+
+
+@app.route('/status')
+def status_page():
+    services = ServiceStatus.query.order_by(ServiceStatus.category, ServiceStatus.sort_order).all()
+    incidents = StatusIncident.query.order_by(StatusIncident.created_at.desc()).limit(30).all()
+
+    # Statut global
+    overall = 'operational'
+    for s in services:
+        if s.status == 'outage':
+            overall = 'outage'
+            break
+        if s.status in ('degraded', 'maintenance') and overall == 'operational':
+            overall = s.status
+
+    # Regrouper par catégorie
+    categories = {}
+    for s in services:
+        categories.setdefault(s.category, []).append(s)
+
+    return render_template('status.html', categories=categories, incidents=incidents, overall=overall)
 
 @app.route('/features')
 def features():
