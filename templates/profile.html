@@ -339,9 +339,17 @@
             <div class="section-card" id="section-info">
                 <div class="section-header">
                     <div class="section-title"><i class="fa-solid fa-user-pen"></i> Informations personnelles</div>
+                    {% if user.kyc_status != 'verified' %}
                     <button type="submit" form="profileInfoForm" class="btn btn-primary btn-sm" id="saveInfoBtn"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
+                    {% endif %}
                 </div>
+                {% if user.kyc_status == 'verified' %}
+                <div style="padding:12px 16px;background:#D1FAE5;border:1px solid #A7F3D0;border-radius:10px;color:#047857;font-size:13px;margin-bottom:16px">
+                    <i class="fa-solid fa-shield-check"></i> Votre identité a été vérifiée (KYC). Les informations personnelles ne peuvent plus être modifiées.
+                </div>
+                {% endif %}
                 <form id="profileInfoForm" method="POST" action="{{ url_for('profile_update') }}">
+                    <fieldset {% if user.kyc_status == 'verified' %}disabled{% endif %} style="border:none;padding:0;margin:0;min-width:0">
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label">Nom</label>
@@ -408,6 +416,7 @@
                             <input type="text" class="form-input" name="postal_code" placeholder="Code postal" value="{{ user.postal_code or '' }}">
                         </div>
                     </div>
+                    </fieldset>
                 </form>
             </div>
 

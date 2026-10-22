@@ -1141,6 +1141,10 @@ def profile():
 @login_required
 def profile_update():
     user = current_user
+    if user.kyc_status == 'verified':
+        flash('Votre identité a été vérifiée (KYC). Les informations personnelles ne peuvent plus être modifiées.', 'error')
+        return redirect(url_for('profile'))
+
     firstname = request.form.get('firstname', '').strip()
     lastname = request.form.get('lastname', '').strip()
     if firstname and lastname:
