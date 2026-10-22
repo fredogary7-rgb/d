@@ -43,39 +43,49 @@
                     <th>Opérateur</th>
                     <th>Montant</th>
                     <th>Statut</th>
+                    <th>Webhook</th>
                     <th>Description</th>
                     <th>Date</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for tx in deposits.items %}
+                {% for d in deposits.items %}
                 <tr>
-                    <td class="mono">#{{ tx.id }}</td>
-                    <td class="mono">{{ tx.reference or '—' }}</td>
-                    <td>{{ tx.user.email if tx.user else 'N/A' }}</td>
-                    <td class="mono">{{ tx.recipient_phone or '—' }}</td>
-                    <td>{{ tx.recipient_country or '—' }}</td>
-                    <td>{{ tx.recipient_operator or '—' }}</td>
-                    <td><strong>{{ tx.amount|int }} {{ tx.currency or 'XOF' }}</strong></td>
+                    <td class="mono">#{{ d.id }}</td>
+                    <td class="mono">{{ d.reference or '—' }}</td>
+                    <td>{{ d.user.email if d.user else 'N/A' }}</td>
+                    <td class="mono">{{ d.phone or '—' }}</td>
+                    <td>{{ d.country or '—' }}</td>
+                    <td>{{ d.operator or '—' }}</td>
+                    <td><strong>{{ d.amount|int }} {{ d.currency or 'XOF' }}</strong></td>
                     <td>
-                        {% if tx.status == 'pending' %}<span class="badge-status bs-pending">En attente</span>
-                        {% elif tx.status == 'success' %}<span class="badge-status bs-success">Réussi</span>
-                        {% elif tx.status == 'failed' %}<span class="badge-status bs-failed">Échoué</span>
-                        {% else %}{{ tx.status }}{% endif %}
+                        {% if d.status == 'COMPLETED' %}<span class="badge-status bs-success">Réussi</span>
+                        {% elif d.status == 'FAILED' %}<span class="badge-status bs-failed">Échoué</span>
+                        {% elif d.status == 'PAYMENT_PROCESSING' %}<span class="badge-status bs-processing">En attente</span>
+                        {% elif d.status == 'CREATED' %}<span class="badge-status bs-pending">Créé</span>
+                        {% elif d.status == 'CANCELLED' %}<span class="badge-status bs-closed">Annulé</span>
+                        {% else %}{{ d.status }}{% endif %}
                     </td>
-                    <td>{{ tx.status_message or tx.description or '—' }}</td>
-                    <td>{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>
-                        {% if tx.status == 'pending' %}
-                        <form method="POST" action="/admin/deposits/{{ tx.id }}/validate" style="display:inline">
+                        {% if d.webhook_payload %}
+                        <span class="badge-status bs-success">✅ Reçu</span>
+                        {% else %}
+                        <span class="badge-status bs-failed">❌ Non reçu</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ d.status_message or '—' }}</td>
+                    <td>{{ d.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        {% if d.status in ('CREATED', 'PAYMENT_PROCESSING') %}
+                        <form method="POST" action="/admin/deposits/{{ d.id }}/validate" style="display:inline">
                             <button class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i></button>
                         </form>
-                        <form method="POST" action="/admin/deposits/{{ tx.id }}/reject" style="display:inline" onsubmit="return rejectWithReason(this)">
+                        <form method="POST" action="/admin/deposits/{{ d.id }}/reject" style="display:inline" onsubmit="return rejectWithReason(this)">
                             <input type="hidden" name="reason" value="">
                             <button class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i></button>
                         </form>
-                        {% else %}{% endif %}
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

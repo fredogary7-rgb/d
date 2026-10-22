@@ -12,8 +12,8 @@ from sqlalchemy import func
 
 from admin import admin_bp
 from admin.models import AdminLog, AdminNotification, AdminUser, PlatformNotification, SystemConfig, UserNotification
-from models import (Beneficiary, KycRequest, Notification, PaymentRequest, Review, SupportMessage, SupportTicket,
-                    Transaction, TransactionReceive, User, PushSubscription, db)
+from models import (Beneficiary, Deposit, KycRequest, Notification, PaymentRequest, Review, SupportMessage,
+                    SupportTicket, Transaction, TransactionReceive, User, PushSubscription, db)
 from services.push_service import send_push_to_user
 
 
@@ -609,20 +609,24 @@ def deposits():
     date_from = request.args.get('date_from', '')
     date_to = request.args.get('date_to', '')
 
-    query = Transaction.query.filter_by(type='deposit')
-    if status:
-        query = query.filter_by(status=status)
+    query = Deposit.query
+    if status == 'pending':
+        query = query.filter(Deposit.status.in_(['CREATED', 'PAYMENT_PROCESSING']))
+    elif status == 'success':
+        query = query.filter_by(status='COMPLETED')
+    elif status == 'failed':
+        query = query.filter_by(status='FAILED')
     if date_from:
-        query = query.filter(Transaction.created_at >= datetime.strptime(date_from, '%Y-%m-%d'))
+        query = query.filter(Deposit.created_at >= datetime.strptime(date_from, '%Y-%m-%d'))
     if date_to:
-        query = query.filter(Transaction.created_at <= datetime.strptime(date_to, '%Y-%m-%d') + timedelta(days=1))
+        query = query.filter(Deposit.created_at <= datetime.strptime(date_to, '%Y-%m-%d') + timedelta(days=1))
 
-    deposits_paginated = query.order_by(Transaction.created_at.desc()).paginate(
+    deposits_paginated = query.order_by(Deposit.created_at.desc()).paginate(
         page=page, per_page=per_page, error_out=False)
 
-    pending_count = Transaction.query.filter_by(type='deposit', status='pending').count()
-    success_count = Transaction.query.filter_by(type='deposit', status='success').count()
-    failed_count = Transaction.query.filter_by(type='deposit', status='failed').count()
+    pending_count = Deposit.query.filter(Deposit.status.in_(['CREATED', 'PAYMENT_PROCESSING'])).count()
+    success_count = Deposit.query.filter_by(status='COMPLETED').count()
+    failed_count = Deposit.query.filter_by(status='FAILED').count()
 
     return render_template('admin_deposits.html', page='deposits',
                            deposits=deposits_paginated,
@@ -635,19 +639,16 @@ def deposits():
 @admin_required
 def validate_deposit(tx_id):
     admin = get_admin()
-    tx = Transaction.query.get_or_404(tx_id)
-    if tx.type != 'deposit':
-        flash('Cette transaction n\'est pas un dépôt.', 'error')
-        return redirect(url_for('admin.deposits'))
+    deposit = Deposit.query.get_or_404(tx_id)
 
-    tx.status = 'success'
-    tx.status_message = 'Dépôt validé manuellement.'
-    user = tx.user
+    deposit.status = 'COMPLETED'
+    deposit.status_message = 'Dépôt validé manuellement.'
+    user = deposit.user
     if user:
-        user.balance = (user.balance or 0) + tx.amount
-    log_action(admin, 'deposit_validate', 'transaction', tx.id, {
-        'amount': tx.amount,
-        'user_id': tx.user_id
+        user.balance = (user.balance or 0) + deposit.amount
+    log_action(admin, 'deposit_validate', 'deposit', deposit.id, {
+        'amount': deposit.amount,
+        'user_id': deposit.user_id
     })
     db.session.commit()
     flash('Dépôt validé avec succès.', 'success')
@@ -658,18 +659,15 @@ def validate_deposit(tx_id):
 @admin_required
 def reject_deposit(tx_id):
     admin = get_admin()
-    tx = Transaction.query.get_or_404(tx_id)
-    if tx.type != 'deposit':
-        flash('Cette transaction n\'est pas un dépôt.', 'error')
-        return redirect(url_for('admin.deposits'))
+    deposit = Deposit.query.get_or_404(tx_id)
 
     reason = request.form.get('reason', '').strip()
-    tx.status = 'failed'
-    tx.status_message = reason or 'Dépôt refusé.'
-    log_action(admin, 'deposit_reject', 'transaction', tx.id, {
-        'amount': tx.amount,
-        'user_id': tx.user_id,
-        'reason': tx.status_message
+    deposit.status = 'FAILED'
+    deposit.status_message = reason or 'Dépôt refusé.'
+    log_action(admin, 'deposit_reject', 'deposit', deposit.id, {
+        'amount': deposit.amount,
+        'user_id': deposit.user_id,
+        'reason': deposit.status_message
     })
     db.session.commit()
     flash('Dépôt refusé.', 'warning')
