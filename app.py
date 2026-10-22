@@ -2268,8 +2268,6 @@ def deposit_status(reference):
     return render_template('deposit_status.html', user=current_user, deposit=deposit)
 
 
-@app.route('/api/deposit/status/<reference>')
-@login_required
 def _credit_deposit(deposit, payload=None) -> bool:
     """Crédite le portefeuille pour un dépôt confirmé (idempotent)."""
     if deposit.status == 'COMPLETED':
@@ -2333,6 +2331,8 @@ def _credit_deposit(deposit, payload=None) -> bool:
     return True
 
 
+@app.route('/api/deposit/status/<reference>')
+@login_required
 def api_deposit_status(reference):
     deposit = Deposit.query.filter_by(reference=reference, user_id=current_user.id).first()
     if not deposit:
