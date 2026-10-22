@@ -15,7 +15,7 @@ from admin.models import AdminLog, AdminNotification, AdminUser, PlatformNotific
 from models import (Beneficiary, Deposit, KycRequest, Notification, PaymentRequest, Review, ServiceStatus,
                     StatusIncident, SupportMessage, SupportTicket, Transaction, TransactionReceive, User,
                     PushSubscription, db)
-from services.push_service import send_push_to_user
+from services.push_service import send_push_to_user, send_push_to_all
 
 
 # ── Decorator ──────────────────────────────────────────────────────────────
@@ -679,6 +679,20 @@ def reject_deposit(tx_id):
 # STATUS PAGE
 # ══════════════════════════════════════════════════════════════════════════
 
+def _broadcast_status_push(title, body, tag):
+    """Diffuse une notification push d'urgence à tous les utilisateurs."""
+    try:
+        return send_push_to_all(
+            title=title,
+            body=body,
+            url="/status",
+            tag=tag,
+            require_interaction=True,
+        )
+    except Exception:
+        return None
+
+
 @admin_bp.route('/status')
 @admin_required
 def status_admin():
@@ -700,6 +714,12 @@ def status_service_update():
         db.session.commit()
         log_action(admin, 'status_update', 'service_status', service.id, {'status': status})
         flash('Statut mis à jour.', 'success')
+        if status in ('outage', 'maintenance', 'degraded'):
+            _broadcast_status_push(
+                title="⚠️ Problème sur un service TransAfrik",
+                body=f"Le service « {service.name} » rencontre actuellement des difficultés.",
+                tag=f"status-service-{service.id}",
+            )
     return redirect(url_for('admin.status_admin'))
 
 
@@ -741,9 +761,15 @@ def status_incident_add():
     if status not in StatusIncident.STATUS_CHOICES:
         status = 'investigating'
     if title and message:
-        db.session.add(StatusIncident(title=title, message=message, status=status))
+        inc = StatusIncident(title=title, message=message, status=status)
+        db.session.add(inc)
         db.session.commit()
         flash('Incident créé.', 'success')
+        _broadcast_status_push(
+            title="🔴 Incident TransAfrik",
+            body=f"{title} — {message}",
+            tag=f"status-incident-{inc.id}",
+        )
     return redirect(url_for('admin.status_admin'))
 
 
@@ -759,6 +785,12 @@ def status_incident_update(incident_id):
             inc.resolved_at = datetime.utcnow()
         db.session.commit()
         flash('Incident mis à jour.', 'success')
+        if status == 'resolved':
+            _broadcast_status_push(
+                title="✅ Incident résolu",
+                body=f"L'incident « {inc.title} » a été résolu.",
+                tag=f"status-incident-{inc.id}",
+            )
     return redirect(url_for('admin.status_admin'))
 
 
